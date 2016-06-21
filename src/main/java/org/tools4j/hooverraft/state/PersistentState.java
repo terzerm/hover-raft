@@ -25,9 +25,6 @@ package org.tools4j.hooverraft.state;
 
 import org.tools4j.hooverraft.command.CommandLog;
 
-/**
- * Created by terz on 21/06/2016.
- */
 public interface PersistentState {
     int currentTerm();
     int votedFor();

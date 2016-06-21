@@ -26,9 +26,6 @@ package org.tools4j.hooverraft.command;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 
-/**
- * Created by terz on 21/06/2016.
- */
 public interface CommandLog<T> {
     long size();
     void moveToFirst();

@@ -23,9 +23,6 @@
  */
 package org.tools4j.hooverraft.state;
 
-/**
- * Created by terz on 21/06/2016.
- */
 public interface ServerState {
     PersistentState persistentState();
     VolatileState volatileState();

@@ -21,12 +21,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hooverraft.state;
+package org.tools4j.hooverraft.message;
 
-public interface VolatileState {
-    Role role();
-    long commitIndex();
-    int lastApplied();
-    int followerCount();
-    FollowerState followerState(int index);
+import io.aeron.logbuffer.FragmentHandler;
+
+public interface Subscription {
+    int sourceId();
+    int poll(FragmentHandler fragmentHandler);
 }

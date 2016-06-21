@@ -21,12 +21,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hooverraft.state;
+package org.tools4j.hooverraft.aeron;
 
-public interface VolatileState {
-    Role role();
-    long commitIndex();
-    int lastApplied();
-    int followerCount();
-    FollowerState followerState(int index);
+import io.aeron.logbuffer.FragmentHandler;
+import org.tools4j.hooverraft.message.Subscription;
+
+import java.util.Objects;
+
+public final class AeronSubscription implements Subscription {
+
+    private static final int FRAGMENT_LIMIT = 256;//TODO make this configurable
+
+    private final int sourceId;
+    private final io.aeron.Subscription subscription;
+
+    public AeronSubscription(final int sourceId, final io.aeron.Subscription subscription) {
+        this.sourceId = sourceId;
+        this.subscription = Objects.requireNonNull(subscription);
+    }
+
+    @Override
+    public int sourceId() {
+        return sourceId;
+    }
+
+    @Override
+    public int poll(final FragmentHandler fragmentHandler) {
+        return subscription.poll(fragmentHandler, FRAGMENT_LIMIT);
+    }
 }

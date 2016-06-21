@@ -23,10 +23,8 @@
  */
 package org.tools4j.hooverraft.state;
 
-public interface VolatileState {
-    Role role();
-    long commitIndex();
-    int lastApplied();
-    int followerCount();
-    FollowerState followerState(int index);
+public enum Role {
+    CANDIDATE,
+    LEADER,
+    FOLLOWER
 }

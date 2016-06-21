@@ -21,12 +21,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hooverraft.state;
+package org.tools4j.hooverraft.config;
 
-public interface VolatileState {
-    Role role();
-    long commitIndex();
-    int lastApplied();
-    int followerCount();
-    FollowerState followerState(int index);
+import java.util.Optional;
+
+public interface ConsensusConfig {
+    long minElectionTimeoutMillis();
+    long maxElectionTimeoutMillis();
+    Optional<String> ipcMulticastChannel();
+    int serverCount();
+    ServerConfig serverConfig(int index);
 }

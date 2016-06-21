@@ -23,14 +23,12 @@
  */
 package org.tools4j.hooverraft.command;
 
-import java.util.function.BiFunction;
+import io.aeron.logbuffer.FragmentHandler;
 
-/**
- * Created by terz on 21/06/2016.
- */
 public interface Command {
-    int type(); //identifies command/message type
-    long id();  //unique within type
+    long id();       //must be unique per sourceId
+    int sourceId();
     int prevLogTerm();
     long prevLogIndex();
+    void process(FragmentHandler fragmentHandler);
 }

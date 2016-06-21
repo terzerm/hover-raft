@@ -23,17 +23,12 @@
  */
 package org.tools4j.hooverraft.ipc;
 
-import org.tools4j.hooverraft.command.Command;
-
-/**
- * Created by terz on 21/06/2016.
- */
 public interface AppendEntriesRequest {
     int term();
     int leaderId();
     int prevLogTerm();
     long prevLogIndex();
-    int commandType();
+    int commandSourceId();
     long commandId();
     long leaderCommit();
 }

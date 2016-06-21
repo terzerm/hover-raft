@@ -21,12 +21,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hooverraft.state;
+package org.tools4j.hooverraft.message;
 
-public interface VolatileState {
-    Role role();
-    long commitIndex();
-    int lastApplied();
-    int followerCount();
-    FollowerState followerState(int index);
+import org.agrona.DirectBuffer;
+
+public interface Publication {
+    /**
+     * The publication is not yet connected to a subscriber.
+     */
+    long NOT_CONNECTED = -1;
+
+    /**
+     * The offer failed due to back pressure from the subscribers preventing further transmission.
+     */
+    long BACK_PRESSURED = -2;
+
+    /**
+     * The offer failed due to an administration action and should be retried.
+     */
+    long ADMIN_ACTION = -3;
+
+    /**
+     * The {@link Publication} has been closed and should no longer be used.
+     */
+    long CLOSED = -4;
+
+    /**
+     * Non-blocking publish of a partial buffer containing a message.
+     *
+     * @param buffer containing message.
+     * @param offset offset in the buffer at which the encoded message begins.
+     * @param length in bytes of the encoded message.
+     * @return The new stream position, otherwise a negative error value {@link #NOT_CONNECTED}, {@link #BACK_PRESSURED},
+     * {@link #ADMIN_ACTION} or {@link #CLOSED}.
+     */
+    long offer(final DirectBuffer buffer, final int offset, final int length);
 }

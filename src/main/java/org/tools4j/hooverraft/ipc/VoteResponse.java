@@ -23,9 +23,6 @@
  */
 package org.tools4j.hooverraft.ipc;
 
-/**
- * Created by terz on 21/06/2016.
- */
 public interface VoteResponse {
     int term();
     boolean voteGranted();
