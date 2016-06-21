@@ -1,0 +1,112 @@
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'license'
+
+sourceCompatibility = 1.8
+group = "org.tools4j"
+version = '1.0.1-SNAPSHOT'
+archivesBaseName = "hoover-raft"
+
+def generatedSrcName = "generated-src"
+def generatedSrc = "$buildDir/$generatedSrcName"
+
+idea {
+    module {
+        downloadJavadoc = true
+        downloadSources = true
+        excludeDirs -= file(buildDir)
+        buildDir.listFiles({d,f->f != generatedSrcName} as FilenameFilter).each {excludeDirs += it}
+    }
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'hoover-raft', 'Implementation-Version': version
+    }
+}
+
+repositories {
+    mavenCentral()
+    flatDir {
+        dirs 'lib'
+    }
+}
+
+buildscript {
+	repositories {
+		mavenCentral()
+        jcenter()
+	}
+	
+	dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
+		classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.11.0'
+		classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.3"
+	}
+}
+
+dependencies {
+    compile 'io.aeron:aeron-all:0.9.7'
+//    compile 'net.openhft:chronicle-queue:4.4.2'
+    compile 'net.openhft:chronicle:3.6.2'
+    compile 'org.hdrhistogram:HdrHistogram:2.1.9'
+    testCompile 'junit:junit:4.11'
+    testCompile 'org.assertj:assertj-core:3.4.1'
+    testCompile 'ByteWatcher:bytewatcher:1.1'
+}
+
+uploadArchives {
+    repositories {
+       flatDir {
+           dirs 'build/repositories'
+       }
+    }
+}
+
+task copyLicense(type: Copy) {
+    from('.')
+    into('build/resources/main/')
+    include('LICENSE.md')
+    rename('LICENSE.md', 'LICENSE.txt')
+}
+
+task copyLicenseToSrc(type: Copy) {
+    from('build/resources/main/')
+    into(generatedSrc)
+    include('LICENSE.txt')
+}
+
+license {
+    header rootProject.file('src/main/resources/LICENSE.template')
+    strictCheck true
+	include "**/*.java"
+	ext.year = Calendar.getInstance().get(Calendar.YEAR)
+}
+
+copyLicense.dependsOn processResources
+copyLicenseToSrc.dependsOn copyLicense
+compileJava.dependsOn licenseFormat,copyLicense,copyLicenseToSrc
+
+javadoc {
+	options.showFromPackage()
+	options.linkSource()
+	options.links("http://docs.oracle.com/javase/8/docs/api/");
+	options.windowTitle = "hoover-raft API ${version}"
+	options.overview = "src/main/java/overview.html";
+}
+
+task javadocJar(type: Jar) {
+    classifier = 'javadoc'
+    from javadoc
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives jar
+    archives javadocJar
+    archives sourcesJar
+}
