@@ -23,10 +23,13 @@
  */
 package org.tools4j.hooverraft.state;
 
+import org.tools4j.hooverraft.message.Subscription;
+
 public interface VolatileState {
     Role role();
     long commitIndex();
     int lastApplied();
     int followerCount();
+    Subscription subscription(int sourceId);
     FollowerState followerState(int index);
 }

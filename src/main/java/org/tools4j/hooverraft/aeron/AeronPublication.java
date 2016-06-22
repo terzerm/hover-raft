@@ -21,14 +21,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hooverraft.state;
+package org.tools4j.hooverraft.aeron;
 
-import org.tools4j.hooverraft.message.MessageLog;
+import org.agrona.DirectBuffer;
+import org.tools4j.hooverraft.message.Publication;
 
-public interface PersistentState {
-    int currentTerm();
-    int votedFor();
-    MessageLog commandLog();
-    int sourceCount();
-    SourceState sourceState(int index);
+import java.util.Objects;
+
+/**
+ * Publication to aeron channel/stream pair.
+ */
+public class AeronPublication implements Publication {
+
+    private final io.aeron.Publication publication;
+
+    public AeronPublication(final io.aeron.Publication publication) {
+        this.publication = Objects.requireNonNull(publication);
+    }
+
+    @Override
+    public long offer(final DirectBuffer buffer, final int offset, final int length) {
+        return publication.offer(buffer, offset, length);
+    }
 }

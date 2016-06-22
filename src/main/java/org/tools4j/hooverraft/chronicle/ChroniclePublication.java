@@ -21,14 +21,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hooverraft.state;
+package org.tools4j.hooverraft.chronicle;
 
-import org.tools4j.hooverraft.message.MessageLog;
+import net.openhft.chronicle.Chronicle;
+import net.openhft.chronicle.ExcerptAppender;
+import org.agrona.DirectBuffer;
+import org.tools4j.hooverraft.message.Publication;
 
-public interface PersistentState {
-    int currentTerm();
-    int votedFor();
-    MessageLog commandLog();
-    int sourceCount();
-    SourceState sourceState(int index);
+import java.util.Objects;
+
+/**
+ * Publication writing to a chronicle queue.
+ */
+public class ChroniclePublication implements Publication {
+
+    private final ExcerptAppender appender;
+
+    public ChroniclePublication(final ExcerptAppender appender) {
+        this.appender = Objects.requireNonNull(appender);
+    }
+
+    @Override
+    public long offer(final DirectBuffer buffer, final int offset, final int length) {
+        appender.startExcerpt(length + 4);
+        appender.writeInt(length);
+        final int end = offset + length + 4;
+        int index = offset + 4;
+        while (index < end) {
+            if (index + 8 <= length) {
+                appender.writeLong(buffer.getLong(index));
+                index += 8;
+            } else {
+                appender.writeByte(buffer.getByte(index));
+                index++;
+            }
+        }
+        return appender.position();
+    }
 }

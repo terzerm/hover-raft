@@ -26,6 +26,5 @@ package org.tools4j.hooverraft.message;
 import io.aeron.logbuffer.FragmentHandler;
 
 public interface Subscription {
-    int sourceId();
-    int poll(FragmentHandler fragmentHandler);
+    int poll(FragmentHandler fragmentHandler, int fragmentLimit);
 }

@@ -21,26 +21,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hooverraft.aeron;
+package org.tools4j.hooverraft.chronicle;
 
 import io.aeron.logbuffer.FragmentHandler;
+import net.openhft.chronicle.ExcerptTailer;
+import org.agrona.ExpandableArrayBuffer;
+import org.agrona.MutableDirectBuffer;
 import org.tools4j.hooverraft.message.Subscription;
 
 import java.util.Objects;
 
 /**
- * Subscription from aeron channel/stream pair.
+ * Subscription reading from a chronicle queue.
  */
-public final class AeronSubscription implements Subscription {
+public class ChronicleSubscription implements Subscription {
 
-    private final io.aeron.Subscription subscription;
+    private final ExcerptTailer tailer;
+    private final MutableDirectBuffer buffer;
 
-    public AeronSubscription(final io.aeron.Subscription subscription) {
-        this.subscription = Objects.requireNonNull(subscription);
+    public ChronicleSubscription(final ExcerptTailer tailer, final int initialBufferCapacity) {
+        this.tailer = Objects.requireNonNull(tailer);
+        this.buffer = new ExpandableArrayBuffer(initialBufferCapacity);
     }
 
     @Override
     public int poll(final FragmentHandler fragmentHandler, final int fragmentLimit) {
-        return subscription.poll(fragmentHandler, fragmentLimit);
+        int fragmentsRead = 0;
+        while (fragmentsRead < fragmentLimit && tailer.nextIndex()) {
+            final int len = tailer.readInt();
+            for (int i = 0; i < len; ) {
+                if (i + 8 <= len) {
+                    buffer.putLong(i, tailer.readLong());
+                    i += 8;
+                } else {
+                    buffer.putByte(i, tailer.readByte());
+                    i++;
+                }
+            }
+            fragmentsRead++;
+        }
+        return fragmentsRead;
     }
 }

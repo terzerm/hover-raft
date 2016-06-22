@@ -21,15 +21,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hooverraft.command;
+package org.tools4j.hooverraft.state;
 
-import java.util.function.Consumer;
-import java.util.function.IntConsumer;
+import org.tools4j.hooverraft.message.MessageLog;
 
-public interface CommandLog<T> {
-    long size();
-    void moveToFirst();
-    void moveToLast();
-    void moveTo(long index);
-    boolean read(IntConsumer termsConsumer, Consumer<Command> commandConsumer);
+/**
+ * Persisted state of source.
+ */
+public interface SourceState {
+    int sourceId();
+    MessageLog sourceLog();
 }

@@ -21,14 +21,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hooverraft.state;
+package org.tools4j.hooverraft.command;
 
 import org.tools4j.hooverraft.message.MessageLog;
 
-public interface PersistentState {
-    int currentTerm();
-    int votedFor();
-    MessageLog commandLog();
-    int sourceCount();
-    SourceState sourceState(int index);
+public interface CommandHandler {
+    void onCommand(int term, int sourceId, long messageId);
+
+    default void readFrom(final MessageLog messageLog) {//TODO this is probably not garbage free
+        messageLog.read((buf, off, len, hdr) -> {
+            final int term = buf.getInt(off);
+            final int sourceId = buf.getInt(off + 4);
+            final long messageId = buf.getLong(off + 8);
+            onCommand(term, sourceId, messageId);
+        });
+    }
 }

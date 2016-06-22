@@ -55,5 +55,5 @@ public interface Publication {
      * @return The new stream position, otherwise a negative error value {@link #NOT_CONNECTED}, {@link #BACK_PRESSURED},
      * {@link #ADMIN_ACTION} or {@link #CLOSED}.
      */
-    long offer(final DirectBuffer buffer, final int offset, final int length);
+    long offer(DirectBuffer buffer, int offset, int length);
 }

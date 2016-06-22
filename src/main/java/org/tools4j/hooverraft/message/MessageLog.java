@@ -21,14 +21,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hooverraft.command;
+package org.tools4j.hooverraft.message;
 
 import io.aeron.logbuffer.FragmentHandler;
+import org.agrona.DirectBuffer;
 
-public interface Command {
-    long id();       //must be unique per sourceId
-    int sourceId();
-    int prevLogTerm();
-    long prevLogIndex();
-    void process(FragmentHandler fragmentHandler);
+/**
+ * Persistent read/write log for messages.
+ */
+public interface MessageLog {
+    long size();
+    void moveToFirst();
+    void moveToLast();
+    void moveTo(long index);
+    long index();
+    void read(FragmentHandler fragmentHandler);
+    void append(DirectBuffer buffer, int offset, int length);
 }

@@ -26,5 +26,4 @@ package org.tools4j.hooverraft.ipc;
 public interface VoteRequest {
     int term();
     int candidateId();
-
 }

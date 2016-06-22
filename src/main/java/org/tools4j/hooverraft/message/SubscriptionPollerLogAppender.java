@@ -21,26 +21,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hooverraft.aeron;
+package org.tools4j.hooverraft.message;
 
 import io.aeron.logbuffer.FragmentHandler;
-import org.tools4j.hooverraft.message.Subscription;
+import net.openhft.chronicle.Chronicle;
+import org.tools4j.hooverraft.chronicle.ChronicleMessageLog;
 
+import java.io.IOException;
 import java.util.Objects;
 
 /**
- * Subscription from aeron channel/stream pair.
+ * Reads messages from a {@link Subscription} and appends them to a {@link MessageLog} via
+ * {@link #pollSubscriptionAppendToLog(int)}.
  */
-public final class AeronSubscription implements Subscription {
+public final class SubscriptionPollerLogAppender {
 
-    private final io.aeron.Subscription subscription;
+    private final Subscription subscription;
+    private final MessageLog messageLog;
+    private final FragmentHandler subscriptionPollerLogAppender;
 
-    public AeronSubscription(final io.aeron.Subscription subscription) {
-        this.subscription = Objects.requireNonNull(subscription);
+    public SubscriptionPollerLogAppender(final Subscription subscription, final Chronicle chronicle, final int initialBufferCapacity) throws IOException {
+        this(subscription, new ChronicleMessageLog(chronicle, initialBufferCapacity));
     }
 
-    @Override
-    public int poll(final FragmentHandler fragmentHandler, final int fragmentLimit) {
-        return subscription.poll(fragmentHandler, fragmentLimit);
+    public SubscriptionPollerLogAppender(final Subscription subscription, final MessageLog messageLog) {
+        this.subscription = Objects.requireNonNull(subscription);
+        this.messageLog = Objects.requireNonNull(messageLog);
+        this.subscriptionPollerLogAppender = (buf, off, len, hdr) -> messageLog.append(buf, off, len);
+    }
+
+    public Subscription subscription() {
+        return subscription;
+    }
+
+    public MessageLog messageLog() {
+        return messageLog;
+    }
+
+    public int pollSubscriptionAppendToLog(int fragmentLimit) {
+        return subscription().poll(subscriptionPollerLogAppender, fragmentLimit);
     }
 }
