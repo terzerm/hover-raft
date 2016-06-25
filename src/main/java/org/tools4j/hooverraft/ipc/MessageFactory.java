@@ -21,24 +21,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hooverraft.state;
+package org.tools4j.hooverraft.ipc;
 
-import org.tools4j.hooverraft.server.*;
+import org.agrona.MutableDirectBuffer;
+import org.agrona.concurrent.UnsafeBuffer;
 
-public enum Role {
-    CANDIDATE(new CandidateActivity()),
-    LEADER(new LeaderActivity()),
-    FOLLOWER(new FollowerActivity());
+import java.nio.ByteBuffer;
 
-    private final ServerActivity serverActivity;
+/**
+ * Factory for messages writing data into an internal readBuffer. Messages and readBuffer are reused accross
+ * multiple calls.
+ */
+public final class MessageFactory {
 
-    private Role(final ServerActivity serverActivity) {
-        this.serverActivity = serverActivity;
+    private final MutableDirectBuffer buffer = new UnsafeBuffer(ByteBuffer.allocateDirect(MessageType.maxSize()));
+
+    private final AppendRequest appendRequest = wrap(new AppendRequest());
+    private final AppendResponse appendResponse = wrap(new AppendResponse());
+    private final VoteRequest voteRequest = wrap(new VoteRequest());
+    private final VoteResponse voteResponse = wrap(new VoteResponse());
+
+    public AppendRequest appendRequest() {
+        return appendRequest;
     }
 
-    public void perform(final Server server) {
-        server.pollEachServer(serverActivity.messageHandler(), 1);
-        serverActivity.perform(server);
+    public AppendResponse appendResponse() {
+        return appendResponse;
+    }
+
+    public VoteRequest voteRequest() {
+        return voteRequest;
+    }
+
+    public VoteResponse voteResponse() {
+        return voteResponse;
+    }
+
+    private final <M extends Message> M wrap(final M message) {
+        message.wrap(buffer, 0);
+        return message;
     }
 
 }

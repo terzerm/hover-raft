@@ -23,7 +23,30 @@
  */
 package org.tools4j.hooverraft.ipc;
 
-public interface VoteRequest {
-    int term();
-    int candidateId();
+public final class VoteRequest extends Message {
+
+    public static final int MESSAGE_SIZE = 8;
+
+    public VoteRequest() {
+        super(MESSAGE_SIZE);
+    }
+
+    public int term() {
+        return readBuffer.getInt(offset);
+    }
+
+    public VoteRequest term(final int term) {
+        writeBuffer.putInt(offset, term);
+        return this;
+    }
+
+    public int candidateId() {
+        return readBuffer.getInt(offset + 4);
+    }
+
+    public VoteRequest candidateId(final int candidateId) {
+        writeBuffer.putInt(offset + 4, candidateId);
+        return this;
+    }
+
 }

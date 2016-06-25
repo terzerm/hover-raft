@@ -21,14 +21,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hooverraft.state;
+package org.tools4j.hooverraft.io;
 
-import org.tools4j.hooverraft.message.MessageLog;
+import org.tools4j.hooverraft.message.Publication;
+import org.tools4j.hooverraft.message.Subscription;
 
-/**
- * Persisted state of source.
- */
-public interface SourceState {
-    int sourceId();
-    MessageLog sourceLog();
+public interface Connections {
+    Subscription sourceSubscription(int sourceId);
+    Subscription serverSubscription(int serverId);
+    Publication serverPublication(int serverId);
+    Publication serverMulticast();
 }

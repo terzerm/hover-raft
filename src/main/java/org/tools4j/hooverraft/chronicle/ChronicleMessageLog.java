@@ -108,5 +108,6 @@ public final class ChronicleMessageLog implements MessageLog {
                 index++;
             }
         }
+        appender.finish();
     }
 }

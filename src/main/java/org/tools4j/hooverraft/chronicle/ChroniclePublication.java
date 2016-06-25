@@ -56,6 +56,7 @@ public class ChroniclePublication implements Publication {
                 index++;
             }
         }
+        appender.finish();
         return appender.position();
     }
 }

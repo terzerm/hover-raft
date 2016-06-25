@@ -21,10 +21,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hooverraft.config;
+package org.tools4j.hooverraft.ipc;
 
-public interface ServerConfig {
-    ConsensusConfig consensusConfig();
-    int id();
-    String channel();
+public final class AppendResponse extends Message {
+
+    public static final int MESSAGE_SIZE = 5;
+
+    public AppendResponse() {
+        super(MESSAGE_SIZE);
+    }
+
+    public int term() {
+        return readBuffer.getInt(offset);
+    }
+
+    public boolean successful() {
+        return readBuffer.getByte(offset + 4) == 1;
+    }
 }

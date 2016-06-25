@@ -23,7 +23,32 @@
  */
 package org.tools4j.hooverraft.ipc;
 
-public interface VoteResponse {
-    int term();
-    boolean voteGranted();
+public final class VoteResponse extends Message {
+
+    private static final byte GRANTED = 1;
+    private static final byte DENIED = 0;
+
+    public static final int MESSAGE_SIZE = 5;
+
+    public VoteResponse() {
+        super(MESSAGE_SIZE);
+    }
+
+    public int term() {
+        return readBuffer.getInt(offset);
+    }
+
+    public VoteResponse term(final int term) {
+        writeBuffer.putInt(offset, term);
+        return this;
+    }
+
+    public boolean voteGranted() {
+        return readBuffer.getByte(offset + 4) == GRANTED;
+    }
+
+    public VoteResponse voteGranted(final boolean granted) {
+        writeBuffer.putByte(offset + 4, granted ? GRANTED : DENIED);
+        return this;
+    }
 }

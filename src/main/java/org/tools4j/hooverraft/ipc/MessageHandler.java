@@ -21,10 +21,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hooverraft.config;
+package org.tools4j.hooverraft.ipc;
 
-public interface ServerConfig {
-    ConsensusConfig consensusConfig();
-    int id();
-    String channel();
+import org.tools4j.hooverraft.server.Server;
+
+public interface MessageHandler {
+    void onVoteRequest(Server server, VoteRequest voteRequest);
+    void onVoteResponse(Server server, VoteResponse voteResponse);
+    void onAppendRequest(Server server, AppendRequest appendRequest);
+    void onAppendResponse(Server server, AppendResponse appendResponse);
+
+    MessageHandler NOOP = new MessageHandler() {
+        @Override
+        public void onVoteRequest(Server server, VoteRequest voteRequest) {
+            // no op
+        }
+
+        @Override
+        public void onVoteResponse(Server server, VoteResponse voteResponse) {
+            // no op
+        }
+
+        @Override
+        public void onAppendRequest(Server server, AppendRequest appendRequest) {
+            // no op
+        }
+
+        @Override
+        public void onAppendResponse(Server server, AppendResponse appendResponse) {
+            // no op
+        }
+    };
 }

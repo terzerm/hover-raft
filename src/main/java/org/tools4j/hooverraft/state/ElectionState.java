@@ -21,10 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hooverraft.config;
+package org.tools4j.hooverraft.state;
 
-public interface ServerConfig {
-    ConsensusConfig consensusConfig();
-    int id();
-    String channel();
+public interface ElectionState {
+    ElectionTimer electionTimer();
+    int voteCount();
+    int incVoteCount();
+    /** initialise vote count to 1 for own vote*/
+    void initVoteCount();
 }

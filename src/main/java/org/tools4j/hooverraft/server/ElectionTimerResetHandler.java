@@ -21,10 +21,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hooverraft.config;
+package org.tools4j.hooverraft.server;
 
-public interface ServerConfig {
-    ConsensusConfig consensusConfig();
-    int id();
-    String channel();
+import org.tools4j.hooverraft.ipc.*;
+
+public final class ElectionTimerResetHandler implements MessageHandler {
+
+    @Override
+    public void onVoteRequest(final Server server, final VoteRequest voteRequest) {
+        //no op
+    }
+
+    @Override
+    public void onVoteResponse(final Server server, final VoteResponse voteResponse) {
+        //no op
+    }
+
+    @Override
+    public void onAppendRequest(final Server server, final AppendRequest appendRequest) {
+        server.state().volatileState().electionState().electionTimer().reset();
+    }
+
+    @Override
+    public void onAppendResponse(final Server server, final AppendResponse appendResponse) {
+        //no op
+    }
+
 }

@@ -21,9 +21,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hooverraft.ipc;
+package org.tools4j.hooverraft.state;
 
-public interface AppendEntriesResponse {
-    int term();
-    boolean success();
+public interface ElectionTimer {
+    /**
+     * Starts a new random timeout.
+     */
+    void restart();
+    /**
+     * Resets the current timeout to the start without calculating a new
+     * random timout.
+     */
+    void reset();
+    boolean hasTimeoutElapsed();
 }

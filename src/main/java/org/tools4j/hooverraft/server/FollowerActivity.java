@@ -21,14 +21,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hooverraft.ipc;
+package org.tools4j.hooverraft.server;
 
-public interface AppendEntriesRequest {
-    int term();
-    int leaderId();
-    int prevLogTerm();
-    long prevLogIndex();
-    int commandSourceId();
-    long commandId();
-    long leaderCommit();
+import org.tools4j.hooverraft.config.ServerConfig;
+import org.tools4j.hooverraft.ipc.CompositeMessageHandler;
+import org.tools4j.hooverraft.ipc.MessageHandler;
+import org.tools4j.hooverraft.state.ServerState;
+
+public class FollowerActivity implements ServerActivity {
+
+    private final MessageHandler messageHandler = CompositeMessageHandler.compose(
+            new ElectionTimerResetHandler(),
+            new HigherTermHandler()
+    );
+
+    @Override
+    public MessageHandler messageHandler() {
+        return messageHandler;
+    }
+
+    public void perform(final Server server) {
+        //FIXME impl
+    }
 }

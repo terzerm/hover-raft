@@ -47,13 +47,24 @@ public interface Publication {
     long CLOSED = -4;
 
     /**
-     * Non-blocking publish of a partial buffer containing a message.
+     * Non-blocking publish of a partial readBuffer containing a message.
      *
      * @param buffer containing message.
-     * @param offset offset in the buffer at which the encoded message begins.
+     * @param offset offset in the readBuffer at which the encoded message begins.
      * @param length in bytes of the encoded message.
      * @return The new stream position, otherwise a negative error value {@link #NOT_CONNECTED}, {@link #BACK_PRESSURED},
      * {@link #ADMIN_ACTION} or {@link #CLOSED}.
      */
     long offer(DirectBuffer buffer, int offset, int length);
+
+    /**
+     * Non-blocking publish of a full readBuffer containing a message.
+     *
+     * @param buffer containing message.
+     * @return The new stream position, otherwise a negative error value {@link #NOT_CONNECTED}, {@link #BACK_PRESSURED},
+     * {@link #ADMIN_ACTION} or {@link #CLOSED}.
+     */
+    default long offer(DirectBuffer buffer) {
+        return offer(buffer, 0, buffer.capacity());
+    }
 }
