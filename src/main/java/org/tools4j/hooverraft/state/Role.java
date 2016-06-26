@@ -32,7 +32,7 @@ public enum Role {
 
     private final ServerActivity serverActivity;
 
-    private Role(final ServerActivity serverActivity) {
+    Role(final ServerActivity serverActivity) {
         this.serverActivity = serverActivity;
     }
 

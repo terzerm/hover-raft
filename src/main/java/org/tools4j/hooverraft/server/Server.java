@@ -28,7 +28,10 @@ import org.tools4j.hooverraft.io.Connections;
 import org.tools4j.hooverraft.ipc.MessageBroker;
 import org.tools4j.hooverraft.ipc.MessageFactory;
 import org.tools4j.hooverraft.ipc.MessageHandler;
+import org.tools4j.hooverraft.state.ElectionTimer;
+import org.tools4j.hooverraft.state.Role;
 import org.tools4j.hooverraft.state.ServerState;
+import org.tools4j.hooverraft.state.VolatileState;
 
 import java.util.Objects;
 
@@ -69,11 +72,37 @@ public final class Server {
     }
 
     public void perform() {
-        serverState.volatileState().role().perform(this);
+        checkElectionTimeout();
+        invokeStateMachineWithCommittedLogEntries();
+        performRoleSpecificActivity();
     }
 
     public void pollEachServer(final MessageHandler messageHandler, final int messageLimitPerServer) {
         messageBroker.pollEachServer(messageHandler, messageLimitPerServer);
+    }
+
+    private void checkElectionTimeout() {
+        final ServerState state = serverState;
+        final VolatileState vstate = state.volatileState();
+        final ElectionTimer timer = vstate.electionState().electionTimer();
+        if (timer.hasTimeoutElapsed()) {
+            state.persistentState().clearVotedForAndIncCurrentTerm();
+            vstate.changeRoleTo(Role.CANDIDATE);
+            timer.restart();
+        }
+    }
+
+    private void invokeStateMachineWithCommittedLogEntries() {
+        final VolatileState vstate = serverState.volatileState();
+        if (vstate.commitIndex() > vstate.lastApplied()) {
+            //FIXME
+//            stateMachine.applyCommand(server, vstate.lastApplied());
+            System.out.println("STATE MACHINE APPLIED: " + vstate.lastApplied());
+        }
+    }
+
+    private void performRoleSpecificActivity() {
+        serverState.volatileState().role().perform(this);
     }
 
 }

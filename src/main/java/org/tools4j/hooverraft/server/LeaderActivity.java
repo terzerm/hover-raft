@@ -23,17 +23,38 @@
  */
 package org.tools4j.hooverraft.server;
 
-import org.tools4j.hooverraft.config.ServerConfig;
-import org.tools4j.hooverraft.ipc.CompositeMessageHandler;
-import org.tools4j.hooverraft.ipc.MessageHandler;
-import org.tools4j.hooverraft.state.ServerState;
+import org.tools4j.hooverraft.ipc.*;
 
 public class LeaderActivity implements ServerActivity {
 
     private final MessageHandler messageHandler = CompositeMessageHandler.compose(
-            new ElectionTimerResetHandler(),
-            new HigherTermHandler()
+            new HigherTermHandler(),
+            new RequestResponderHandler(),
+            new AppendResponseHandler()
     );
+
+    private final class AppendResponseHandler implements MessageHandler {
+
+        @Override
+        public void onVoteRequest(final Server server, final VoteRequest voteRequest) {
+            //no op
+        }
+
+        @Override
+        public void onVoteResponse(final Server server, final VoteResponse voteResponse) {
+            //no op
+        }
+
+        @Override
+        public void onAppendRequest(final Server server, final AppendRequest appendRequest) {
+            //no op
+        }
+
+        @Override
+        public void onAppendResponse(final Server server, final AppendResponse appendResponse) {
+            handleAppendResponse(server, appendResponse);
+        }
+    }
 
     @Override
     public MessageHandler messageHandler() {
@@ -42,6 +63,19 @@ public class LeaderActivity implements ServerActivity {
 
 
     public void perform(final Server server) {
+        updateCommitIndex(server);
+        sendAppendRequest(server);
+    }
+
+    private void updateCommitIndex(final Server server) {
+        //FIXME impl
+    }
+
+    private void sendAppendRequest(final Server server) {
+        //FIXME impl
+    }
+
+    private void handleAppendResponse(final Server server, final AppendResponse appendResponse) {
         //FIXME impl
     }
 }

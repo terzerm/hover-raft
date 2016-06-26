@@ -31,7 +31,7 @@ public final class CompositeMessageHandler implements MessageHandler {
 
     private final MessageHandler[] handlers;
 
-    private CompositeMessageHandler(final MessageHandler... handlers) {
+    protected CompositeMessageHandler(final MessageHandler... handlers) {
         this.handlers = Objects.requireNonNull(handlers);
     }
 

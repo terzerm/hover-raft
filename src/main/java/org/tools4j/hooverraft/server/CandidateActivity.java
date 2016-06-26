@@ -33,16 +33,16 @@ import org.tools4j.hooverraft.state.VolatileState;
 public final class CandidateActivity implements ServerActivity {
 
     private final MessageHandler messageHandler = CompositeMessageHandler.compose(
-            new ElectionTimerResetHandler(),
             new HigherTermHandler(),
-            new CandidateHandler()
+            new RequestResponderHandler(),
+            new VoteResponseHandler()
     );
 
-    private final class CandidateHandler implements MessageHandler {
+    private final class VoteResponseHandler implements MessageHandler {
 
         @Override
         public void onVoteRequest(final Server server, final VoteRequest voteRequest) {
-            sendVoteResponse(server, voteRequest);
+            //no op
         }
 
         @Override
@@ -70,10 +70,7 @@ public final class CandidateActivity implements ServerActivity {
 
     @Override
     public void perform(final Server server) {
-        final VolatileState vstate = server.state().volatileState();
-        final PersistentState pstate = server.state().persistentState();
-        final ElectionState estate = vstate.electionState();
-        if (pstate.votedFor() < 0 || estate.electionTimer().hasTimeoutElapsed()) {
+        if (server.state().persistentState().votedFor() < 0) {
             voteForMyself(server);
         }
     }
@@ -83,29 +80,18 @@ public final class CandidateActivity implements ServerActivity {
         final PersistentState pstate = server.state().persistentState();
         final ElectionState estate = vstate.electionState();
         final int self = server.config().id();
-        final int term = pstate.incCurrentTermAndVoteForSelf(self);
+        pstate.votedFor(self);
         estate.initVoteCount();
-        requestVoteFromAllServers(server, term, self);
-        estate.electionTimer().restart();
+        requestVoteFromAllServers(server, self);
     }
 
-    private void requestVoteFromAllServers(final Server server, final int term, final int self) {
+    private void requestVoteFromAllServers(final Server server, final int self) {
         int maxTries = 100;//TODO how often should we retry sending?
         final Publication serverMulticast = server.connections().serverMulticast();
         server.messageFactory().voteRequest()
-                .term(term)
+                .term(server.currentTerm())
                 .candidateId(self)
                 .offerTo(serverMulticast, maxTries);
-    }
-
-    private void sendVoteResponse(final Server server, final VoteRequest voteRequest) {
-        int maxTries = 100;//TODO how often should we retry sending?
-        final PersistentState pstate = server.state().persistentState();
-        final Publication serverPublication = server.connections().serverPublication(voteRequest.candidateId());
-        server.messageFactory().voteResponse()
-                .term(server.currentTerm())
-                .voteGranted(false) /* CANDIDATE, hence we have voted for ourself */
-                .offerTo(serverPublication, maxTries);
     }
 
     private void incVoteCount(final Server server) {

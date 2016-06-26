@@ -23,16 +23,14 @@
  */
 package org.tools4j.hooverraft.server;
 
-import org.tools4j.hooverraft.config.ServerConfig;
 import org.tools4j.hooverraft.ipc.CompositeMessageHandler;
 import org.tools4j.hooverraft.ipc.MessageHandler;
-import org.tools4j.hooverraft.state.ServerState;
 
 public class FollowerActivity implements ServerActivity {
 
     private final MessageHandler messageHandler = CompositeMessageHandler.compose(
-            new ElectionTimerResetHandler(),
-            new HigherTermHandler()
+            new HigherTermHandler(),
+            new RequestResponderHandler()
     );
 
     @Override
@@ -41,6 +39,6 @@ public class FollowerActivity implements ServerActivity {
     }
 
     public void perform(final Server server) {
-        //FIXME impl
+        //no op, we are just responding to requests and perform all standard server ops
     }
 }

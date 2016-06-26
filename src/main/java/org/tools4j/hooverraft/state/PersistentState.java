@@ -28,7 +28,7 @@ import org.tools4j.hooverraft.message.MessageLog;
 public interface PersistentState {
     int currentTerm();
     int clearVotedForAndSetCurrentTerm(int term);
-    int incCurrentTermAndVoteForSelf(int self);
+    int clearVotedForAndIncCurrentTerm();
     int votedFor();
     void votedFor(final int candidateId);
     MessageLog commandLog();

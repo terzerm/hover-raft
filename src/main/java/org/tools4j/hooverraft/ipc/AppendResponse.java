@@ -25,6 +25,9 @@ package org.tools4j.hooverraft.ipc;
 
 public final class AppendResponse extends Message {
 
+    private static final byte SUCCESSFUL = 1;
+    private static final byte UNSUCCESSFUL = 0;
+
     public static final int MESSAGE_SIZE = 5;
 
     public AppendResponse() {
@@ -35,7 +38,18 @@ public final class AppendResponse extends Message {
         return readBuffer.getInt(offset);
     }
 
+    public AppendResponse term(final int term) {
+        writeBuffer.putInt(offset, term);
+        return this;
+    }
+
     public boolean successful() {
         return readBuffer.getByte(offset + 4) == 1;
     }
+
+    public AppendResponse successful(final boolean successful) {
+        writeBuffer.putByte(offset + 4, successful ? SUCCESSFUL : UNSUCCESSFUL);
+        return this;
+    }
+
 }

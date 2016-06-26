@@ -53,7 +53,7 @@ public final class HigherTermHandler implements MessageHandler {
     private void onTerm(final Server server, final int term) {
         final ServerState state = server.state();
         final PersistentState pstate = state.persistentState();
-        if (pstate.currentTerm() < term) {
+        if (term > pstate.currentTerm()) {
             pstate.clearVotedForAndSetCurrentTerm(term);
             state.volatileState().changeRoleTo(Role.FOLLOWER);
         }
