@@ -24,6 +24,7 @@
 package org.tools4j.hooverraft.server;
 
 import org.tools4j.hooverraft.config.ServerConfig;
+import org.tools4j.hooverraft.config.ThreadingMode;
 import org.tools4j.hooverraft.io.Connections;
 import org.tools4j.hooverraft.ipc.MessageBroker;
 import org.tools4j.hooverraft.ipc.MessageFactory;
@@ -72,13 +73,20 @@ public final class Server {
     }
 
     public void perform() {
+        pollNextInputMessage();
+        invokeStateMachineWithCommittedLogEntry();
         checkElectionTimeout();
-        invokeStateMachineWithCommittedLogEntries();
         performRoleSpecificActivity();
     }
 
     public void pollEachServer(final MessageHandler messageHandler, final int messageLimitPerServer) {
         messageBroker.pollEachServer(messageHandler, messageLimitPerServer);
+    }
+
+    private void pollNextInputMessage() {
+        if (serverConfig.consensusConfig().threadingPolicy() == ThreadingMode.SHARED) {
+            //FIXME impl
+        }
     }
 
     private void checkElectionTimeout() {
@@ -92,7 +100,7 @@ public final class Server {
         }
     }
 
-    private void invokeStateMachineWithCommittedLogEntries() {
+    private void invokeStateMachineWithCommittedLogEntry() {
         final VolatileState vstate = serverState.volatileState();
         if (vstate.commitIndex() > vstate.lastApplied()) {
             //FIXME

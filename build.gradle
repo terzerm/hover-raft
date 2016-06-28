@@ -105,6 +105,12 @@ task sourcesJar(type: Jar) {
     from sourceSets.main.allSource
 }
 
+test {
+    testLogging {
+        exceptionFormat = 'full'
+    }
+}
+
 artifacts {
     archives jar
     archives javadocJar

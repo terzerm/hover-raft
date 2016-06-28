@@ -23,15 +23,9 @@
  */
 package org.tools4j.hooverraft.config;
 
-import java.util.Optional;
+import org.tools4j.hooverraft.message.Subscription;
 
-public interface ConsensusConfig {
-    long minElectionTimeoutMillis();
-    long maxElectionTimeoutMillis();
-    Optional<String> ipcMulticastChannel();
-    int serverCount();
-    ServerConfig serverConfig(int index);
-    int sourceCount();
-    SourceConfig sourceConfig(int index);
-    ThreadingMode threadingPolicy();
+public interface SourceConfig {
+    int id();
+    Subscription openSubscription();
 }

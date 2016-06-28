@@ -23,15 +23,27 @@
  */
 package org.tools4j.hooverraft.config;
 
-import java.util.Optional;
-
-public interface ConsensusConfig {
-    long minElectionTimeoutMillis();
-    long maxElectionTimeoutMillis();
-    Optional<String> ipcMulticastChannel();
-    int serverCount();
-    ServerConfig serverConfig(int index);
-    int sourceCount();
-    SourceConfig sourceConfig(int index);
-    ThreadingMode threadingPolicy();
+/**
+ * Threading mode for server/statemachine and source polling.
+ */
+public enum ThreadingMode {
+    /**
+     * 1 thread: source polling and server/state machine logic is performed in a single
+     * thread.
+     */
+    SHARED,
+    /**
+     * 2 threads:
+     * <br>
+     * (i) server/state machine logic is performed in main thread
+     * (ii) source polling is performed in polling thread
+     */
+    SOURCES_SHARED,
+    /**
+     * 1 + n threads:
+     * <br>
+     * (i) server/state machine logic is performed in main thread
+     * (ii) source polling is performed in separate threads, one per source
+     */
+    DEDICATED;
 }
