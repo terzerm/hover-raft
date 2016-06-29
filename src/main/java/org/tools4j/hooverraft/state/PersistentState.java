@@ -32,5 +32,7 @@ public interface PersistentState {
     int votedFor();
     void votedFor(final int candidateId);
     MessageLog commandLog();
+    int lastLogTerm();
+    long lastLogIndex();
     MessageLog sourceLog(int sourceId);
 }

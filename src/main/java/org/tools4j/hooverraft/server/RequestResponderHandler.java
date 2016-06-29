@@ -43,7 +43,7 @@ public final class RequestResponderHandler implements MessageHandler {
         final int term = voteRequest.term();
         final int candidateId = voteRequest.candidateId();
         final boolean granted;
-        if (server.currentTerm() == term) /* should never be larger */ {
+        if (server.currentTerm() == term && isValidCandidate(server, voteRequest)) {
             final ServerState state = server.state();
             final PersistentState pstate = state.persistentState();
             if (pstate.votedFor() < 0) {
@@ -61,6 +61,14 @@ public final class RequestResponderHandler implements MessageHandler {
                 .term(server.currentTerm())
                 .voteGranted(granted)
                 .offerTo(serverPublication, MAX_TRIES);
+    }
+
+    private static boolean isValidCandidate(final Server server, final VoteRequest voteRequest) {
+        final int lastLogTerm = voteRequest.lastLogTerm();
+        final long lastLogIndex = voteRequest.lastLogIndex();
+        final PersistentState pstate = server.state().persistentState();
+        return pstate.lastLogTerm() < lastLogTerm ||
+                (pstate.lastLogTerm() == lastLogTerm && pstate.lastLogIndex() <= lastLogIndex);
     }
 
     @Override
