@@ -62,4 +62,11 @@ public final class CompositeMessageHandler implements MessageHandler {
             handler.onAppendResponse(server, appendResponse);
         }
     }
+
+    @Override
+    public void onTimeoutNow(final Server server, final TimeoutNow timeoutNow) {
+        for (final MessageHandler handler : handlers) {
+            handler.onTimeoutNow(server, timeoutNow);
+        }
+    }
 }

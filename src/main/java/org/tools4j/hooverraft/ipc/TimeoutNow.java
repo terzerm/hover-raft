@@ -21,19 +21,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hooverraft.command;
+package org.tools4j.hooverraft.ipc;
 
-import org.tools4j.hooverraft.message.MessageLog;
+/**
+ * Timeout request to initiate leadership transfer.
+ */
+public final class TimeoutNow extends Message {
 
-public interface CommandHandler {
-    void onCommand(int term, int sourceId, long messageId);
+    public static final int MESSAGE_SIZE = 8;
 
-    default void readFrom(final MessageLog messageLog) {//TODO this is probably not garbage free
-        messageLog.read((buf, off, len, hdr) -> {
-            final int term = buf.getInt(off);
-            final int sourceId = buf.getInt(off + 4);
-            final long messageId = buf.getLong(off + 8);
-            onCommand(term, sourceId, messageId);
-        });
+    public TimeoutNow() {
+        super(MESSAGE_SIZE);
     }
+
+    public int term() {
+        return readBuffer.getInt(offset);
+    }
+
+    public TimeoutNow term(final int term) {
+        writeBuffer.putInt(offset, term);
+        return this;
+    }
+
+    public int candidateId() {
+        return readBuffer.getInt(offset + 4);
+    }
+
+    public TimeoutNow candidateId(final int candidateId) {
+        writeBuffer.putInt(offset + 4, candidateId);
+        return this;
+    }
+
 }

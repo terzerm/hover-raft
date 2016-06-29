@@ -61,6 +61,11 @@ public final class CandidateActivity implements ServerActivity {
         public void onAppendResponse(final Server server, final AppendResponse appendResponse) {
             //no op
         }
+
+        @Override
+        public void onTimeoutNow(final Server server, final TimeoutNow timeoutRequest) {
+            //no op
+        }
     }
 
     @Override
@@ -103,4 +108,5 @@ public final class CandidateActivity implements ServerActivity {
             vstate.changeRoleTo(Role.LEADER);
         }
     }
+
 }

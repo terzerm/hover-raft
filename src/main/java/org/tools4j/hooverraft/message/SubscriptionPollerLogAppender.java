@@ -24,10 +24,7 @@
 package org.tools4j.hooverraft.message;
 
 import io.aeron.logbuffer.FragmentHandler;
-import net.openhft.chronicle.Chronicle;
-import org.tools4j.hooverraft.chronicle.ChronicleMessageLog;
 
-import java.io.IOException;
 import java.util.Objects;
 
 /**
@@ -39,10 +36,6 @@ public final class SubscriptionPollerLogAppender {
     private final Subscription subscription;
     private final MessageLog messageLog;
     private final FragmentHandler subscriptionPollerLogAppender;
-
-    public SubscriptionPollerLogAppender(final Subscription subscription, final Chronicle chronicle, final int initialBufferCapacity) throws IOException {
-        this(subscription, new ChronicleMessageLog(chronicle, initialBufferCapacity));
-    }
 
     public SubscriptionPollerLogAppender(final Subscription subscription, final MessageLog messageLog) {
         this.subscription = Objects.requireNonNull(subscription);

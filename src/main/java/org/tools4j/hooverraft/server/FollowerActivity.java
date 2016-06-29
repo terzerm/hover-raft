@@ -41,4 +41,8 @@ public class FollowerActivity implements ServerActivity {
     public void perform(final Server server) {
         //no op, we are just responding to requests and perform all standard server ops
     }
+
+    private void timeoutNow(final Server server) {
+        server.state().volatileState().electionState().electionTimer().timeoutNow();
+    }
 }

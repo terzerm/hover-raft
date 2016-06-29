@@ -72,6 +72,10 @@ public final class Server {
         return state().persistentState().currentTerm();
     }
 
+    public int id() {
+        return config().id();
+    }
+
     public void perform() {
         pollNextInputMessage();
         invokeStateMachineWithCommittedLogEntry();

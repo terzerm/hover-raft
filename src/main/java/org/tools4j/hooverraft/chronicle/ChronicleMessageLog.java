@@ -23,12 +23,10 @@
  */
 package org.tools4j.hooverraft.chronicle;
 
-import io.aeron.logbuffer.FragmentHandler;
 import net.openhft.chronicle.Chronicle;
 import net.openhft.chronicle.Excerpt;
 import net.openhft.chronicle.ExcerptAppender;
 import org.agrona.DirectBuffer;
-import org.agrona.ExpandableArrayBuffer;
 import org.agrona.MutableDirectBuffer;
 import org.tools4j.hooverraft.message.MessageLog;
 
@@ -43,13 +41,11 @@ public final class ChronicleMessageLog implements MessageLog {
     private final Chronicle chronicle;
     private final Excerpt excerpt;
     private final ExcerptAppender appender;
-    private final MutableDirectBuffer buffer;
 
-    public ChronicleMessageLog(final Chronicle chronicle, final int initialBufferCapacity) throws IOException {
+    public ChronicleMessageLog(final Chronicle chronicle) throws IOException {
         this.chronicle = Objects.requireNonNull(chronicle);
         this.excerpt = chronicle.createExcerpt();
         this.appender = chronicle.createAppender();
-        this.buffer = new ExpandableArrayBuffer(initialBufferCapacity);
     }
 
     @Override
@@ -80,7 +76,7 @@ public final class ChronicleMessageLog implements MessageLog {
     }
 
     @Override
-    public void read(FragmentHandler fragmentHandler) {
+    public void read(final MutableDirectBuffer buffer, final int offset) {
         final int len = excerpt.readInt();
         for (int i = 0; i < len; ) {
             if (i + 8 <= len) {

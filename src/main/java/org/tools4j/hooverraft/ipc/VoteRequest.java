@@ -25,7 +25,7 @@ package org.tools4j.hooverraft.ipc;
 
 public final class VoteRequest extends Message {
 
-    public static final int MESSAGE_SIZE = 8;
+    public static final int MESSAGE_SIZE = 20;
 
     public VoteRequest() {
         super(MESSAGE_SIZE);
@@ -46,6 +46,24 @@ public final class VoteRequest extends Message {
 
     public VoteRequest candidateId(final int candidateId) {
         writeBuffer.putInt(offset + 4, candidateId);
+        return this;
+    }
+
+    public int lastLogTerm() {
+        return readBuffer.getInt(offset + 8);
+    }
+
+    public VoteRequest lastLogTerm(final int lastLogTerm) {
+        writeBuffer.putInt(offset + 8, lastLogTerm);
+        return this;
+    }
+
+    public long lastLogIndex() {
+        return readBuffer.getLong(offset + 12);
+    }
+
+    public VoteRequest lastLogIndex(final int lastLogIndex) {
+        writeBuffer.putLong(offset + 12, lastLogIndex);
         return this;
     }
 

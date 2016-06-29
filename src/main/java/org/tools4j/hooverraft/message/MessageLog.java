@@ -23,8 +23,8 @@
  */
 package org.tools4j.hooverraft.message;
 
-import io.aeron.logbuffer.FragmentHandler;
 import org.agrona.DirectBuffer;
+import org.agrona.MutableDirectBuffer;
 
 /**
  * Persistent read/write log for messages.
@@ -35,6 +35,6 @@ public interface MessageLog {
     void moveToLast();
     void moveTo(long index);
     long index();
-    void read(FragmentHandler fragmentHandler);
+    void read(MutableDirectBuffer buffer, int offset);
     void append(DirectBuffer buffer, int offset, int length);
 }

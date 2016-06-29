@@ -30,6 +30,7 @@ public interface MessageHandler {
     void onVoteResponse(Server server, VoteResponse voteResponse);
     void onAppendRequest(Server server, AppendRequest appendRequest);
     void onAppendResponse(Server server, AppendResponse appendResponse);
+    void onTimeoutNow(Server server, TimeoutNow timeoutNow);
 
     MessageHandler NOOP = new MessageHandler() {
         @Override
@@ -49,6 +50,11 @@ public interface MessageHandler {
 
         @Override
         public void onAppendResponse(Server server, AppendResponse appendResponse) {
+            // no op
+        }
+
+        @Override
+        public void onTimeoutNow(Server server, TimeoutNow timeoutRequest) {
             // no op
         }
     };

@@ -54,6 +54,11 @@ public class LeaderActivity implements ServerActivity {
         public void onAppendResponse(final Server server, final AppendResponse appendResponse) {
             handleAppendResponse(server, appendResponse);
         }
+
+        @Override
+        public void onTimeoutNow(final Server server, final TimeoutNow timeoutRequest) {
+            //no op
+        }
     }
 
     @Override

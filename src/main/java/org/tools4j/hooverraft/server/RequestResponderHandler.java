@@ -98,4 +98,8 @@ public final class RequestResponderHandler implements MessageHandler {
         //no op
     }
 
+    @Override
+    public void onTimeoutNow(final Server server, final TimeoutNow timeoutNow) {
+        //no op
+    }
 }

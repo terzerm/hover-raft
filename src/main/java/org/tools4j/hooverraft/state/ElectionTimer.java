@@ -33,5 +33,11 @@ public interface ElectionTimer {
      * random timout.
      */
     void reset();
+
+    /**
+     * Forced timeout after receiving a TimeoutNow.
+     */
+    void timeoutNow();
+
     boolean hasTimeoutElapsed();
 }

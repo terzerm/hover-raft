@@ -102,6 +102,25 @@ public enum MessageType {
             appendResponse.wrap(buffer, offset, length);
             messageHandler.onAppendResponse(server, appendResponse);
         }
+    },
+    TIMEOUT_REQUEST {
+
+        private final TimeoutNow timeoutNow = new TimeoutNow();
+
+        @Override
+        protected int messageSize() {
+            return TimeoutNow.MESSAGE_SIZE;
+        }
+
+        @Override
+        protected void accept(final Server server,
+                              final DirectBuffer buffer,
+                              final int offset,
+                              final int length,
+                              final MessageHandler messageHandler) {
+            timeoutNow.wrap(buffer, offset, length);
+            messageHandler.onTimeoutNow(server, timeoutNow);
+        }
     };
 
     private static final MessageType[] VALUES = values();
