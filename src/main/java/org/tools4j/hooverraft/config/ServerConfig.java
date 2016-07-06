@@ -24,7 +24,6 @@
 package org.tools4j.hooverraft.config;
 
 public interface ServerConfig {
-    ConsensusConfig consensusConfig();
     int id();
     String channel();
 }

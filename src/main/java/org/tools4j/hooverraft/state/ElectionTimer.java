@@ -23,21 +23,67 @@
  */
 package org.tools4j.hooverraft.state;
 
-public interface ElectionTimer {
+import org.tools4j.hooverraft.config.ConsensusConfig;
+
+import java.util.Random;
+
+public final class ElectionTimer {
+
+    private final Random rnd = new Random();
+    private final long minElectionTimeoutMillis;
+    private final long maxElectionTimeoutMillis;
+
+    private long timerStartMillis;
+    private long timeoutMillis;
+
+    public ElectionTimer(final ConsensusConfig consensusConfig) {
+        this(consensusConfig.minElectionTimeoutMillis(), consensusConfig.maxElectionTimeoutMillis());
+    }
+
+    public ElectionTimer(final long minElectionTimeoutMillis, final long maxElectionTimeoutMillis) {
+        if (minElectionTimeoutMillis > maxElectionTimeoutMillis) {
+            throw new IllegalArgumentException("minElectionTimeoutMillis must not be greater than maxElectionTimeoutMillis: " + minElectionTimeoutMillis + " > " + maxElectionTimeoutMillis);
+        }
+        if (maxElectionTimeoutMillis - minElectionTimeoutMillis > Integer.MAX_VALUE) {
+            throw new IllegalArgumentException("Difference between minElectionTimeoutMillis and maxElectionTimeoutMillis exceeds integer range: " + maxElectionTimeoutMillis + " - " + maxElectionTimeoutMillis + " > " + Integer.MAX_VALUE);
+        }
+        this.minElectionTimeoutMillis = minElectionTimeoutMillis;
+        this.maxElectionTimeoutMillis = maxElectionTimeoutMillis;
+    }
+
     /**
      * Starts a new random timeout.
      */
-    void restart();
+    public void restart() {
+        timeoutMillis = randomTimeoutMillis();
+        reset();
+    }
+
     /**
      * Resets the current timeout to the start without calculating a new
      * random timout.
      */
-    void reset();
+    public void reset() {
+        timerStartMillis = System.currentTimeMillis();
+    }
 
     /**
      * Forced timeout after receiving a TimeoutNow.
      */
-    void timeoutNow();
+    public void timeoutNow() {
+        timeoutMillis = 0;
+    }
 
-    boolean hasTimeoutElapsed();
+    public boolean hasTimeoutElapsed() {
+        return System.currentTimeMillis() - timeoutMillis >= timeoutMillis;
+    }
+
+    private long randomTimeoutMillis() {
+        final int diff = (int)(maxElectionTimeoutMillis - minElectionTimeoutMillis);
+        long timeout = minElectionTimeoutMillis;
+        if (diff > 0) {
+            timeout += rnd.nextInt(diff);
+        }
+        return timeout;
+    }
 }

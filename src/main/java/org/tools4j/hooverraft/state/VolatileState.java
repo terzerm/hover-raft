@@ -23,12 +23,69 @@
  */
 package org.tools4j.hooverraft.state;
 
-public interface VolatileState {
-    Role role();
-    void changeRoleTo(Role role);
-    long commitIndex();
-    int lastApplied();
-    int followerCount();
-    ElectionState electionState();
-    FollowerState followerState(int index);
+import org.tools4j.hooverraft.config.ConsensusConfig;
+
+public final class VolatileState {
+
+    private final ElectionState electionState;
+    private final FollowerState[] followerStates;
+
+    private Role role = Role.CANDIDATE;
+    private long commitIndex;
+    private long lastApplied;
+
+    public VolatileState(final int serverId, final ConsensusConfig consensusConfig) {
+        this.electionState = new ElectionState(consensusConfig);
+        this.followerStates = initFollowerStates(serverId, consensusConfig);
+    }
+
+    public Role role() {
+        return role;
+    }
+
+    public void changeRoleTo(Role role) {
+        this.role = role;
+    }
+
+    public long commitIndex() {
+        return commitIndex;
+    }
+
+    public long lastApplied() {
+        return lastApplied;
+    }
+
+    public int followerCount() {
+        return followerStates.length;
+    }
+
+    public ElectionState electionState() {
+        return electionState;
+    }
+
+    public FollowerState followerState(int index) {
+        return followerStates[index];
+    }
+
+    public FollowerState followerStateById(int id) {
+        for (final FollowerState fs : followerStates) {
+            if (fs.serverId() == id) {
+                return fs;
+            }
+        }
+        throw new IllegalArgumentException("no follower state found for id " + id);
+    }
+
+    private static FollowerState[] initFollowerStates(final int serverId, final ConsensusConfig consensusConfig) {
+        final FollowerState[] states = new FollowerState[consensusConfig.serverCount() - 1];
+        int index = 0;
+        for (int i = 0; i < consensusConfig.serverCount(); i++) {
+            final int id = consensusConfig.serverConfig(i).id();
+            if (id != serverId) {
+                states[index] = new FollowerState(id);
+                index++;
+            }
+        }
+        return states;
+    }
 }

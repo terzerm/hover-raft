@@ -23,9 +23,7 @@
  */
 package org.tools4j.hooverraft.config;
 
-import org.tools4j.hooverraft.message.Subscription;
-
 public interface SourceConfig {
     int id();
-    Subscription openSubscription();
+    String channel();
 }

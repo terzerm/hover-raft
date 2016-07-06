@@ -23,35 +23,48 @@
  */
 package org.tools4j.hooverraft.config;
 
-import java.util.Optional;
+public final class DefaultSourceConfig implements ServerConfig {
 
-public interface ConsensusConfig {
-    long minElectionTimeoutMillis();
-    long maxElectionTimeoutMillis();
-    Optional<String> ipcMulticastChannel();
-    int serverCount();
-    ServerConfig serverConfig(int index);
-    int sourceCount();
-    SourceConfig sourceConfig(int index);
-    ThreadingMode threadingMode();
+    private final int id;
+    private final String channel;
 
-    default ServerConfig serverConfigById(int id) {
-        for (int i = 0; i < serverCount(); i++) {
-            final ServerConfig config = serverConfig(i);
-            if (config.id() == id) {
-                return config;
-            }
-        }
-        return null;
+    public DefaultSourceConfig(final int id, final String channel) {
+        this.id = id;
+        this.channel = channel;
     }
 
-    default SourceConfig sourceConfigById(int id) {
-        for (int i = 0; i < sourceCount(); i++) {
-            final SourceConfig config = sourceConfig(i);
-            if (config.id() == id) {
-                return config;
-            }
-        }
-        return null;
+    @Override
+    public int id() {
+        return id;
+    }
+
+    @Override
+    public String channel() {
+        return channel;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        final DefaultSourceConfig that = (DefaultSourceConfig) o;
+
+        if (id != that.id) return false;
+        return channel.equals(that.channel);
+
+    }
+
+    @Override
+    public int hashCode() {
+        return 31 * id + channel.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "DefaultSourceConfig{" +
+                "id=" + id +
+                ", channel='" + channel + '\'' +
+                '}';
     }
 }

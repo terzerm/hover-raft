@@ -23,7 +23,26 @@
  */
 package org.tools4j.hooverraft.state;
 
-public interface FollowerState {
-    long nextIndex();
-    long matchIndex();
+public final class FollowerState {
+
+    private final int serverId;
+
+    private long nextIndex;
+    private long matchIndex;
+
+    public FollowerState(final int serverId) {
+        this.serverId = serverId;
+    }
+
+    public int serverId() {
+        return serverId;
+    }
+
+    public long nextIndex() {
+        return nextIndex;
+    }
+
+    public long matchIndex() {
+        return matchIndex;
+    }
 }

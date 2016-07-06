@@ -23,10 +23,31 @@
  */
 package org.tools4j.hooverraft.state;
 
-public interface ElectionState {
-    ElectionTimer electionTimer();
-    int voteCount();
-    int incVoteCount();
+import org.tools4j.hooverraft.config.ConsensusConfig;
+
+public final class ElectionState {
+
+    private final ElectionTimer electionTimer;
+    private int voteCount;
+
+    public ElectionState(final ConsensusConfig consensusConfig) {
+        this.electionTimer = new ElectionTimer(consensusConfig);
+    }
+
+    public ElectionTimer electionTimer() {
+        return electionTimer;
+    }
+
+    public int voteCount() {
+        return voteCount;
+    }
+
+    public int incVoteCount() {
+        return ++voteCount;
+    }
+
     /** initialise vote count to 1 for own vote*/
-    void initVoteCount();
+    public void initVoteCount() {
+        voteCount = 1;
+    }
 }

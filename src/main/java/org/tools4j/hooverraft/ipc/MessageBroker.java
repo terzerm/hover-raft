@@ -51,19 +51,19 @@ public final class MessageBroker {
     }
 
     private Subscription[] serverSubscriptions() {
-        final ConsensusConfig consensusConfig = server.config().consensusConfig();
+        final ConsensusConfig consensusConfig = server.consensusConfig();
         final int servers = consensusConfig.serverCount();
         final Subscription[] subscriptions = new Subscription[servers - 1];
         int index = 0;
         for (int i = 0; i < servers - 1; i++) {
             final ServerConfig serverConfig = consensusConfig.serverConfig(i);
-            if (serverConfig.id() != server.config().id()) {
+            if (serverConfig.id() != server.serverConfig().id()) {
                 subscriptions[i] = server.connections().serverSubscription(serverConfig.id());
                 index++;
             }
         }
         if (index < servers - 1) {
-            throw new IllegalStateException("invalid server ID config: expected " + servers + " unique IDs but found " + (index + 1));
+            throw new IllegalStateException("invalid server ID serverConfig: expected " + servers + " unique IDs but found " + (index + 1));
         }
         return subscriptions;
     }

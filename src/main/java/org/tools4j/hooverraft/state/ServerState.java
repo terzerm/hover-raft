@@ -23,7 +23,24 @@
  */
 package org.tools4j.hooverraft.state;
 
-public interface ServerState {
-    PersistentState persistentState();
-    VolatileState volatileState();
+import org.tools4j.hooverraft.config.ConsensusConfig;
+import org.tools4j.hooverraft.config.ServerConfig;
+
+public final class ServerState {
+
+    private final PersistentState persistentState;
+    private final VolatileState volatileState;
+
+    public ServerState(final ServerConfig serverConfig, final ConsensusConfig consensusConfig) {
+        this.persistentState = null;//FIXME
+        this.volatileState = new VolatileState(serverConfig.id(), consensusConfig);
+    }
+
+    public PersistentState persistentState() {
+        return persistentState;
+    }
+
+    public VolatileState volatileState() {
+        return volatileState;
+    }
 }

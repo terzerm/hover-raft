@@ -21,37 +21,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hooverraft.config;
+package org.tools4j.hooverraft.io;
 
-import java.util.Optional;
+import net.openhft.chronicle.Chronicle;
+import net.openhft.chronicle.ChronicleQueueBuilder;
+import org.tools4j.hooverraft.chronicle.ChronicleMessageLog;
+import org.tools4j.hooverraft.message.MessageLog;
 
-public interface ConsensusConfig {
-    long minElectionTimeoutMillis();
-    long maxElectionTimeoutMillis();
-    Optional<String> ipcMulticastChannel();
-    int serverCount();
-    ServerConfig serverConfig(int index);
-    int sourceCount();
-    SourceConfig sourceConfig(int index);
-    ThreadingMode threadingMode();
+import java.io.IOException;
 
-    default ServerConfig serverConfigById(int id) {
-        for (int i = 0; i < serverCount(); i++) {
-            final ServerConfig config = serverConfig(i);
-            if (config.id() == id) {
-                return config;
-            }
-        }
-        return null;
+/**
+ * File names and locations.
+ */
+public class Files {
+
+    public static final String SYS_PROP_FILE_DIR = "org.tools4j.hooverraft.FileDir";
+
+    public static final String defaultFileDirectory() {
+        return System.getProperty("java.io.tmpdir");
     }
 
-    default SourceConfig sourceConfigById(int id) {
-        for (int i = 0; i < sourceCount(); i++) {
-            final SourceConfig config = sourceConfig(i);
-            if (config.id() == id) {
-                return config;
-            }
-        }
-        return null;
+    public static final String fileDirectory() {
+        return System.getProperty(SYS_PROP_FILE_DIR, defaultFileDirectory());
+    }
+
+    public static final String fileName(final int serverId, final String name) {
+        return "hooverraft_" + serverId + "_" + name;
+    }
+
+    public static final MessageLog messageLog(final int serverId, final String name) throws IOException {
+        final String path = Files.fileDirectory();
+        final String child = Files.fileName(serverId, name);
+        final Chronicle chronicle = ChronicleQueueBuilder.vanilla(path, child).build();
+        return new ChronicleMessageLog(chronicle);
     }
 }

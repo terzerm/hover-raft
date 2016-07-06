@@ -23,6 +23,7 @@
  */
 package org.tools4j.hooverraft.server;
 
+import org.tools4j.hooverraft.config.ConsensusConfig;
 import org.tools4j.hooverraft.config.ServerConfig;
 import org.tools4j.hooverraft.config.ThreadingMode;
 import org.tools4j.hooverraft.io.Connections;
@@ -39,21 +40,28 @@ import java.util.Objects;
 public final class Server {
 
     private final ServerConfig serverConfig;
+    private final ConsensusConfig consensusConfig;
     private final ServerState serverState;
     private final Connections connections;
     private final MessageBroker messageBroker = new MessageBroker(this);
     private final MessageFactory messageFactory = new MessageFactory();
 
-    public Server(final ServerConfig serverConfig,
+    public Server(final int serverId,
+                  final ConsensusConfig consensusConfig,
                   final ServerState serverState,
                   final Connections connections) {
-        this.serverConfig = Objects.requireNonNull(serverConfig);
+        this.serverConfig = Objects.requireNonNull(consensusConfig.serverConfigById(serverId), "No server serverConfig found for ID " + serverId);
+        this.consensusConfig = Objects.requireNonNull(consensusConfig);
         this.serverState = Objects.requireNonNull(serverState);
         this.connections = Objects.requireNonNull(connections);
     }
 
-    public ServerConfig config() {
+    public ServerConfig serverConfig() {
         return serverConfig;
+    }
+
+    public ConsensusConfig consensusConfig() {
+        return consensusConfig;
     }
 
     public ServerState state() {
@@ -73,7 +81,7 @@ public final class Server {
     }
 
     public int id() {
-        return config().id();
+        return serverConfig().id();
     }
 
     public void perform() {
@@ -88,7 +96,7 @@ public final class Server {
     }
 
     private void pollNextInputMessage() {
-        if (serverConfig.consensusConfig().threadingPolicy() == ThreadingMode.SHARED) {
+        if (consensusConfig.threadingMode() == ThreadingMode.SHARED) {
             //FIXME impl
         }
     }

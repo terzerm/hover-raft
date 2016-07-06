@@ -84,7 +84,7 @@ public final class CandidateActivity implements ServerActivity {
         final VolatileState vstate = server.state().volatileState();
         final PersistentState pstate = server.state().persistentState();
         final ElectionState estate = vstate.electionState();
-        final int self = server.config().id();
+        final int self = server.serverConfig().id();
         pstate.votedFor(self);
         estate.initVoteCount();
         requestVoteFromAllServers(server, self);
@@ -102,7 +102,7 @@ public final class CandidateActivity implements ServerActivity {
     private void incVoteCount(final Server server) {
         final VolatileState vstate = server.state().volatileState();
         vstate.electionState().incVoteCount();
-        final int servers = server.config().consensusConfig().serverCount();
+        final int servers = server.consensusConfig().serverCount();
         final int majority = (servers + 1) / 2;
         if (vstate.electionState().voteCount() >= majority) {
             vstate.changeRoleTo(Role.LEADER);
