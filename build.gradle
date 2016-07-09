@@ -5,7 +5,7 @@ apply plugin: 'license'
 sourceCompatibility = 1.8
 group = "org.tools4j"
 version = '1.0.1-SNAPSHOT'
-archivesBaseName = "hoover-raft"
+archivesBaseName = "hover-raft"
 
 def generatedSrcName = "generated-src"
 def generatedSrc = "$buildDir/$generatedSrcName"
@@ -21,7 +21,7 @@ idea {
 
 jar {
     manifest {
-        attributes 'Implementation-Title': 'hoover-raft', 'Implementation-Version': version
+        attributes 'Implementation-Title': 'hover-raft', 'Implementation-Version': version
     }
 }
 
@@ -91,7 +91,7 @@ javadoc {
 	options.showFromPackage()
 	options.linkSource()
 	options.links("http://docs.oracle.com/javase/8/docs/api/");
-	options.windowTitle = "hoover-raft API ${version}"
+	options.windowTitle = "hover-raft API ${version}"
 	options.overview = "src/main/java/overview.html";
 }
 
