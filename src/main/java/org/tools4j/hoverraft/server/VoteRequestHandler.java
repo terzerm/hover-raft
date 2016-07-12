@@ -23,22 +23,16 @@
  */
 package org.tools4j.hoverraft.server;
 
-import org.tools4j.hoverraft.ipc.*;
+import org.tools4j.hoverraft.ipc.VoteRequest;
 import org.tools4j.hoverraft.message.Publication;
 import org.tools4j.hoverraft.state.PersistentState;
 import org.tools4j.hoverraft.state.Role;
 import org.tools4j.hoverraft.state.ServerState;
-import org.tools4j.hoverraft.state.VolatileState;
 
-public final class RequestResponderHandler implements MessageHandler {
+public final class VoteRequestHandler {
 
     private static final int MAX_TRIES = 10;//TODO how often should we retry sending?
 
-    private Publication serverPublication(final Server server, final int candidateId) {
-        return server.connections().serverPublication(candidateId);
-    }
-
-    @Override
     public void onVoteRequest(final Server server, final VoteRequest voteRequest) {
         final int term = voteRequest.term();
         final int candidateId = voteRequest.candidateId();
@@ -56,7 +50,7 @@ public final class RequestResponderHandler implements MessageHandler {
         } else {
             granted = false;
         }
-        final Publication serverPublication = serverPublication(server, candidateId);
+        final Publication serverPublication = server.connections().serverPublication(candidateId);
         server.messageFactory().voteResponse()
                 .term(server.currentTerm())
                 .voteGranted(granted)
@@ -69,45 +63,5 @@ public final class RequestResponderHandler implements MessageHandler {
         final PersistentState pstate = server.state().persistentState();
         return pstate.lastLogTerm() < lastLogTerm ||
                 (pstate.lastLogTerm() == lastLogTerm && pstate.lastLogIndex() <= lastLogIndex);
-    }
-
-    @Override
-    public void onAppendRequest(final Server server, final AppendRequest appendRequest) {
-        final int term = appendRequest.term();
-        final int leaderId = appendRequest.leaderId();
-        final boolean successful;
-        if (server.currentTerm() == term) /* should never be larger */ {
-            final VolatileState vstate = server.state().volatileState();
-            if (vstate.role() == Role.FOLLOWER) {
-                vstate.electionState().electionTimer().reset();
-            } else {
-                vstate.changeRoleTo(Role.FOLLOWER);
-                vstate.electionState().electionTimer().restart();
-            }
-            //FIXME append entries to message log here
-            successful = true;
-        } else {
-            successful = false;
-        }
-        final Publication serverPublication = serverPublication(server, leaderId);
-        server.messageFactory().appendResponse()
-                .term(server.currentTerm())
-                .successful(successful)
-                .offerTo(serverPublication, MAX_TRIES);
-    }
-
-    @Override
-    public void onVoteResponse(final Server server, final VoteResponse voteResponse) {
-        //no op
-    }
-
-    @Override
-    public void onAppendResponse(final Server server, final AppendResponse appendResponse) {
-        //no op
-    }
-
-    @Override
-    public void onTimeoutNow(final Server server, final TimeoutNow timeoutNow) {
-        //no op
     }
 }

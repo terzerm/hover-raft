@@ -51,7 +51,7 @@ public final class AppendRequest extends Message {
         return readBuffer.getInt(offset + 20);
     }
 
-    public long commandId() {
+    public long commandIndex() {
         return readBuffer.getLong(offset + 24);
     }
 

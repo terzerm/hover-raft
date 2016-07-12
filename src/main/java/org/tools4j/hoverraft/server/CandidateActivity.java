@@ -23,7 +23,8 @@
  */
 package org.tools4j.hoverraft.server;
 
-import org.tools4j.hoverraft.ipc.*;
+import org.tools4j.hoverraft.ipc.MessageHandler;
+import org.tools4j.hoverraft.ipc.VoteResponse;
 import org.tools4j.hoverraft.message.Publication;
 import org.tools4j.hoverraft.state.ElectionState;
 import org.tools4j.hoverraft.state.PersistentState;
@@ -32,41 +33,10 @@ import org.tools4j.hoverraft.state.VolatileState;
 
 public final class CandidateActivity implements ServerActivity {
 
-    private final MessageHandler messageHandler = CompositeMessageHandler.compose(
-            new HigherTermHandler(),
-            new RequestResponderHandler(),
-            new VoteResponseHandler()
-    );
-
-    private final class VoteResponseHandler implements MessageHandler {
-
-        @Override
-        public void onVoteRequest(final Server server, final VoteRequest voteRequest) {
-            //no op
-        }
-
-        @Override
-        public void onVoteResponse(final Server server, final VoteResponse voteResponse) {
-            if (voteResponse.term() == server.currentTerm() && voteResponse.voteGranted()) {
-                incVoteCount(server);
-            }
-        }
-
-        @Override
-        public void onAppendRequest(final Server server, final AppendRequest appendRequest) {
-            //no op
-        }
-
-        @Override
-        public void onAppendResponse(final Server server, final AppendResponse appendResponse) {
-            //no op
-        }
-
-        @Override
-        public void onTimeoutNow(final Server server, final TimeoutNow timeoutRequest) {
-            //no op
-        }
-    }
+    private final MessageHandler messageHandler = new HigherTermHandler()
+            .thenHandleVoteRequest(new VoteRequestHandler()::onVoteRequest)
+            .thenHandleAppendRequest(new AppendRequestHandler()::onAppendRequest)
+            .thenHandleVoteResponse(this::onVoteResponse);
 
     @Override
     public MessageHandler messageHandler() {
@@ -77,6 +47,12 @@ public final class CandidateActivity implements ServerActivity {
     public void perform(final Server server) {
         if (server.state().persistentState().votedFor() < 0) {
             voteForMyself(server);
+        }
+    }
+
+    private void onVoteResponse(final Server server, final VoteResponse voteResponse) {
+        if (voteResponse.term() == server.currentTerm() && voteResponse.voteGranted()) {
+            incVoteCount(server);
         }
     }
 

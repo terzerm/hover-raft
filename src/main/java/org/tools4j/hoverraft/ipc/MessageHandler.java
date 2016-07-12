@@ -25,6 +25,8 @@ package org.tools4j.hoverraft.ipc;
 
 import org.tools4j.hoverraft.server.Server;
 
+import java.util.function.BiConsumer;
+
 public interface MessageHandler {
     void onVoteRequest(Server server, VoteRequest voteRequest);
     void onVoteResponse(Server server, VoteResponse voteResponse);
@@ -58,4 +60,136 @@ public interface MessageHandler {
             // no op
         }
     };
+
+    static MessageHandler handle(final BiConsumer<Server, VoteRequest> voteRequestHandler,
+                                 final BiConsumer<Server, VoteResponse> voteResponseHandler,
+                                 final BiConsumer<Server, AppendRequest> appendRequestHandler,
+                                 final BiConsumer<Server, AppendResponse> appendResponseHandler,
+                                 final BiConsumer<Server, TimeoutNow> timeoutNowHandler) {
+        return new MessageHandler() {
+            @Override
+            public void onVoteRequest(final Server server, final VoteRequest voteRequest) {
+                voteRequestHandler.accept(server, voteRequest);
+            }
+
+            @Override
+            public void onVoteResponse(final Server server, final VoteResponse voteResponse) {
+                voteResponseHandler.accept(server, voteResponse);
+            }
+
+            @Override
+            public void onAppendRequest(final Server server, final AppendRequest appendRequest) {
+                appendRequestHandler.accept(server, appendRequest);
+            }
+
+            @Override
+            public void onAppendResponse(final Server server, final AppendResponse appendResponse) {
+                appendResponseHandler.accept(server, appendResponse);
+            }
+
+            @Override
+            public void onTimeoutNow(final Server server, final TimeoutNow timeoutNow) {
+                timeoutNowHandler.accept(server, timeoutNow);
+            }
+
+            @Override
+            public MessageHandler thenHandleVoteRequest(final BiConsumer<Server, VoteRequest> handler) {
+                return handle(voteRequestHandler.andThen(handler), voteResponseHandler, appendRequestHandler, appendResponseHandler, timeoutNowHandler);
+            }
+
+            @Override
+            public MessageHandler thenHandleVoteResponse(final BiConsumer<Server, VoteResponse> handler) {
+                return handle(voteRequestHandler, voteResponseHandler.andThen(handler), appendRequestHandler, appendResponseHandler, timeoutNowHandler);
+            }
+
+            @Override
+            public MessageHandler thenHandleAppendRequest(final BiConsumer<Server, AppendRequest> handler) {
+                return handle(voteRequestHandler, voteResponseHandler, appendRequestHandler.andThen(handler), appendResponseHandler, timeoutNowHandler);
+            }
+
+            @Override
+            public MessageHandler thenHandleAppendResponse(final BiConsumer<Server, AppendResponse> handler) {
+                return handle(voteRequestHandler, voteResponseHandler, appendRequestHandler, appendResponseHandler.andThen(handler), timeoutNowHandler);
+            }
+
+            @Override
+            public MessageHandler thenHandleTimeoutNow(final BiConsumer<Server, TimeoutNow> handler) {
+                return handle(voteRequestHandler, voteResponseHandler, appendRequestHandler, appendResponseHandler, timeoutNowHandler.andThen(handler));
+            }
+        };
+    }
+
+    static MessageHandler handleVoteRequest(final BiConsumer<Server, VoteRequest> handler) {
+        return handle(handler, NOOP::onVoteResponse, NOOP::onAppendRequest, NOOP::onAppendResponse, NOOP::onTimeoutNow);
+    }
+
+    static MessageHandler handleVoteResponse(final BiConsumer<Server, VoteResponse> handler) {
+        return handle(NOOP::onVoteRequest, handler, NOOP::onAppendRequest, NOOP::onAppendResponse, NOOP::onTimeoutNow);
+    }
+
+    static MessageHandler handleAppendRequest(final BiConsumer<Server, AppendRequest> handler) {
+        return handle(NOOP::onVoteRequest, NOOP::onVoteResponse, handler, NOOP::onAppendResponse, NOOP::onTimeoutNow);
+    }
+
+    static MessageHandler handleAppendResponse(final BiConsumer<Server, AppendResponse> handler) {
+        return handle(NOOP::onVoteRequest, NOOP::onVoteResponse, NOOP::onAppendRequest, handler, NOOP::onTimeoutNow);
+    }
+
+    static MessageHandler handleTimeoutNow(final BiConsumer<Server, TimeoutNow> handler) {
+        return handle(NOOP::onVoteRequest, NOOP::onVoteResponse, NOOP::onAppendRequest, NOOP::onAppendResponse, handler);
+    }
+
+    default MessageHandler thenHandleVoteRequest(final BiConsumer<Server, VoteRequest> handler) {
+        return handle(((BiConsumer<Server, VoteRequest>)this::onVoteRequest).andThen(handler), this::onVoteResponse, this::onAppendRequest, this::onAppendResponse, this::onTimeoutNow);
+    }
+
+    default MessageHandler thenHandleVoteResponse(final BiConsumer<Server, VoteResponse> handler) {
+        return handle(this::onVoteRequest, ((BiConsumer<Server, VoteResponse>)this::onVoteResponse).andThen(handler), this::onAppendRequest, this::onAppendResponse, this::onTimeoutNow);
+    }
+
+    default MessageHandler thenHandleAppendRequest(final BiConsumer<Server, AppendRequest> handler) {
+        return handle(this::onVoteRequest, this::onVoteResponse, ((BiConsumer<Server, AppendRequest>)this::onAppendRequest).andThen(handler), this::onAppendResponse, this::onTimeoutNow);
+    }
+
+    default MessageHandler thenHandleAppendResponse(final BiConsumer<Server, AppendResponse> handler) {
+        return handle(this::onVoteRequest, this::onVoteResponse, this::onAppendRequest, ((BiConsumer<Server, AppendResponse>)this::onAppendResponse).andThen(handler), this::onTimeoutNow);
+    }
+
+    default MessageHandler thenHandleTimeoutNow(final BiConsumer<Server, TimeoutNow> handler) {
+        return handle(this::onVoteRequest, this::onVoteResponse, this::onAppendRequest, this::onAppendResponse, ((BiConsumer<Server, TimeoutNow>)this::onTimeoutNow).andThen(handler));
+    }
+
+    default MessageHandler thenHandle(final MessageHandler next) {
+        return new MessageHandler() {
+            @Override
+            public void onVoteRequest(Server server, VoteRequest voteRequest) {
+                MessageHandler.this.onVoteRequest(server, voteRequest);
+                next.onVoteRequest(server, voteRequest);
+            }
+
+            @Override
+            public void onVoteResponse(Server server, VoteResponse voteResponse) {
+                MessageHandler.this.onVoteResponse(server, voteResponse);
+                next.onVoteResponse(server, voteResponse);
+            }
+
+            @Override
+            public void onAppendRequest(Server server, AppendRequest appendRequest) {
+                MessageHandler.this.onAppendRequest(server, appendRequest);
+                next.onAppendRequest(server, appendRequest);
+            }
+
+            @Override
+            public void onAppendResponse(Server server, AppendResponse appendResponse) {
+                MessageHandler.this.onAppendResponse(server, appendResponse);
+                next.onAppendResponse(server, appendResponse);
+            }
+
+            @Override
+            public void onTimeoutNow(Server server, TimeoutNow timeoutNow) {
+                MessageHandler.this.onTimeoutNow(server, timeoutNow);
+                next.onTimeoutNow(server, timeoutNow);
+            }
+        };
+    }
 }

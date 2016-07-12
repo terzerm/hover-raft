@@ -23,26 +23,29 @@
  */
 package org.tools4j.hoverraft.server;
 
-import org.tools4j.hoverraft.ipc.CompositeMessageHandler;
 import org.tools4j.hoverraft.ipc.MessageHandler;
+import org.tools4j.hoverraft.ipc.TimeoutNow;
 
 public class FollowerActivity implements ServerActivity {
 
-    private final MessageHandler messageHandler = CompositeMessageHandler.compose(
-            new HigherTermHandler(),
-            new RequestResponderHandler()
-    );
+    private final MessageHandler messageHandler = new HigherTermHandler()
+            .thenHandleVoteRequest(new VoteRequestHandler()::onVoteRequest)
+            .thenHandleAppendRequest(new AppendRequestHandler()::onAppendRequest)
+            .thenHandleTimeoutNow(this::onTimeoutNow);
 
     @Override
     public MessageHandler messageHandler() {
         return messageHandler;
     }
 
+    @Override
     public void perform(final Server server) {
         //no op, we are just responding to requests and perform all standard server ops
     }
 
-    private void timeoutNow(final Server server) {
-        server.state().volatileState().electionState().electionTimer().timeoutNow();
+    private void onTimeoutNow(final Server server, final TimeoutNow timeoutNow) {
+        if (timeoutNow.term() == server.currentTerm() && timeoutNow.candidateId() == server.id()) {
+            server.state().volatileState().electionState().electionTimer().timeoutNow();
+        }
     }
 }

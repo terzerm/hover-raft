@@ -29,7 +29,7 @@ import org.agrona.concurrent.UnsafeBuffer;
 import org.tools4j.hoverraft.config.ConsensusConfig;
 import org.tools4j.hoverraft.config.ServerConfig;
 import org.tools4j.hoverraft.io.Files;
-import org.tools4j.hoverraft.ipc.Message;
+import org.tools4j.hoverraft.message.CommandMessage;
 import org.tools4j.hoverraft.message.MessageLog;
 
 import java.io.File;
@@ -43,6 +43,7 @@ public final class PersistentState {
     private static final int STATE_SIZE = 4 + 4;
 
     private final Int2ObjectHashMap<MessageLog> messageLogsBySourceId;
+    private final CommandMessage commandMessage = new CommandMessage();
     private MutableDirectBuffer state;
     private MessageLog commandLog;
 
@@ -87,12 +88,12 @@ public final class PersistentState {
 
     public int lastLogTerm() {
         commandLog.moveToLast();
-        return CommandMessage.INSTANCE.read(commandLog).logTerm();
+        return commandMessage.read(commandLog).term();
     }
 
     public long lastLogIndex() {
         commandLog.moveToLast();
-        return CommandMessage.INSTANCE.read(commandLog).logIndex();
+        return commandLog.index();
     }
 
     private static MutableDirectBuffer initState(final ServerConfig serverConfig, final ConsensusConfig consensusConfig) throws IOException {
@@ -117,27 +118,4 @@ public final class PersistentState {
         return messageLogsById;
     }
 
-    private static class CommandMessage extends Message {
-
-        private static final CommandMessage INSTANCE = new CommandMessage();
-        public static final int MESSAGE_SIZE = 4 + 8;
-
-        public CommandMessage() {
-            super(MESSAGE_SIZE);
-            wrap(new UnsafeBuffer(ByteBuffer.allocateDirect(MESSAGE_SIZE)), 0);
-        }
-
-        public int logTerm() {
-            return readBuffer.getInt(0);
-        }
-
-        public long logIndex() {
-            return readBuffer.getLong(4);
-        }
-
-        public CommandMessage read(final MessageLog commandLog) {
-            commandLog.read(writeBuffer, 0);
-            return this;
-        }
-    }
 }

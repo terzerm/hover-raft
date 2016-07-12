@@ -21,39 +21,51 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.server;
+package org.tools4j.hoverraft.message;
 
-import org.tools4j.hoverraft.ipc.AppendResponse;
-import org.tools4j.hoverraft.ipc.MessageHandler;
+import org.agrona.concurrent.UnsafeBuffer;
+import org.tools4j.hoverraft.ipc.Message;
 
-public class LeaderActivity implements ServerActivity {
+import java.nio.ByteBuffer;
 
-    private final MessageHandler messageHandler = new HigherTermHandler()
-            .thenHandleVoteRequest(new VoteRequestHandler()::onVoteRequest)
-            .thenHandleAppendRequest(new AppendRequestHandler()::onAppendRequest)
-            .thenHandleAppendResponse(this::handleAppendResponse);
+public final class CommandMessage extends Message {
 
-    @Override
-    public MessageHandler messageHandler() {
-        return messageHandler;
+    public static final int MESSAGE_SIZE = 4 + 4 + 8;
+
+    public CommandMessage() {
+        super(MESSAGE_SIZE);
+        wrap(new UnsafeBuffer(ByteBuffer.allocateDirect(MESSAGE_SIZE)), 0);
     }
 
-
-    @Override
-    public void perform(final Server server) {
-        updateCommitIndex(server);
-        sendAppendRequest(server);
+    public int term() {
+        return readBuffer.getInt(offset);
     }
 
-    private void updateCommitIndex(final Server server) {
-        //FIXME impl
+    public CommandMessage term(final int term) {
+        writeBuffer.putInt(offset, term);
+        return this;
     }
 
-    private void sendAppendRequest(final Server server) {
-        //FIXME impl
+    public int commandSourceId() {
+        return readBuffer.getInt(offset + 4);
     }
 
-    private void handleAppendResponse(final Server server, final AppendResponse appendResponse) {
-        //FIXME impl
+    public CommandMessage commandSourceId(final int sourceId) {
+        writeBuffer.putInt(offset + 4, sourceId);
+        return this;
+    }
+
+    public long commandIndex() {
+        return readBuffer.getLong(offset + 8);
+    }
+
+    public CommandMessage commandIndex(final long commandIndex) {
+        writeBuffer.putLong(offset + 8, commandIndex);
+        return this;
+    }
+
+    public CommandMessage read(final MessageLog commandLog) {
+        commandLog.read(writeBuffer, offset);
+        return this;
     }
 }
