@@ -87,13 +87,12 @@ public final class PersistentState {
     }
 
     public int lastLogTerm() {
-        commandLog.moveToLast();
+        commandLog.readIndex(lastLogIndex());
         return commandMessage.read(commandLog).term();
     }
 
     public long lastLogIndex() {
-        commandLog.moveToLast();
-        return commandLog.index();
+        return commandLog.size() - 1;
     }
 
     private static MutableDirectBuffer initState(final ServerConfig serverConfig, final ConsensusConfig consensusConfig) throws IOException {

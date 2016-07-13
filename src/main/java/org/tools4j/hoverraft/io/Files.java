@@ -25,6 +25,7 @@ package org.tools4j.hoverraft.io;
 
 import net.openhft.chronicle.Chronicle;
 import net.openhft.chronicle.ChronicleQueueBuilder;
+import net.openhft.chronicle.VanillaChronicle;
 import org.tools4j.hoverraft.chronicle.ChronicleMessageLog;
 import org.tools4j.hoverraft.message.MessageLog;
 
@@ -53,6 +54,6 @@ public class Files {
         final String path = Files.fileDirectory();
         final String child = Files.fileName(serverId, name);
         final Chronicle chronicle = ChronicleQueueBuilder.vanilla(path, child).build();
-        return new ChronicleMessageLog(chronicle);
+        return new ChronicleMessageLog((VanillaChronicle)chronicle);
     }
 }

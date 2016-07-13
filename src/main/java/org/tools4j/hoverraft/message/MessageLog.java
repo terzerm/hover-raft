@@ -31,10 +31,9 @@ import org.agrona.MutableDirectBuffer;
  */
 public interface MessageLog {
     long size();
-    void moveToFirst();
-    void moveToLast();
-    void moveTo(long index);
-    long index();
-    void read(MutableDirectBuffer buffer, int offset);
+    void size(long size);
+    long readIndex();
+    void readIndex(long index);
+    int read(MutableDirectBuffer buffer, int offset);
     void append(DirectBuffer buffer, int offset, int length);
 }

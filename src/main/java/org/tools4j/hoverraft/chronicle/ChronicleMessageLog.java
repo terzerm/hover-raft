@@ -26,11 +26,14 @@ package org.tools4j.hoverraft.chronicle;
 import net.openhft.chronicle.Chronicle;
 import net.openhft.chronicle.Excerpt;
 import net.openhft.chronicle.ExcerptAppender;
+import net.openhft.chronicle.VanillaChronicle;
 import org.agrona.DirectBuffer;
 import org.agrona.MutableDirectBuffer;
 import org.tools4j.hoverraft.message.MessageLog;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Objects;
 
 /**
@@ -41,11 +44,14 @@ public final class ChronicleMessageLog implements MessageLog {
     private final Chronicle chronicle;
     private final Excerpt excerpt;
     private final ExcerptAppender appender;
+    private final Method setLastWrittenIndexMethod;
 
-    public ChronicleMessageLog(final Chronicle chronicle) throws IOException {
+
+    public ChronicleMessageLog(final VanillaChronicle chronicle) throws IOException {
         this.chronicle = Objects.requireNonNull(chronicle);
         this.excerpt = chronicle.createExcerpt();
         this.appender = chronicle.createAppender();
+        this.setLastWrittenIndexMethod = initLastWrittenIndexMethod();
     }
 
     @Override
@@ -54,29 +60,32 @@ public final class ChronicleMessageLog implements MessageLog {
     }
 
     @Override
-    public long index() {
+    public void size(long size) {
+        try {
+            excerpt.index(size - 1);
+            setLastWrittenIndexMethod.invoke(appender, size - 1);
+        } catch (final IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public long readIndex() {
         return excerpt.index();
     }
 
     @Override
-    public void moveToFirst() {
-        excerpt.toStart();
-    }
-
-    @Override
-    public void moveToLast() {
-        excerpt.toEnd();
-    }
-
-    @Override
-    public void moveTo(long index) {
+    public void readIndex(long index) {
         if (!excerpt.index(index)) {
             throw new IllegalArgumentException("illegal index: " + index);
         }
     }
 
     @Override
-    public void read(final MutableDirectBuffer buffer, final int offset) {
+    public int read(final MutableDirectBuffer buffer, final int offset) {
+        if (!excerpt.nextIndex()) {
+            throw new IllegalStateException("end of message log, index=" + readIndex());
+        }
         final int len = excerpt.readInt();
         for (int i = 0; i < len; ) {
             if (i + 8 <= len) {
@@ -87,6 +96,7 @@ public final class ChronicleMessageLog implements MessageLog {
                 i++;
             }
         }
+        return len;
     }
 
     @Override
@@ -105,5 +115,17 @@ public final class ChronicleMessageLog implements MessageLog {
             }
         }
         appender.finish();
+    }
+
+    //VanillaChronicle.VanillaAppenderImpl:
+    //  protected void setLastWrittenIndex(long lastWrittenIndex)
+    private Method initLastWrittenIndexMethod() {
+        try {
+            final Method method = appender.getClass().getDeclaredMethod("setLastWrittenIndex", long.class);
+            method.setAccessible(true);
+            return method;
+        } catch (final Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }
