@@ -23,7 +23,7 @@
  */
 package org.tools4j.hoverraft.ipc;
 
-public final class VoteResponse extends Message {
+public final class VoteResponse extends AbstractMessage {
 
     private static final byte GRANTED = 1;
     private static final byte DENIED = 0;

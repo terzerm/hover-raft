@@ -26,7 +26,7 @@ package org.tools4j.hoverraft.ipc;
 /**
  * Timeout request to initiate leadership transfer.
  */
-public final class TimeoutNow extends Message {
+public final class TimeoutNow extends AbstractMessage {
 
     public static final int MESSAGE_SIZE = 8;
 

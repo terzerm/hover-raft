@@ -40,9 +40,8 @@ public enum MessageType {
         protected void accept(final Server server,
                               final DirectBuffer buffer,
                               final int offset,
-                              final int length,
                               final MessageHandler messageHandler) {
-            voteRequest.wrap(buffer, offset, length);
+            voteRequest.wrap(buffer, offset);
             messageHandler.onVoteRequest(server, voteRequest);
         }
     },
@@ -59,9 +58,8 @@ public enum MessageType {
         protected void accept(final Server server,
                               final DirectBuffer buffer,
                               final int offset,
-                              final int length,
                               final MessageHandler messageHandler) {
-            voteResponse.wrap(buffer, offset, length);
+            voteResponse.wrap(buffer, offset);
             messageHandler.onVoteResponse(server, voteResponse);
         }
     },
@@ -78,9 +76,8 @@ public enum MessageType {
         protected void accept(final Server server,
                               final DirectBuffer buffer,
                               final int offset,
-                              final int length,
                               final MessageHandler messageHandler) {
-            appendRequest.wrap(buffer, offset, length);
+            appendRequest.wrap(buffer, offset);
             messageHandler.onAppendRequest(server, appendRequest);
         }
     },
@@ -97,9 +94,8 @@ public enum MessageType {
         protected void accept(final Server server,
                               final DirectBuffer buffer,
                               final int offset,
-                              final int length,
                               final MessageHandler messageHandler) {
-            appendResponse.wrap(buffer, offset, length);
+            appendResponse.wrap(buffer, offset);
             messageHandler.onAppendResponse(server, appendResponse);
         }
     },
@@ -116,9 +112,8 @@ public enum MessageType {
         protected void accept(final Server server,
                               final DirectBuffer buffer,
                               final int offset,
-                              final int length,
                               final MessageHandler messageHandler) {
-            timeoutNow.wrap(buffer, offset, length);
+            timeoutNow.wrap(buffer, offset);
             messageHandler.onTimeoutNow(server, timeoutNow);
         }
     };
@@ -157,6 +152,5 @@ public enum MessageType {
     abstract protected void accept(Server server,
                                    DirectBuffer buffer,
                                    int offset,
-                                   int length,
                                    MessageHandler messageHandler);
 }

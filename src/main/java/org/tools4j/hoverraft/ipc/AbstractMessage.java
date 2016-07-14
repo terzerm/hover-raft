@@ -21,51 +21,46 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.message;
+package org.tools4j.hoverraft.ipc;
 
-import org.agrona.concurrent.UnsafeBuffer;
-import org.tools4j.hoverraft.ipc.Message;
+import org.agrona.DirectBuffer;
+import org.agrona.MutableDirectBuffer;
+import org.tools4j.hoverraft.message.Publication;
 
-import java.nio.ByteBuffer;
+import java.util.Objects;
 
-public final class CommandMessage extends Message {
+abstract public class AbstractMessage implements Message {
 
-    public static final int MESSAGE_SIZE = 4 + 4 + 8;
+    private final int byteLength;
 
-    public CommandMessage() {
-        super(MESSAGE_SIZE);
-        wrap(new UnsafeBuffer(ByteBuffer.allocateDirect(MESSAGE_SIZE)), 0);
+    protected DirectBuffer readBuffer;
+    protected MutableDirectBuffer writeBuffer;
+    protected int offset;
+
+    public AbstractMessage(final int byteLength) {
+        this.byteLength = byteLength;
     }
 
-    public int term() {
-        return readBuffer.getInt(offset);
+    @Override
+    public int byteLength() {
+        return byteLength;
     }
 
-    public CommandMessage term(final int term) {
-        writeBuffer.putInt(offset, term);
-        return this;
+    public void wrap(final DirectBuffer buffer, final int offset) {
+        this.readBuffer = Objects.requireNonNull(buffer);
+        this.writeBuffer = null;
+        this.offset = offset;
     }
 
-    public int commandSourceId() {
-        return readBuffer.getInt(offset + 4);
+    public void wrap(final MutableDirectBuffer buffer, final int offset) {
+        Objects.requireNonNull(buffer);
+        this.readBuffer = buffer;
+        this.writeBuffer = buffer;
+        this.offset = offset;
     }
 
-    public CommandMessage commandSourceId(final int sourceId) {
-        writeBuffer.putInt(offset + 4, sourceId);
-        return this;
+    public long offerTo(final Publication publication) {
+        return publication.offer(readBuffer, offset, byteLength);
     }
 
-    public long commandIndex() {
-        return readBuffer.getLong(offset + 8);
-    }
-
-    public CommandMessage commandIndex(final long commandIndex) {
-        writeBuffer.putLong(offset + 8, commandIndex);
-        return this;
-    }
-
-    public CommandMessage read(final MessageLog commandLog) {
-        commandLog.read(writeBuffer, offset);
-        return this;
-    }
 }

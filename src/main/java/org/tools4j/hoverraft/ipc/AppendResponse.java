@@ -23,7 +23,7 @@
  */
 package org.tools4j.hoverraft.ipc;
 
-public final class AppendResponse extends Message {
+public final class AppendResponse extends AbstractMessage {
 
     private static final byte SUCCESSFUL = 1;
     private static final byte UNSUCCESSFUL = 0;

@@ -27,44 +27,20 @@ import org.agrona.DirectBuffer;
 import org.agrona.MutableDirectBuffer;
 import org.tools4j.hoverraft.message.Publication;
 
-import java.util.Objects;
-
 /**
  * A message
  */
-public class Message {
+public interface Message {
 
-    private final int messageSize;
+    int byteLength();
 
-    protected DirectBuffer readBuffer;
-    protected MutableDirectBuffer writeBuffer;
-    protected int offset;
+    void wrap(DirectBuffer buffer, int offset);
 
-    public Message(final int messageSize) {
-        this.messageSize = messageSize;
-    }
+    void wrap(MutableDirectBuffer buffer, int offset);
 
-    public void wrap(final DirectBuffer buffer, final int offset, final int length) {
-        if (length < messageSize) throw new IllegalArgumentException("length is too small: " + length + " < " + messageSize);
-        wrap(buffer, offset);
-    }
+    long offerTo(Publication publication);
 
-    public void wrap(final DirectBuffer buffer, final int offset) {
-        this.readBuffer = Objects.requireNonNull(buffer);
-        if (buffer instanceof MutableDirectBuffer) {
-            this.writeBuffer = (MutableDirectBuffer)buffer;
-        } else {
-            this.writeBuffer = null;
-        }
-        this.offset = offset;
-    }
-
-
-    public long offerTo(final Publication publication) {
-        return publication.offer(readBuffer, offset, messageSize);
-    }
-
-    public long offerTo(final Publication publication, final int maxTries) {
+    default long offerTo(final Publication publication, final int maxTries) {
         long lastResult = Long.MIN_VALUE;
         int tries = maxTries;
         while (tries > 0) {

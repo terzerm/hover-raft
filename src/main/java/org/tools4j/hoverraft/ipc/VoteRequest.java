@@ -23,7 +23,7 @@
  */
 package org.tools4j.hoverraft.ipc;
 
-public final class VoteRequest extends Message {
+public final class VoteRequest extends AbstractMessage {
 
     public static final int MESSAGE_SIZE = 20;
 

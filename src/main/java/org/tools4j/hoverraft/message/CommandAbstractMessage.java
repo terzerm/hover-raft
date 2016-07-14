@@ -21,33 +21,51 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.ipc;
+package org.tools4j.hoverraft.message;
 
-public final class AppendRequest extends AbstractMessage {
+import org.agrona.concurrent.UnsafeBuffer;
+import org.tools4j.hoverraft.ipc.AbstractMessage;
 
-    public static final int MESSAGE_SIZE = 4 + 4 + 4 + 8 + 8;
+import java.nio.ByteBuffer;
 
-    public AppendRequest() {
+public final class CommandAbstractMessage extends AbstractMessage {
+
+    public static final int MESSAGE_SIZE = 4 + 4 + 8;
+
+    public CommandAbstractMessage() {
         super(MESSAGE_SIZE);
+        wrap(new UnsafeBuffer(ByteBuffer.allocateDirect(MESSAGE_SIZE)), 0);
     }
 
     public int term() {
         return readBuffer.getInt(offset);
     }
 
-    public int leaderId() {
+    public CommandAbstractMessage term(final int term) {
+        writeBuffer.putInt(offset, term);
+        return this;
+    }
+
+    public int commandSourceId() {
         return readBuffer.getInt(offset + 4);
     }
 
-    public int prevLogTerm() {
-        return readBuffer.getInt(offset + 8);
+    public CommandAbstractMessage commandSourceId(final int sourceId) {
+        writeBuffer.putInt(offset + 4, sourceId);
+        return this;
     }
 
-    public long prevLogIndex() {
-        return readBuffer.getLong(offset + 12);
+    public long commandIndex() {
+        return readBuffer.getLong(offset + 8);
     }
 
-    public long leaderCommit() {
-        return readBuffer.getLong(offset + 20);
+    public CommandAbstractMessage commandIndex(final long commandIndex) {
+        writeBuffer.putLong(offset + 8, commandIndex);
+        return this;
+    }
+
+    public CommandAbstractMessage read(final MessageLog commandLog) {
+        commandLog.read(writeBuffer, offset);
+        return this;
     }
 }

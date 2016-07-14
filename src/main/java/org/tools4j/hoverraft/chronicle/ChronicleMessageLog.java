@@ -37,7 +37,7 @@ import java.lang.reflect.Method;
 import java.util.Objects;
 
 /**
- * Message log based on a chronicle queue.
+ * AbstractMessage log based on a chronicle queue.
  */
 public final class ChronicleMessageLog implements MessageLog {
 
