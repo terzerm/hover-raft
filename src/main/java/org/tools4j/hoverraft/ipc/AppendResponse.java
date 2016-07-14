@@ -28,10 +28,11 @@ public final class AppendResponse extends AbstractMessage {
     private static final byte SUCCESSFUL = 1;
     private static final byte UNSUCCESSFUL = 0;
 
-    public static final int MESSAGE_SIZE = 5;
+    public static final int BYTE_LENGTH = 4 + 1;
 
-    public AppendResponse() {
-        super(MESSAGE_SIZE);
+    @Override
+    public int byteLength() {
+        return BYTE_LENGTH;
     }
 
     public int term() {

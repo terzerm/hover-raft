@@ -31,20 +31,9 @@ import java.util.Objects;
 
 abstract public class AbstractMessage implements Message {
 
-    private final int byteLength;
-
     protected DirectBuffer readBuffer;
     protected MutableDirectBuffer writeBuffer;
     protected int offset;
-
-    public AbstractMessage(final int byteLength) {
-        this.byteLength = byteLength;
-    }
-
-    @Override
-    public int byteLength() {
-        return byteLength;
-    }
 
     public void wrap(final DirectBuffer buffer, final int offset) {
         this.readBuffer = Objects.requireNonNull(buffer);
@@ -59,8 +48,14 @@ abstract public class AbstractMessage implements Message {
         this.offset = offset;
     }
 
+    public void unwrap() {
+        this.readBuffer = null;
+        this.writeBuffer = null;
+        this.offset = 0;
+    }
+
     public long offerTo(final Publication publication) {
-        return publication.offer(readBuffer, offset, byteLength);
+        return publication.offer(readBuffer, offset, byteLength());
     }
 
 }

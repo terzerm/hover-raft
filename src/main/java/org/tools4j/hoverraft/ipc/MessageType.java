@@ -32,11 +32,6 @@ public enum MessageType {
         private final VoteRequest voteRequest = new VoteRequest();
 
         @Override
-        protected int messageSize() {
-            return VoteRequest.MESSAGE_SIZE;
-        }
-
-        @Override
         protected void accept(final Server server,
                               final DirectBuffer buffer,
                               final int offset,
@@ -48,11 +43,6 @@ public enum MessageType {
     VOTE_RESPONSE {
 
         private final VoteResponse voteResponse = new VoteResponse();
-
-        @Override
-        protected int messageSize() {
-            return VoteResponse.MESSAGE_SIZE;
-        }
 
         @Override
         protected void accept(final Server server,
@@ -68,11 +58,6 @@ public enum MessageType {
         private final AppendRequest appendRequest = new AppendRequest();
 
         @Override
-        protected int messageSize() {
-            return AppendRequest.MESSAGE_SIZE;
-        }
-
-        @Override
         protected void accept(final Server server,
                               final DirectBuffer buffer,
                               final int offset,
@@ -86,11 +71,6 @@ public enum MessageType {
         private final AppendResponse appendResponse = new AppendResponse();
 
         @Override
-        protected int messageSize() {
-            return AppendResponse.MESSAGE_SIZE;
-        }
-
-        @Override
         protected void accept(final Server server,
                               final DirectBuffer buffer,
                               final int offset,
@@ -102,11 +82,6 @@ public enum MessageType {
     TIMEOUT_REQUEST {
 
         private final TimeoutNow timeoutNow = new TimeoutNow();
-
-        @Override
-        protected int messageSize() {
-            return TimeoutNow.MESSAGE_SIZE;
-        }
 
         @Override
         protected void accept(final Server server,
@@ -138,16 +113,6 @@ public enum MessageType {
         }
         return false;
     }
-
-    public static int maxSize() {
-        int maxSize = 0;
-        for (final MessageType type : VALUES) {
-            maxSize = Math.max(maxSize, type.messageSize());
-        }
-        return maxSize;
-    }
-
-    abstract protected int messageSize();
 
     abstract protected void accept(Server server,
                                    DirectBuffer buffer,

@@ -28,10 +28,11 @@ public final class VoteResponse extends AbstractMessage {
     private static final byte GRANTED = 1;
     private static final byte DENIED = 0;
 
-    public static final int MESSAGE_SIZE = 5;
+    public static final int BYTE_LENGTH = 4 + 1;
 
-    public VoteResponse() {
-        super(MESSAGE_SIZE);
+    @Override
+    public int byteLength() {
+        return BYTE_LENGTH;
     }
 
     public int term() {

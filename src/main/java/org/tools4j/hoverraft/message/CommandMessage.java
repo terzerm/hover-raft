@@ -28,20 +28,24 @@ import org.tools4j.hoverraft.ipc.AbstractMessage;
 
 import java.nio.ByteBuffer;
 
-public final class CommandAbstractMessage extends AbstractMessage {
+public final class CommandMessage extends AbstractMessage {
 
-    public static final int MESSAGE_SIZE = 4 + 4 + 8;
+    public static final int BYTE_LENGTH = 4 + 4 + 8;
 
-    public CommandAbstractMessage() {
-        super(MESSAGE_SIZE);
-        wrap(new UnsafeBuffer(ByteBuffer.allocateDirect(MESSAGE_SIZE)), 0);
+    public CommandMessage() {
+        wrap(new UnsafeBuffer(ByteBuffer.allocateDirect(BYTE_LENGTH)), 0);
+    }
+
+    @Override
+    public int byteLength() {
+        return BYTE_LENGTH;
     }
 
     public int term() {
         return readBuffer.getInt(offset);
     }
 
-    public CommandAbstractMessage term(final int term) {
+    public CommandMessage term(final int term) {
         writeBuffer.putInt(offset, term);
         return this;
     }
@@ -50,7 +54,7 @@ public final class CommandAbstractMessage extends AbstractMessage {
         return readBuffer.getInt(offset + 4);
     }
 
-    public CommandAbstractMessage commandSourceId(final int sourceId) {
+    public CommandMessage commandSourceId(final int sourceId) {
         writeBuffer.putInt(offset + 4, sourceId);
         return this;
     }
@@ -59,12 +63,12 @@ public final class CommandAbstractMessage extends AbstractMessage {
         return readBuffer.getLong(offset + 8);
     }
 
-    public CommandAbstractMessage commandIndex(final long commandIndex) {
+    public CommandMessage commandIndex(final long commandIndex) {
         writeBuffer.putLong(offset + 8, commandIndex);
         return this;
     }
 
-    public CommandAbstractMessage read(final MessageLog commandLog) {
+    public CommandMessage read(final MessageLog commandLog) {
         commandLog.read(writeBuffer, offset);
         return this;
     }

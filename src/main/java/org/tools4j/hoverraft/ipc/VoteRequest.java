@@ -25,10 +25,11 @@ package org.tools4j.hoverraft.ipc;
 
 public final class VoteRequest extends AbstractMessage {
 
-    public static final int MESSAGE_SIZE = 20;
+    public static final int BYTE_LENGTH = 4 + 4 + 4 + 8;
 
-    public VoteRequest() {
-        super(MESSAGE_SIZE);
+    @Override
+    public int byteLength() {
+        return BYTE_LENGTH;
     }
 
     public int term() {

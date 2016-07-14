@@ -25,7 +25,7 @@ package org.tools4j.hoverraft.ipc;
 
 import org.agrona.MutableDirectBuffer;
 import org.agrona.concurrent.UnsafeBuffer;
-import org.tools4j.hoverraft.message.CommandAbstractMessage;
+import org.tools4j.hoverraft.message.CommandMessage;
 
 import java.nio.ByteBuffer;
 
@@ -35,13 +35,15 @@ import java.nio.ByteBuffer;
  */
 public final class MessageFactory {
 
-    private final MutableDirectBuffer buffer = new UnsafeBuffer(ByteBuffer.allocateDirect(Math.max(MessageType.maxSize(), CommandAbstractMessage.MESSAGE_SIZE)));
+    public static final int MAX_BYTE_LENGTH = 4096;//FIXME enforce this somehow
+
+    private final MutableDirectBuffer buffer = new UnsafeBuffer(ByteBuffer.allocateDirect(MAX_BYTE_LENGTH));
 
     private final AppendRequest appendRequest = wrap(new AppendRequest());
     private final AppendResponse appendResponse = wrap(new AppendResponse());
     private final VoteRequest voteRequest = wrap(new VoteRequest());
     private final VoteResponse voteResponse = wrap(new VoteResponse());
-    private final CommandAbstractMessage commandMessage = wrap(new CommandAbstractMessage());
+    private final CommandMessage commandMessage = wrap(new CommandMessage());
 
     public AppendRequest appendRequest() {
         return appendRequest;
@@ -59,7 +61,7 @@ public final class MessageFactory {
         return voteResponse;
     }
 
-    public CommandAbstractMessage commandMessage() {
+    public CommandMessage commandMessage() {
         return commandMessage;
     }
 

@@ -38,6 +38,8 @@ public interface Message {
 
     void wrap(MutableDirectBuffer buffer, int offset);
 
+    void unwrap();
+
     long offerTo(Publication publication);
 
     default long offerTo(final Publication publication, final int maxTries) {

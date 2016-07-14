@@ -23,12 +23,17 @@
  */
 package org.tools4j.hoverraft.ipc;
 
+import org.agrona.DirectBuffer;
+import org.agrona.MutableDirectBuffer;
+
 public final class AppendRequest extends AbstractMessage {
 
-    public static final int MESSAGE_SIZE = 4 + 4 + 4 + 8 + 8;
+    /** Byte length without content*/
+    public static final int BYTE_LENGTH = 4 + 4 + 4 + 8 + 8 + 4;
 
-    public AppendRequest() {
-        super(MESSAGE_SIZE);
+    @Override
+    public int byteLength() {
+        return BYTE_LENGTH + contentByteLength();
     }
 
     public int term() {
@@ -49,5 +54,21 @@ public final class AppendRequest extends AbstractMessage {
 
     public long leaderCommit() {
         return readBuffer.getLong(offset + 20);
+    }
+
+    public int contentByteLength() {
+        return readBuffer.getInt(offset + 28);
+    }
+
+    public int contentOffset() {
+        return BYTE_LENGTH;
+    }
+
+    public DirectBuffer readBuffer() {
+        return readBuffer;
+    }
+
+    public MutableDirectBuffer writeBuffer() {
+        return writeBuffer;
     }
 }
