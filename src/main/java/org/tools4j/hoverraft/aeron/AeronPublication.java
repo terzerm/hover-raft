@@ -24,7 +24,7 @@
 package org.tools4j.hoverraft.aeron;
 
 import org.agrona.DirectBuffer;
-import org.tools4j.hoverraft.message.Publication;
+import org.tools4j.hoverraft.io.Publication;
 
 import java.util.Objects;
 

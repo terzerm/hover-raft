@@ -25,7 +25,7 @@ package org.tools4j.hoverraft.chronicle;
 
 import net.openhft.chronicle.ExcerptAppender;
 import org.agrona.DirectBuffer;
-import org.tools4j.hoverraft.message.Publication;
+import org.tools4j.hoverraft.io.Publication;
 
 import java.util.Objects;
 

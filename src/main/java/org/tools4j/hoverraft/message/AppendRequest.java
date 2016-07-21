@@ -21,41 +21,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.ipc;
+package org.tools4j.hoverraft.message;
 
-import org.agrona.DirectBuffer;
-import org.agrona.MutableDirectBuffer;
-import org.tools4j.hoverraft.message.Publication;
+public interface AppendRequest extends Message {
 
-import java.util.Objects;
+    int term();
 
-abstract public class AbstractMessage implements Message {
+    AppendRequest term(int term);
 
-    protected DirectBuffer readBuffer;
-    protected MutableDirectBuffer writeBuffer;
-    protected int offset;
+    int leaderId();
 
-    public void wrap(final DirectBuffer buffer, final int offset) {
-        this.readBuffer = Objects.requireNonNull(buffer);
-        this.writeBuffer = null;
-        this.offset = offset;
-    }
+    AppendRequest leaderId(int leaderId);
 
-    public void wrap(final MutableDirectBuffer buffer, final int offset) {
-        Objects.requireNonNull(buffer);
-        this.readBuffer = buffer;
-        this.writeBuffer = buffer;
-        this.offset = offset;
-    }
+    int prevLogTerm();
 
-    public void unwrap() {
-        this.readBuffer = null;
-        this.writeBuffer = null;
-        this.offset = 0;
-    }
+    AppendRequest prevLogTerm(int prevLogTerm);
 
-    public long offerTo(final Publication publication) {
-        return publication.offer(readBuffer, offset, byteLength());
-    }
+    long prevLogIndex();
 
+    AppendRequest prevLogIndex(long prevLogIndex);
+
+    long leaderCommit();
+
+    AppendRequest leaderCommit(long leaderCommit);
+
+    UserMessage userMessage();
 }

@@ -68,7 +68,7 @@ public final class ElectionTimer {
     }
 
     /**
-     * Forced timeout after receiving a TimeoutNow.
+     * Forced timeout after receiving a DirectTimeoutNow.
      */
     public void timeoutNow() {
         timeoutMillis = 0;

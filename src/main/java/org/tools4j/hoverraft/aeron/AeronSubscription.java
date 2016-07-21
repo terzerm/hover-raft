@@ -24,7 +24,7 @@
 package org.tools4j.hoverraft.aeron;
 
 import io.aeron.logbuffer.FragmentHandler;
-import org.tools4j.hoverraft.message.Subscription;
+import org.tools4j.hoverraft.io.Subscription;
 
 import java.util.Objects;
 

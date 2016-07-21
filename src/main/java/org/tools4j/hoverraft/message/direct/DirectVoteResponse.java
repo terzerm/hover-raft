@@ -21,11 +21,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.server;
+package org.tools4j.hoverraft.message.direct;
 
-import org.tools4j.hoverraft.message.MessageHandler;
+import org.tools4j.hoverraft.message.VoteResponse;
 
-public interface ServerActivity {
-    MessageHandler messageHandler();
-    void perform(Server server);
+public final class DirectVoteResponse extends AbstractMessage implements VoteResponse {
+
+    private static final byte GRANTED = 1;
+    private static final byte DENIED = 0;
+
+    public static final int BYTE_LENGTH = 4 + 1;
+
+    @Override
+    public int byteLength() {
+        return BYTE_LENGTH;
+    }
+
+    public int term() {
+        return readBuffer.getInt(offset);
+    }
+
+    public DirectVoteResponse term(final int term) {
+        writeBuffer.putInt(offset, term);
+        return this;
+    }
+
+    public boolean voteGranted() {
+        return readBuffer.getByte(offset + 4) == GRANTED;
+    }
+
+    public DirectVoteResponse voteGranted(final boolean granted) {
+        writeBuffer.putByte(offset + 4, granted ? GRANTED : DENIED);
+        return this;
+    }
 }

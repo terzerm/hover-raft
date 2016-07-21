@@ -21,11 +21,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.server;
+package org.tools4j.hoverraft.message;
 
-import org.tools4j.hoverraft.message.MessageHandler;
+import org.tools4j.hoverraft.message.direct.DirectCommandMessage;
 
-public interface ServerActivity {
-    MessageHandler messageHandler();
-    void perform(Server server);
+/**
+ * Factory for messages.
+ */
+public interface MessageFactory {
+
+    AppendRequest appendRequest();
+
+    AppendResponse appendResponse();
+
+    VoteRequest voteRequest();
+
+    VoteResponse voteResponse();
+
+    TimeoutNow timeoutNow();
+
+    DirectCommandMessage commandMessage();
 }

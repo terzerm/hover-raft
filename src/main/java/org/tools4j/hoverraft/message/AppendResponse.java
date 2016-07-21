@@ -21,11 +21,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.server;
+package org.tools4j.hoverraft.message;
 
-import org.tools4j.hoverraft.message.MessageHandler;
+public interface AppendResponse extends Message {
 
-public interface ServerActivity {
-    MessageHandler messageHandler();
-    void perform(Server server);
+    int term();
+
+    AppendResponse term(int term);
+
+    boolean successful();
+
+    AppendResponse successful(boolean successful);
+
 }

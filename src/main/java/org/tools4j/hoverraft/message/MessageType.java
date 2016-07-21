@@ -21,75 +21,50 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.ipc;
+package org.tools4j.hoverraft.message;
 
 import org.agrona.DirectBuffer;
 import org.tools4j.hoverraft.server.Server;
 
 public enum MessageType {
     VOTE_REQUEST {
-
-        private final VoteRequest voteRequest = new VoteRequest();
-
         @Override
         protected void accept(final Server server,
-                              final DirectBuffer buffer,
-                              final int offset,
+                              final MessageFactory messageFactory,
                               final MessageHandler messageHandler) {
-            voteRequest.wrap(buffer, offset);
-            messageHandler.onVoteRequest(server, voteRequest);
+            messageHandler.onVoteRequest(server, messageFactory.voteRequest());
         }
     },
     VOTE_RESPONSE {
-
-        private final VoteResponse voteResponse = new VoteResponse();
-
         @Override
         protected void accept(final Server server,
-                              final DirectBuffer buffer,
-                              final int offset,
+                              final MessageFactory messageFactory,
                               final MessageHandler messageHandler) {
-            voteResponse.wrap(buffer, offset);
-            messageHandler.onVoteResponse(server, voteResponse);
+            messageHandler.onVoteResponse(server, messageFactory.voteResponse());
         }
     },
     APPEND_REQUEST {
-
-        private final AppendRequest appendRequest = new AppendRequest();
-
         @Override
         protected void accept(final Server server,
-                              final DirectBuffer buffer,
-                              final int offset,
+                              final MessageFactory messageFactory,
                               final MessageHandler messageHandler) {
-            appendRequest.wrap(buffer, offset);
-            messageHandler.onAppendRequest(server, appendRequest);
+            messageHandler.onAppendRequest(server, messageFactory.appendRequest());
         }
     },
     APPEND_RESPONSE {
-
-        private final AppendResponse appendResponse = new AppendResponse();
-
         @Override
         protected void accept(final Server server,
-                              final DirectBuffer buffer,
-                              final int offset,
+                              final MessageFactory messageFactory,
                               final MessageHandler messageHandler) {
-            appendResponse.wrap(buffer, offset);
-            messageHandler.onAppendResponse(server, appendResponse);
+            messageHandler.onAppendResponse(server, messageFactory.appendResponse());
         }
     },
     TIMEOUT_REQUEST {
-
-        private final TimeoutNow timeoutNow = new TimeoutNow();
-
         @Override
         protected void accept(final Server server,
-                              final DirectBuffer buffer,
-                              final int offset,
+                              final MessageFactory messageFactory,
                               final MessageHandler messageHandler) {
-            timeoutNow.wrap(buffer, offset);
-            messageHandler.onTimeoutNow(server, timeoutNow);
+            messageHandler.onTimeoutNow(server, messageFactory.timeoutNow());
         }
     };
 
@@ -115,7 +90,6 @@ public enum MessageType {
     }
 
     abstract protected void accept(Server server,
-                                   DirectBuffer buffer,
-                                   int offset,
+                                   MessageFactory messageFactory,
                                    MessageHandler messageHandler);
 }

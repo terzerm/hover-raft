@@ -27,7 +27,7 @@ import io.aeron.logbuffer.FragmentHandler;
 import net.openhft.chronicle.ExcerptTailer;
 import org.agrona.ExpandableArrayBuffer;
 import org.agrona.MutableDirectBuffer;
-import org.tools4j.hoverraft.message.Subscription;
+import org.tools4j.hoverraft.io.Subscription;
 
 import java.util.Objects;
 

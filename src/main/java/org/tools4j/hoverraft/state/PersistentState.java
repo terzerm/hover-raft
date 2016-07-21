@@ -29,8 +29,8 @@ import org.agrona.concurrent.UnsafeBuffer;
 import org.tools4j.hoverraft.config.ConsensusConfig;
 import org.tools4j.hoverraft.config.ServerConfig;
 import org.tools4j.hoverraft.io.Files;
-import org.tools4j.hoverraft.message.CommandMessage;
 import org.tools4j.hoverraft.message.MessageLog;
+import org.tools4j.hoverraft.message.direct.DirectCommandMessage;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,7 +43,7 @@ public final class PersistentState {
     private static final int STATE_SIZE = 4 + 4;
 
     private final Int2ObjectHashMap<MessageLog> messageLogsBySourceId;
-    private final CommandMessage commandMessage = new CommandMessage();
+    private final DirectCommandMessage commandMessage = new DirectCommandMessage();
     private final MutableDirectBuffer state;
     private final MessageLog commandLog;
 

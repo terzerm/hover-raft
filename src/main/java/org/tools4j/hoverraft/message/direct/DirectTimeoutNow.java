@@ -21,11 +21,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.server;
+package org.tools4j.hoverraft.message.direct;
 
-import org.tools4j.hoverraft.message.MessageHandler;
+import org.tools4j.hoverraft.message.TimeoutNow;
 
-public interface ServerActivity {
-    MessageHandler messageHandler();
-    void perform(Server server);
+/**
+ * Timeout request to initiate leadership transfer.
+ */
+public final class DirectTimeoutNow extends AbstractMessage implements TimeoutNow {
+
+    public static final int BYTE_LENGTH = 4 + 4;
+
+    @Override
+    public int byteLength() {
+        return BYTE_LENGTH;
+    }
+
+    public int term() {
+        return readBuffer.getInt(offset);
+    }
+
+    public DirectTimeoutNow term(final int term) {
+        writeBuffer.putInt(offset, term);
+        return this;
+    }
+
+    public int candidateId() {
+        return readBuffer.getInt(offset + 4);
+    }
+
+    public DirectTimeoutNow candidateId(final int candidateId) {
+        writeBuffer.putInt(offset + 4, candidateId);
+        return this;
+    }
+
 }

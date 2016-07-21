@@ -21,37 +21,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.message;
+package org.tools4j.hoverraft.message.direct;
 
-import io.aeron.logbuffer.FragmentHandler;
+import org.agrona.DirectBuffer;
+import org.agrona.MutableDirectBuffer;
+import org.tools4j.hoverraft.io.Publication;
 
 import java.util.Objects;
 
-/**
- * Reads messages from a {@link Subscription} and appends them to a {@link MessageLog} via
- * {@link #pollSubscriptionAppendToLog(int)}.
- */
-public final class SubscriptionPollerLogAppender {
+abstract public class AbstractMessage implements DirectMessage {
 
-    private final Subscription subscription;
-    private final MessageLog messageLog;
-    private final FragmentHandler subscriptionPollerLogAppender;
+    protected DirectBuffer readBuffer;
+    protected MutableDirectBuffer writeBuffer;
+    protected int offset;
 
-    public SubscriptionPollerLogAppender(final Subscription subscription, final MessageLog messageLog) {
-        this.subscription = Objects.requireNonNull(subscription);
-        this.messageLog = Objects.requireNonNull(messageLog);
-        this.subscriptionPollerLogAppender = (buf, off, len, hdr) -> messageLog.append(buf, off, len);
+    public void wrap(final DirectBuffer buffer, final int offset) {
+        this.readBuffer = Objects.requireNonNull(buffer);
+        this.writeBuffer = null;
+        this.offset = offset;
     }
 
-    public Subscription subscription() {
-        return subscription;
+    public void wrap(final MutableDirectBuffer buffer, final int offset) {
+        Objects.requireNonNull(buffer);
+        this.readBuffer = buffer;
+        this.writeBuffer = buffer;
+        this.offset = offset;
     }
 
-    public MessageLog messageLog() {
-        return messageLog;
+    public void unwrap() {
+        this.readBuffer = null;
+        this.writeBuffer = null;
+        this.offset = 0;
     }
 
-    public int pollSubscriptionAppendToLog(int fragmentLimit) {
-        return subscription().poll(subscriptionPollerLogAppender, fragmentLimit);
+    public long offerTo(final Publication publication) {
+        return publication.offer(readBuffer, offset, byteLength());
     }
+
 }

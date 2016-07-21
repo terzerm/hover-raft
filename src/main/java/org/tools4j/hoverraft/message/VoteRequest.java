@@ -21,11 +21,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.server;
+package org.tools4j.hoverraft.message;
 
-import org.tools4j.hoverraft.message.MessageHandler;
+public interface VoteRequest extends Message {
 
-public interface ServerActivity {
-    MessageHandler messageHandler();
-    void perform(Server server);
+    int term();
+
+    VoteRequest term(int term);
+
+    int candidateId();
+
+    VoteRequest candidateId(int candidateId);
+
+    int lastLogTerm();
+
+    VoteRequest lastLogTerm(int lastLogTerm);
+
+    long lastLogIndex();
+
+    VoteRequest lastLogIndex(int lastLogIndex);
+
 }

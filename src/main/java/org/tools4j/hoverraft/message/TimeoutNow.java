@@ -21,41 +21,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.ipc;
-
-import org.agrona.DirectBuffer;
-import org.agrona.MutableDirectBuffer;
-import org.tools4j.hoverraft.message.Publication;
+package org.tools4j.hoverraft.message;
 
 /**
- * A message
+ * Timeout request to initiate leadership transfer.
  */
-public interface Message {
+public interface TimeoutNow extends Message {
 
-    int byteLength();
+    int term();
 
-    void wrap(DirectBuffer buffer, int offset);
+    TimeoutNow term(int term);
 
-    void wrap(MutableDirectBuffer buffer, int offset);
+    int candidateId();
 
-    void unwrap();
+    TimeoutNow candidateId(int candidateId);
 
-    long offerTo(Publication publication);
-
-    default long offerTo(final Publication publication, final int maxTries) {
-        long lastResult = Long.MIN_VALUE;
-        int tries = maxTries;
-        while (tries > 0) {
-            tries--;
-            final long result = offerTo(publication);
-            if (result >= 0) {
-                return result;
-            }
-            if (result != Publication.BACK_PRESSURED && result != Publication.ADMIN_ACTION) {
-                return result;
-            }
-            lastResult = result;
-        };
-        return lastResult;
-    }
 }

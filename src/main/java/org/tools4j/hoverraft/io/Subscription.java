@@ -21,11 +21,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.server;
+package org.tools4j.hoverraft.io;
 
-import org.tools4j.hoverraft.message.MessageHandler;
+import io.aeron.logbuffer.FragmentHandler;
 
-public interface ServerActivity {
-    MessageHandler messageHandler();
-    void perform(Server server);
+public interface Subscription {
+    int poll(FragmentHandler fragmentHandler, int fragmentLimit);
 }

@@ -23,53 +23,17 @@
  */
 package org.tools4j.hoverraft.message;
 
-import org.agrona.concurrent.UnsafeBuffer;
-import org.tools4j.hoverraft.ipc.AbstractMessage;
+public interface CommandMessage extends Message {
 
-import java.nio.ByteBuffer;
+    int term();
 
-public final class CommandMessage extends AbstractMessage {
+    CommandMessage term(int term);
 
-    public static final int BYTE_LENGTH = 4 + 4 + 8;
+    int commandSourceId();
 
-    public CommandMessage() {
-        wrap(new UnsafeBuffer(ByteBuffer.allocateDirect(BYTE_LENGTH)), 0);
-    }
+    CommandMessage commandSourceId(int sourceId);
 
-    @Override
-    public int byteLength() {
-        return BYTE_LENGTH;
-    }
+    long commandIndex();
 
-    public int term() {
-        return readBuffer.getInt(offset);
-    }
-
-    public CommandMessage term(final int term) {
-        writeBuffer.putInt(offset, term);
-        return this;
-    }
-
-    public int commandSourceId() {
-        return readBuffer.getInt(offset + 4);
-    }
-
-    public CommandMessage commandSourceId(final int sourceId) {
-        writeBuffer.putInt(offset + 4, sourceId);
-        return this;
-    }
-
-    public long commandIndex() {
-        return readBuffer.getLong(offset + 8);
-    }
-
-    public CommandMessage commandIndex(final long commandIndex) {
-        writeBuffer.putLong(offset + 8, commandIndex);
-        return this;
-    }
-
-    public CommandMessage read(final MessageLog commandLog) {
-        commandLog.read(writeBuffer, offset);
-        return this;
-    }
+    CommandMessage commandIndex(long commandIndex);
 }

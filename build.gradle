@@ -14,8 +14,8 @@ idea {
     module {
         downloadJavadoc = true
         downloadSources = true
-        excludeDirs -= file(buildDir)
-        buildDir.listFiles({d,f->f != generatedSrcName} as FilenameFilter).each {excludeDirs += it}
+//        excludeDirs -= file(buildDir)
+//        buildDir.listFiles({d,f->f != generatedSrcName} as FilenameFilter).each {excludeDirs += it}
     }
 }
 

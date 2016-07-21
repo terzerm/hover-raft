@@ -21,9 +21,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.ipc;
+package org.tools4j.hoverraft.message.direct;
 
-public final class VoteRequest extends AbstractMessage {
+import org.tools4j.hoverraft.message.VoteRequest;
+
+public final class DirectVoteRequest extends AbstractMessage implements VoteRequest {
 
     public static final int BYTE_LENGTH = 4 + 4 + 4 + 8;
 
@@ -36,7 +38,7 @@ public final class VoteRequest extends AbstractMessage {
         return readBuffer.getInt(offset);
     }
 
-    public VoteRequest term(final int term) {
+    public DirectVoteRequest term(final int term) {
         writeBuffer.putInt(offset, term);
         return this;
     }
@@ -45,7 +47,7 @@ public final class VoteRequest extends AbstractMessage {
         return readBuffer.getInt(offset + 4);
     }
 
-    public VoteRequest candidateId(final int candidateId) {
+    public DirectVoteRequest candidateId(final int candidateId) {
         writeBuffer.putInt(offset + 4, candidateId);
         return this;
     }
@@ -54,7 +56,7 @@ public final class VoteRequest extends AbstractMessage {
         return readBuffer.getInt(offset + 8);
     }
 
-    public VoteRequest lastLogTerm(final int lastLogTerm) {
+    public DirectVoteRequest lastLogTerm(final int lastLogTerm) {
         writeBuffer.putInt(offset + 8, lastLogTerm);
         return this;
     }
@@ -63,7 +65,7 @@ public final class VoteRequest extends AbstractMessage {
         return readBuffer.getLong(offset + 12);
     }
 
-    public VoteRequest lastLogIndex(final int lastLogIndex) {
+    public DirectVoteRequest lastLogIndex(final int lastLogIndex) {
         writeBuffer.putLong(offset + 12, lastLogIndex);
         return this;
     }

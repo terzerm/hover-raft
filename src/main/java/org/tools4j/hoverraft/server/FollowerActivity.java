@@ -23,8 +23,8 @@
  */
 package org.tools4j.hoverraft.server;
 
-import org.tools4j.hoverraft.ipc.MessageHandler;
-import org.tools4j.hoverraft.ipc.TimeoutNow;
+import org.tools4j.hoverraft.message.MessageHandler;
+import org.tools4j.hoverraft.message.TimeoutNow;
 
 public class FollowerActivity implements ServerActivity {
 

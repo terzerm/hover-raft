@@ -21,35 +21,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.ipc;
+package org.tools4j.hoverraft.message.direct;
 
-public final class VoteResponse extends AbstractMessage {
+import org.agrona.DirectBuffer;
+import org.agrona.MutableDirectBuffer;
+import org.tools4j.hoverraft.message.Message;
 
-    private static final byte GRANTED = 1;
-    private static final byte DENIED = 0;
+/**
+ * A message
+ */
+public interface DirectMessage extends Message {
 
-    public static final int BYTE_LENGTH = 4 + 1;
+    int byteLength();
 
-    @Override
-    public int byteLength() {
-        return BYTE_LENGTH;
-    }
+    void wrap(DirectBuffer buffer, int offset);
 
-    public int term() {
-        return readBuffer.getInt(offset);
-    }
+    void wrap(MutableDirectBuffer buffer, int offset);
 
-    public VoteResponse term(final int term) {
-        writeBuffer.putInt(offset, term);
-        return this;
-    }
+    void unwrap();
 
-    public boolean voteGranted() {
-        return readBuffer.getByte(offset + 4) == GRANTED;
-    }
-
-    public VoteResponse voteGranted(final boolean granted) {
-        writeBuffer.putByte(offset + 4, granted ? GRANTED : DENIED);
-        return this;
-    }
 }

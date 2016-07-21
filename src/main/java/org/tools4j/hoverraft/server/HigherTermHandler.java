@@ -23,7 +23,7 @@
  */
 package org.tools4j.hoverraft.server;
 
-import org.tools4j.hoverraft.ipc.*;
+import org.tools4j.hoverraft.message.*;
 import org.tools4j.hoverraft.state.PersistentState;
 import org.tools4j.hoverraft.state.Role;
 import org.tools4j.hoverraft.state.ServerState;

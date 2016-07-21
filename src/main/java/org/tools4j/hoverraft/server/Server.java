@@ -27,9 +27,10 @@ import org.tools4j.hoverraft.config.ConsensusConfig;
 import org.tools4j.hoverraft.config.ServerConfig;
 import org.tools4j.hoverraft.config.ThreadingMode;
 import org.tools4j.hoverraft.io.Connections;
-import org.tools4j.hoverraft.ipc.MessageBroker;
-import org.tools4j.hoverraft.ipc.MessageFactory;
-import org.tools4j.hoverraft.ipc.MessageHandler;
+import org.tools4j.hoverraft.message.MessageBroker;
+import org.tools4j.hoverraft.message.MessageFactory;
+import org.tools4j.hoverraft.message.MessageHandler;
+import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
 import org.tools4j.hoverraft.state.ElectionTimer;
 import org.tools4j.hoverraft.state.Role;
 import org.tools4j.hoverraft.state.ServerState;
@@ -44,7 +45,7 @@ public final class Server {
     private final ServerState serverState;
     private final Connections connections;
     private final MessageBroker messageBroker = new MessageBroker(this);
-    private final MessageFactory messageFactory = new MessageFactory();
+    private final MessageFactory messageFactory = new DirectMessageFactory();
 
     public Server(final int serverId,
                   final ConsensusConfig consensusConfig,

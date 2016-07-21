@@ -21,36 +21,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.ipc;
+package org.tools4j.hoverraft.message;
 
-public final class AppendResponse extends AbstractMessage {
+import org.tools4j.hoverraft.io.Publication;
 
-    private static final byte SUCCESSFUL = 1;
-    private static final byte UNSUCCESSFUL = 0;
+/**
+ * Base interface for all messages.
+ */
+public interface Message {
+    long offerTo(Publication publication);
 
-    public static final int BYTE_LENGTH = 4 + 1;
-
-    @Override
-    public int byteLength() {
-        return BYTE_LENGTH;
+    default long offerTo(final Publication publication, final int maxTries) {
+        long lastResult = Long.MIN_VALUE;
+        int tries = maxTries;
+        while (tries > 0) {
+            tries--;
+            final long result = offerTo(publication);
+            if (result >= 0) {
+                return result;
+            }
+            if (result != Publication.BACK_PRESSURED && result != Publication.ADMIN_ACTION) {
+                return result;
+            }
+            lastResult = result;
+        };
+        return lastResult;
     }
-
-    public int term() {
-        return readBuffer.getInt(offset);
-    }
-
-    public AppendResponse term(final int term) {
-        writeBuffer.putInt(offset, term);
-        return this;
-    }
-
-    public boolean successful() {
-        return readBuffer.getByte(offset + 4) == 1;
-    }
-
-    public AppendResponse successful(final boolean successful) {
-        writeBuffer.putByte(offset + 4, successful ? SUCCESSFUL : UNSUCCESSFUL);
-        return this;
-    }
-
 }

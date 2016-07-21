@@ -21,11 +21,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.ipc;
+package org.tools4j.hoverraft.message.direct;
 
 import org.agrona.MutableDirectBuffer;
 import org.agrona.concurrent.UnsafeBuffer;
-import org.tools4j.hoverraft.message.CommandMessage;
+import org.tools4j.hoverraft.message.MessageFactory;
 
 import java.nio.ByteBuffer;
 
@@ -33,35 +33,40 @@ import java.nio.ByteBuffer;
  * Factory for messages writing data into an internal readBuffer. Messages and readBuffer are reused accross
  * multiple calls.
  */
-public final class MessageFactory {
+public final class DirectMessageFactory implements MessageFactory {
 
     public static final int MAX_BYTE_LENGTH = 4096;//FIXME enforce this somehow
 
     private final MutableDirectBuffer buffer = new UnsafeBuffer(ByteBuffer.allocateDirect(MAX_BYTE_LENGTH));
 
-    private final AppendRequest appendRequest = wrap(new AppendRequest());
-    private final AppendResponse appendResponse = wrap(new AppendResponse());
-    private final VoteRequest voteRequest = wrap(new VoteRequest());
-    private final VoteResponse voteResponse = wrap(new VoteResponse());
-    private final CommandMessage commandMessage = wrap(new CommandMessage());
+    private final DirectAppendRequest appendRequest = wrap(new DirectAppendRequest());
+    private final DirectAppendResponse appendResponse = wrap(new DirectAppendResponse());
+    private final DirectVoteRequest voteRequest = wrap(new DirectVoteRequest());
+    private final DirectVoteResponse voteResponse = wrap(new DirectVoteResponse());
+    private final DirectTimeoutNow timeoutNow = wrap(new DirectTimeoutNow());
+    private final DirectCommandMessage commandMessage = wrap(new DirectCommandMessage());
 
-    public AppendRequest appendRequest() {
+    public DirectAppendRequest appendRequest() {
         return appendRequest;
     }
 
-    public AppendResponse appendResponse() {
+    public DirectAppendResponse appendResponse() {
         return appendResponse;
     }
 
-    public VoteRequest voteRequest() {
+    public DirectVoteRequest voteRequest() {
         return voteRequest;
     }
 
-    public VoteResponse voteResponse() {
+    public DirectVoteResponse voteResponse() {
         return voteResponse;
     }
 
-    public CommandMessage commandMessage() {
+    public DirectTimeoutNow timeoutNow() {
+        return timeoutNow;
+    }
+
+    public DirectCommandMessage commandMessage() {
         return commandMessage;
     }
 

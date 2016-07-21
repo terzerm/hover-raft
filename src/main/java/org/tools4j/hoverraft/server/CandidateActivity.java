@@ -23,9 +23,9 @@
  */
 package org.tools4j.hoverraft.server;
 
-import org.tools4j.hoverraft.ipc.MessageHandler;
-import org.tools4j.hoverraft.ipc.VoteResponse;
-import org.tools4j.hoverraft.message.Publication;
+import org.tools4j.hoverraft.io.Publication;
+import org.tools4j.hoverraft.message.MessageHandler;
+import org.tools4j.hoverraft.message.VoteResponse;
 import org.tools4j.hoverraft.state.ElectionState;
 import org.tools4j.hoverraft.state.PersistentState;
 import org.tools4j.hoverraft.state.Role;

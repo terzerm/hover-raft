@@ -47,7 +47,7 @@ public class Files {
     }
 
     public static final String fileName(final int serverId, final String name) {
-        return "hooverraft_" + serverId + "_" + name;
+        return "hover-raft_" + serverId + "_" + name;
     }
 
     public static final MessageLog messageLog(final int serverId, final String name) throws IOException {

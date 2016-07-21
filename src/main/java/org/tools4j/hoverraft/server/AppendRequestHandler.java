@@ -23,8 +23,8 @@
  */
 package org.tools4j.hoverraft.server;
 
-import org.tools4j.hoverraft.ipc.AppendRequest;
-import org.tools4j.hoverraft.message.Publication;
+import org.tools4j.hoverraft.io.Publication;
+import org.tools4j.hoverraft.message.AppendRequest;
 import org.tools4j.hoverraft.state.Role;
 import org.tools4j.hoverraft.state.VolatileState;
 

@@ -23,8 +23,8 @@
  */
 package org.tools4j.hoverraft.server;
 
-import org.tools4j.hoverraft.ipc.AppendResponse;
-import org.tools4j.hoverraft.ipc.MessageHandler;
+import org.tools4j.hoverraft.message.AppendResponse;
+import org.tools4j.hoverraft.message.MessageHandler;
 
 public class LeaderActivity implements ServerActivity {
 

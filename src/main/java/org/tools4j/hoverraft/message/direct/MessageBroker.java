@@ -21,14 +21,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.ipc;
+package org.tools4j.hoverraft.message.direct;
 
 import io.aeron.logbuffer.FragmentHandler;
 import io.aeron.logbuffer.Header;
 import org.agrona.DirectBuffer;
 import org.tools4j.hoverraft.config.ConsensusConfig;
 import org.tools4j.hoverraft.config.ServerConfig;
-import org.tools4j.hoverraft.message.Subscription;
+import org.tools4j.hoverraft.io.Subscription;
+import org.tools4j.hoverraft.message.MessageHandler;
+import org.tools4j.hoverraft.message.MessageType;
 import org.tools4j.hoverraft.server.Server;
 
 import java.util.Objects;

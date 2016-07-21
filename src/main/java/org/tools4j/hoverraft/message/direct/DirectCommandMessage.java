@@ -21,54 +21,56 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.ipc;
+package org.tools4j.hoverraft.message.direct;
 
-import org.agrona.DirectBuffer;
-import org.agrona.MutableDirectBuffer;
+import org.agrona.concurrent.UnsafeBuffer;
+import org.tools4j.hoverraft.message.CommandMessage;
+import org.tools4j.hoverraft.message.MessageLog;
 
-public final class AppendRequest extends AbstractMessage {
+import java.nio.ByteBuffer;
 
-    /** Byte length without content*/
-    public static final int BYTE_LENGTH = 4 + 4 + 4 + 8 + 8 + 4;
+public final class DirectCommandMessage extends AbstractMessage implements CommandMessage {
+
+    public static final int BYTE_LENGTH = 4 + 4 + 8;
+
+    public DirectCommandMessage() {
+        wrap(new UnsafeBuffer(ByteBuffer.allocateDirect(BYTE_LENGTH)), 0);
+    }
 
     @Override
     public int byteLength() {
-        return BYTE_LENGTH + contentByteLength();
+        return BYTE_LENGTH;
     }
 
     public int term() {
         return readBuffer.getInt(offset);
     }
 
-    public int leaderId() {
+    public DirectCommandMessage term(final int term) {
+        writeBuffer.putInt(offset, term);
+        return this;
+    }
+
+    public int commandSourceId() {
         return readBuffer.getInt(offset + 4);
     }
 
-    public int prevLogTerm() {
-        return readBuffer.getInt(offset + 8);
+    public DirectCommandMessage commandSourceId(final int sourceId) {
+        writeBuffer.putInt(offset + 4, sourceId);
+        return this;
     }
 
-    public long prevLogIndex() {
-        return readBuffer.getLong(offset + 12);
+    public long commandIndex() {
+        return readBuffer.getLong(offset + 8);
     }
 
-    public long leaderCommit() {
-        return readBuffer.getLong(offset + 20);
+    public DirectCommandMessage commandIndex(final long commandIndex) {
+        writeBuffer.putLong(offset + 8, commandIndex);
+        return this;
     }
 
-    public int contentByteLength() {
-        return readBuffer.getInt(offset + 28);
-    }
-
-    public int contentOffset() {
-        return BYTE_LENGTH;
-    }
-
-    public DirectBuffer readBuffer() {
-        return readBuffer;
-    }
-
-    public MutableDirectBuffer writeBuffer() {
-        return writeBuffer;
+    public DirectCommandMessage read(final MessageLog commandLog) {
+        commandLog.read(writeBuffer, offset);
+        return this;
     }
 }

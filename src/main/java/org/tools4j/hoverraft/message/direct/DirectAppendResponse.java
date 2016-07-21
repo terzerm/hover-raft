@@ -21,14 +21,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.ipc;
+package org.tools4j.hoverraft.message.direct;
 
-/**
- * Timeout request to initiate leadership transfer.
- */
-public final class TimeoutNow extends AbstractMessage {
+import org.tools4j.hoverraft.message.AppendResponse;
 
-    public static final int BYTE_LENGTH = 4 + 4;
+public final class DirectAppendResponse extends AbstractMessage implements AppendResponse {
+
+    private static final byte SUCCESSFUL = 1;
+    private static final byte UNSUCCESSFUL = 0;
+
+    public static final int BYTE_LENGTH = 4 + 1;
 
     @Override
     public int byteLength() {
@@ -39,17 +41,17 @@ public final class TimeoutNow extends AbstractMessage {
         return readBuffer.getInt(offset);
     }
 
-    public TimeoutNow term(final int term) {
+    public DirectAppendResponse term(final int term) {
         writeBuffer.putInt(offset, term);
         return this;
     }
 
-    public int candidateId() {
-        return readBuffer.getInt(offset + 4);
+    public boolean successful() {
+        return readBuffer.getByte(offset + 4) == 1;
     }
 
-    public TimeoutNow candidateId(final int candidateId) {
-        writeBuffer.putInt(offset + 4, candidateId);
+    public DirectAppendResponse successful(final boolean successful) {
+        writeBuffer.putByte(offset + 4, successful ? SUCCESSFUL : UNSUCCESSFUL);
         return this;
     }
 

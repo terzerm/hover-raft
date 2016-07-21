@@ -23,9 +23,6 @@
  */
 package org.tools4j.hoverraft.io;
 
-import org.tools4j.hoverraft.message.Publication;
-import org.tools4j.hoverraft.message.Subscription;
-
 public interface Connections {
     Subscription sourceSubscription(int sourceId);
     Subscription serverSubscription(int serverId);
