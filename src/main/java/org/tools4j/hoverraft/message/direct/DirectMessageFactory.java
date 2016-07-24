@@ -23,13 +23,10 @@
  */
 package org.tools4j.hoverraft.message.direct;
 
+import org.agrona.DirectBuffer;
 import org.agrona.MutableDirectBuffer;
-import org.agrona.concurrent.UnsafeBuffer;
 import org.tools4j.hoverraft.message.MessageFactory;
 import org.tools4j.hoverraft.message.MessageType;
-
-import java.nio.ByteBuffer;
-import java.util.Objects;
 
 /**
  * Factory for messages writing data into an internal readBuffer. Messages and readBuffer are reused accross
@@ -37,27 +34,12 @@ import java.util.Objects;
  */
 public final class DirectMessageFactory implements MessageFactory {
 
-    public static final int MAX_BYTE_LENGTH = 4096;//FIXME enforce this somehow
-
-    private final MutableDirectBuffer buffer;
-    private final DirectAppendRequest appendRequest = wrap(new DirectAppendRequest());
-    private final DirectAppendResponse appendResponse = wrap(new DirectAppendResponse());
-    private final DirectVoteRequest voteRequest = wrap(new DirectVoteRequest());
-    private final DirectVoteResponse voteResponse = wrap(new DirectVoteResponse());
-    private final DirectTimeoutNow timeoutNow = wrap(new DirectTimeoutNow());
-    private final DirectCommandMessage commandMessage = wrap(new DirectCommandMessage());
-
-    public DirectMessageFactory() {
-        this(new UnsafeBuffer(ByteBuffer.allocateDirect(MAX_BYTE_LENGTH)));
-    }
-
-    public DirectMessageFactory(final MutableDirectBuffer buffer) {
-        this.buffer = Objects.requireNonNull(buffer);
-    }
-
-    public MutableDirectBuffer buffer() {
-        return buffer;
-    }
+    private final DirectAppendRequest appendRequest = new DirectAppendRequest();
+    private final DirectAppendResponse appendResponse = new DirectAppendResponse();
+    private final DirectVoteRequest voteRequest = new DirectVoteRequest();
+    private final DirectVoteResponse voteResponse = new DirectVoteResponse();
+    private final DirectTimeoutNow timeoutNow = new DirectTimeoutNow();
+    private final DirectCommandMessage commandMessage = new DirectCommandMessage();
 
     public DirectAppendRequest appendRequest() {
         return appendRequest;
@@ -83,13 +65,24 @@ public final class DirectMessageFactory implements MessageFactory {
         return commandMessage;
     }
 
-    private final <M extends AbstractMessage> M wrap(final M message) {
-        message.wrap(buffer, 0);
-        return message;
+    public DirectMessage wrapForReading(final DirectBuffer directBuffer, final int offset) {
+        final int type = directBuffer.getInt(offset);
+        if (type >= 0 & type <= MessageType.maxOrdinal()) {
+            final MessageType messageType = MessageType.valueByOrdinal(type);
+            final DirectMessage message = (DirectMessage)messageType.create(this);
+            message.wrap(directBuffer, offset);
+            return message;
+        }
+        throw new IllegalArgumentException("Illegal message type: " + type);
     }
 
-    public DirectMessage createByType(final MessageType messageType) {
-        return (DirectMessage)messageType.create(this);
+    public DirectMessageFactory wrapForWriting(final MutableDirectBuffer mutableDirectBuffer, final int offset) {
+        appendRequest.wrap(mutableDirectBuffer, offset);
+        appendResponse.wrap(mutableDirectBuffer, offset);
+        voteRequest.wrap(mutableDirectBuffer, offset);
+        voteResponse.wrap(mutableDirectBuffer, offset);
+        timeoutNow.wrap(mutableDirectBuffer, offset);
+        commandMessage.wrap(mutableDirectBuffer, offset);
+        return this;
     }
-
 }

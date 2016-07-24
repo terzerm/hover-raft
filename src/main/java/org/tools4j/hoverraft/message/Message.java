@@ -23,31 +23,9 @@
  */
 package org.tools4j.hoverraft.message;
 
-import org.tools4j.hoverraft.io.Publication;
-
 /**
  * Base interface for all messages.
  */
 public interface Message {
-
     MessageType type();
-
-    long offerTo(Publication publication);
-
-    default long offerTo(final Publication publication, final int maxTries) {
-        long lastResult = Long.MIN_VALUE;
-        int tries = maxTries;
-        while (tries > 0) {
-            tries--;
-            final long result = offerTo(publication);
-            if (result >= 0) {
-                return result;
-            }
-            if (result != Publication.BACK_PRESSURED && result != Publication.ADMIN_ACTION) {
-                return result;
-            }
-            lastResult = result;
-        };
-        return lastResult;
-    }
 }

@@ -25,17 +25,31 @@ package org.tools4j.hoverraft.message.direct;
 
 import org.agrona.DirectBuffer;
 import org.agrona.MutableDirectBuffer;
-import org.tools4j.hoverraft.io.Publication;
 
 import java.util.Objects;
 
 abstract public class AbstractMessage implements DirectMessage {
 
+    protected static final int TYPE_OFF = 0;
+    protected static final int TYPE_LEN = 4;
     protected DirectBuffer readBuffer;
     protected MutableDirectBuffer writeBuffer;
     protected int offset;
 
+    @Override
+    public int offset() {
+        return offset;
+    }
+
+    @Override
+    public DirectBuffer buffer() {
+        return readBuffer;
+    }
+
     public void wrap(final DirectBuffer buffer, final int offset) {
+        if (buffer.getInt(offset) != type().ordinal()) {
+            throw new IllegalArgumentException("Buffer must contain message type " + type());
+        }
         this.readBuffer = Objects.requireNonNull(buffer);
         this.writeBuffer = null;
         this.offset = offset;
@@ -46,16 +60,13 @@ abstract public class AbstractMessage implements DirectMessage {
         this.readBuffer = buffer;
         this.writeBuffer = buffer;
         this.offset = offset;
+        buffer.putInt(offset, type().ordinal());
     }
 
     public void unwrap() {
         this.readBuffer = null;
         this.writeBuffer = null;
         this.offset = 0;
-    }
-
-    public long offerTo(final Publication publication) {
-        return publication.offer(readBuffer, offset, byteLength());
     }
 
 }

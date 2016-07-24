@@ -21,35 +21,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.transport.direct;
+package org.tools4j.hoverraft.transport.aeron;
 
-import org.agrona.MutableDirectBuffer;
-import org.tools4j.hoverraft.io.Publication;
+import io.aeron.Publication;
 import org.tools4j.hoverraft.message.direct.DirectMessage;
 import org.tools4j.hoverraft.transport.Sender;
 
 import java.util.Objects;
 
-public class DirectSender implements Sender<DirectMessage> {
+public class AeronSender implements Sender<DirectMessage> {
 
     private final Publication publication;
-    private final MutableDirectBuffer buffer;
 
-    public DirectSender(final Publication publication, final MutableDirectBuffer buffer) {
+    public AeronSender(final Publication publication) {
         this.publication = Objects.requireNonNull(publication);
-        this.buffer = Objects.requireNonNull(buffer);
     }
 
     @Override
-    public <M extends DirectMessage> M start(final M message) {
-        buffer.putInt(0, message.type().ordinal());
-        message.wrap(buffer, 4);
-        return message;
-    }
-
-    @Override
-    public long trySend(final DirectMessage message) {
-        final int len = 4 + message.byteLength();
-        return publication.offer(buffer, 0, len);
+    public long offer(final DirectMessage message) {
+        return publication.offer(message.buffer(), message.offset(), message.byteLength());
     }
 }

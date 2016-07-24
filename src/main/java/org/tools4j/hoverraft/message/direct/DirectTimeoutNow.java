@@ -31,7 +31,12 @@ import org.tools4j.hoverraft.message.TimeoutNow;
  */
 public final class DirectTimeoutNow extends AbstractMessage implements TimeoutNow {
 
-    public static final int BYTE_LENGTH = 4 + 4;
+    private static final int TERM_OFF = TYPE_OFF + TYPE_LEN;
+    private static final int TERM_LEN = 4;
+    private static final int CANDIDATE_ID_OFF = TERM_OFF + TERM_LEN;
+    private static final int CANDIDATE_ID_LEN = 4;
+
+    public static final int BYTE_LENGTH = CANDIDATE_ID_OFF + CANDIDATE_ID_LEN;
 
     @Override
     public MessageType type() {
@@ -44,20 +49,20 @@ public final class DirectTimeoutNow extends AbstractMessage implements TimeoutNo
     }
 
     public int term() {
-        return readBuffer.getInt(offset);
+        return readBuffer.getInt(offset + TERM_OFF);
     }
 
     public DirectTimeoutNow term(final int term) {
-        writeBuffer.putInt(offset, term);
+        writeBuffer.putInt(offset + TERM_OFF, term);
         return this;
     }
 
     public int candidateId() {
-        return readBuffer.getInt(offset + 4);
+        return readBuffer.getInt(offset + CANDIDATE_ID_OFF);
     }
 
     public DirectTimeoutNow candidateId(final int candidateId) {
-        writeBuffer.putInt(offset + 4, candidateId);
+        writeBuffer.putInt(offset + CANDIDATE_ID_OFF, candidateId);
         return this;
     }
 

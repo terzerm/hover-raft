@@ -23,8 +23,9 @@
  */
 package org.tools4j.hoverraft.server;
 
-import org.tools4j.hoverraft.io.Publication;
+import io.aeron.Publication;
 import org.tools4j.hoverraft.message.AppendRequest;
+import org.tools4j.hoverraft.message.direct.DirectMessage;
 import org.tools4j.hoverraft.state.Role;
 import org.tools4j.hoverraft.state.VolatileState;
 
@@ -49,10 +50,10 @@ public final class AppendRequestHandler {
             successful = false;
         }
         final Publication serverPublication = server.connections().serverPublication(leaderId);
-        server.messageFactory().appendResponse()
+        final DirectMessage message = server.messageFactory().appendResponse()
                 .term(server.currentTerm())
-                .successful(successful)
-                .offerTo(serverPublication, MAX_TRIES);
+                .successful(successful);
+        server.send(serverPublication, message);
     }
 
     private boolean appendToLog(final Server server, final AppendRequest appendRequest) {

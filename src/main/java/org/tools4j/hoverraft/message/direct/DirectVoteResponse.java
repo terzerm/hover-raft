@@ -31,7 +31,12 @@ public final class DirectVoteResponse extends AbstractMessage implements VoteRes
     private static final byte GRANTED = 1;
     private static final byte DENIED = 0;
 
-    public static final int BYTE_LENGTH = 4 + 1;
+    private static final int TERM_OFF = TYPE_OFF + TYPE_LEN;
+    private static final int TERM_LEN = 4;
+    private static final int GRANTED_OFF = TERM_OFF + TERM_LEN;
+    private static final int GRANTED_LEN = 1;
+
+    public static final int BYTE_LENGTH = GRANTED_OFF + GRANTED_LEN;
 
     @Override
     public MessageType type() {
@@ -44,20 +49,20 @@ public final class DirectVoteResponse extends AbstractMessage implements VoteRes
     }
 
     public int term() {
-        return readBuffer.getInt(offset);
+        return readBuffer.getInt(offset + TERM_OFF);
     }
 
     public DirectVoteResponse term(final int term) {
-        writeBuffer.putInt(offset, term);
+        writeBuffer.putInt(offset + TERM_OFF, term);
         return this;
     }
 
     public boolean voteGranted() {
-        return readBuffer.getByte(offset + 4) == GRANTED;
+        return readBuffer.getByte(offset + GRANTED_OFF) == GRANTED;
     }
 
     public DirectVoteResponse voteGranted(final boolean granted) {
-        writeBuffer.putByte(offset + 4, granted ? GRANTED : DENIED);
+        writeBuffer.putByte(offset + GRANTED_OFF, granted ? GRANTED : DENIED);
         return this;
     }
 }

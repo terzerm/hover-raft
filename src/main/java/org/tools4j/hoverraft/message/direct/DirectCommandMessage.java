@@ -25,14 +25,20 @@ package org.tools4j.hoverraft.message.direct;
 
 import org.agrona.concurrent.UnsafeBuffer;
 import org.tools4j.hoverraft.message.CommandMessage;
-import org.tools4j.hoverraft.message.MessageLog;
 import org.tools4j.hoverraft.message.MessageType;
 
 import java.nio.ByteBuffer;
 
 public final class DirectCommandMessage extends AbstractMessage implements CommandMessage {
 
-    public static final int BYTE_LENGTH = 4 + 4 + 8;
+    private static final int TERM_OFF = TYPE_OFF + TYPE_LEN;
+    private static final int TERM_LEN = 4;
+    private static final int COMMAND_SOURCE_ID_OFF = TERM_OFF + TERM_LEN;
+    private static final int COMMAND_SOURCE_ID_LEN = 4;
+    private static final int COMMAND_INDEX_OFF = COMMAND_SOURCE_ID_OFF + COMMAND_SOURCE_ID_LEN;
+    private static final int COMMAND_INDEX_LEN = 8;
+
+    public static final int BYTE_LENGTH = COMMAND_INDEX_OFF + COMMAND_INDEX_LEN;
 
     public DirectCommandMessage() {
         wrap(new UnsafeBuffer(ByteBuffer.allocateDirect(BYTE_LENGTH)), 0);
@@ -49,34 +55,29 @@ public final class DirectCommandMessage extends AbstractMessage implements Comma
     }
 
     public int term() {
-        return readBuffer.getInt(offset);
+        return readBuffer.getInt(offset + TERM_OFF);
     }
 
     public DirectCommandMessage term(final int term) {
-        writeBuffer.putInt(offset, term);
+        writeBuffer.putInt(offset + TERM_OFF, term);
         return this;
     }
 
     public int commandSourceId() {
-        return readBuffer.getInt(offset + 4);
+        return readBuffer.getInt(offset + COMMAND_SOURCE_ID_OFF);
     }
 
     public DirectCommandMessage commandSourceId(final int sourceId) {
-        writeBuffer.putInt(offset + 4, sourceId);
+        writeBuffer.putInt(offset + COMMAND_SOURCE_ID_OFF, sourceId);
         return this;
     }
 
     public long commandIndex() {
-        return readBuffer.getLong(offset + 8);
+        return readBuffer.getLong(offset + COMMAND_INDEX_OFF);
     }
 
     public DirectCommandMessage commandIndex(final long commandIndex) {
-        writeBuffer.putLong(offset + 8, commandIndex);
-        return this;
-    }
-
-    public DirectCommandMessage read(final MessageLog commandLog) {
-        commandLog.read(writeBuffer, offset);
+        writeBuffer.putLong(offset + COMMAND_INDEX_OFF, commandIndex);
         return this;
     }
 }

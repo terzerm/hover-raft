@@ -45,15 +45,6 @@ public interface Sender<M> {
     long CLOSED = -4;
 
     /**
-     * Prepares the given message for writing and sending.
-     *
-     * @param message the message to start composing
-     * @param <Msg> the message type
-     * @return the {@code message} for chained composing
-     */
-    <Msg extends M> Msg start(Msg message);
-
-    /**
      * Terminates composing and offsers the message to the transport in
      * non-blocking mode. Can be called multiple times for same message if sending
      * failed which is indicated through a negative return value.
@@ -63,5 +54,5 @@ public interface Sender<M> {
      * not applicable and successful or a negative error value
      * {@link #NOT_CONNECTED}, {@link #BACK_PRESSURED}, {@link #ADMIN_ACTION} or {@link #CLOSED}.
      */
-    long trySend(M message);
+    long offer(M message);
 }

@@ -28,7 +28,15 @@ import org.tools4j.hoverraft.message.VoteRequest;
 
 public final class DirectVoteRequest extends AbstractMessage implements VoteRequest {
 
-    public static final int BYTE_LENGTH = 4 + 4 + 4 + 8;
+    private static final int TERM_OFF = TYPE_OFF + TYPE_LEN;
+    private static final int TERM_LEN = 4;
+    private static final int CANDIDATE_ID_OFF = TERM_OFF + TERM_LEN;
+    private static final int CANDIDATE_ID_LEN = 4;
+    private static final int LAST_LOG_TERM_OFF = CANDIDATE_ID_OFF + CANDIDATE_ID_LEN;
+    private static final int LAST_LOG_TERM_LEN = 4;
+    private static final int LAST_LOG_INDEX_OFF = LAST_LOG_TERM_OFF + LAST_LOG_TERM_LEN;
+    private static final int LAST_LOG_INDEX_LEN = 8;
+    public static final int BYTE_LENGTH = LAST_LOG_INDEX_OFF + LAST_LOG_INDEX_LEN;
 
     @Override
     public MessageType type() {
@@ -41,38 +49,38 @@ public final class DirectVoteRequest extends AbstractMessage implements VoteRequ
     }
 
     public int term() {
-        return readBuffer.getInt(offset);
+        return readBuffer.getInt(offset + TERM_OFF);
     }
 
     public DirectVoteRequest term(final int term) {
-        writeBuffer.putInt(offset, term);
+        writeBuffer.putInt(offset + TERM_OFF, term);
         return this;
     }
 
     public int candidateId() {
-        return readBuffer.getInt(offset + 4);
+        return readBuffer.getInt(offset + CANDIDATE_ID_OFF);
     }
 
     public DirectVoteRequest candidateId(final int candidateId) {
-        writeBuffer.putInt(offset + 4, candidateId);
+        writeBuffer.putInt(offset + CANDIDATE_ID_OFF, candidateId);
         return this;
     }
 
     public int lastLogTerm() {
-        return readBuffer.getInt(offset + 8);
+        return readBuffer.getInt(offset + LAST_LOG_TERM_OFF);
     }
 
     public DirectVoteRequest lastLogTerm(final int lastLogTerm) {
-        writeBuffer.putInt(offset + 8, lastLogTerm);
+        writeBuffer.putInt(offset + LAST_LOG_TERM_OFF, lastLogTerm);
         return this;
     }
 
     public long lastLogIndex() {
-        return readBuffer.getLong(offset + 12);
+        return readBuffer.getLong(offset + LAST_LOG_INDEX_OFF);
     }
 
     public DirectVoteRequest lastLogIndex(final int lastLogIndex) {
-        writeBuffer.putLong(offset + 12, lastLogIndex);
+        writeBuffer.putLong(offset + LAST_LOG_INDEX_OFF, lastLogIndex);
         return this;
     }
 

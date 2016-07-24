@@ -21,26 +21,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.aeron;
+package org.tools4j.hoverraft.transport;
 
-import io.aeron.logbuffer.FragmentHandler;
-import org.tools4j.hoverraft.io.Subscription;
-
-import java.util.Objects;
-
-/**
- * Subscription from aeron channel/stream pair.
- */
-public final class AeronSubscription implements Subscription {
-
-    private final io.aeron.Subscription subscription;
-
-    public AeronSubscription(final io.aeron.Subscription subscription) {
-        this.subscription = Objects.requireNonNull(subscription);
-    }
-
-    @Override
-    public int poll(final FragmentHandler fragmentHandler, final int fragmentLimit) {
-        return subscription.poll(fragmentHandler, fragmentLimit);
-    }
+public interface MessageLog<M> {
+    long size();
+    void size(long size);
+    long readIndex();
+    void readIndex(long index);
+    M read();
+    void append(M message);
 }

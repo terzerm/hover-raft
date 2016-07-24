@@ -23,6 +23,9 @@
  */
 package org.tools4j.hoverraft.io;
 
+import io.aeron.Publication;
+import io.aeron.Subscription;
+
 public interface Connections {
     Subscription sourceSubscription(int sourceId);
     Subscription serverSubscription(int serverId);

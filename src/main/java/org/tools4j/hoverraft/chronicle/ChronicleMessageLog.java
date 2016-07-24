@@ -29,7 +29,9 @@ import net.openhft.chronicle.ExcerptAppender;
 import net.openhft.chronicle.VanillaChronicle;
 import org.agrona.DirectBuffer;
 import org.agrona.MutableDirectBuffer;
-import org.tools4j.hoverraft.message.MessageLog;
+import org.tools4j.hoverraft.message.direct.DirectCommandMessage;
+import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
+import org.tools4j.hoverraft.transport.MessageLog;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -39,19 +41,27 @@ import java.util.Objects;
 /**
  * AbstractMessage log based on a chronicle queue.
  */
-public final class ChronicleMessageLog implements MessageLog {
+public final class ChronicleMessageLog implements MessageLog<DirectCommandMessage> {
 
     private final Chronicle chronicle;
     private final Excerpt excerpt;
     private final ExcerptAppender appender;
     private final Method setLastWrittenIndexMethod;
+    private final MutableDirectBuffer mutableDirectBuffer;
+    private final DirectMessageFactory directMessageFactory;
 
-
-    public ChronicleMessageLog(final VanillaChronicle chronicle) throws IOException {
+    public ChronicleMessageLog(final VanillaChronicle chronicle,
+                               final MutableDirectBuffer mutableDirectBuffer) throws IOException {
         this.chronicle = Objects.requireNonNull(chronicle);
         this.excerpt = chronicle.createExcerpt();
         this.appender = chronicle.createAppender();
         this.setLastWrittenIndexMethod = initLastWrittenIndexMethod();
+        this.mutableDirectBuffer = Objects.requireNonNull(mutableDirectBuffer);
+        this.directMessageFactory = new DirectMessageFactory().wrapForWriting(mutableDirectBuffer, 0);
+    }
+
+    public DirectMessageFactory messageFactory() {
+        return directMessageFactory;
     }
 
     @Override
@@ -82,31 +92,33 @@ public final class ChronicleMessageLog implements MessageLog {
     }
 
     @Override
-    public int read(final MutableDirectBuffer buffer, final int offset) {
+    public DirectCommandMessage read() {
         if (!excerpt.nextIndex()) {
             throw new IllegalStateException("end of message log, index=" + readIndex());
         }
         final int len = excerpt.readInt();
         for (int i = 0; i < len; ) {
             if (i + 8 <= len) {
-                buffer.putLong(i, excerpt.readLong());
+                mutableDirectBuffer.putLong(i, excerpt.readLong());
                 i += 8;
             } else {
-                buffer.putByte(i, excerpt.readByte());
+                mutableDirectBuffer.putByte(i, excerpt.readByte());
                 i++;
             }
         }
-        return len;
+        return directMessageFactory.commandMessage();
     }
 
     @Override
-    public void append(final DirectBuffer buffer, final int offset, final int length) {
-        appender.startExcerpt(length + 4);
-        appender.writeInt(length);
-        final int end = offset + length + 4;
-        int index = offset + 4;
+    public void append(final DirectCommandMessage message) {
+        final DirectBuffer buffer = Objects.requireNonNull(message.buffer());
+        final int len = message.byteLength();
+        appender.startExcerpt(len + 4);
+        appender.writeInt(len);
+        final int end = len + 4;
+        int index = 4;
         while (index < end) {
-            if (index + 8 <= length) {
+            if (index + 8 <= len) {
                 appender.writeLong(buffer.getLong(index));
                 index += 8;
             } else {

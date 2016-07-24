@@ -34,10 +34,13 @@ public interface DirectMessage extends Message {
 
     int byteLength();
 
+    int offset();
+
+    DirectBuffer buffer();
+
     void wrap(DirectBuffer buffer, int offset);
 
     void wrap(MutableDirectBuffer buffer, int offset);
 
     void unwrap();
-
 }

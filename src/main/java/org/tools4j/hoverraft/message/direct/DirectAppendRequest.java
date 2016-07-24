@@ -32,7 +32,20 @@ import org.tools4j.hoverraft.message.UserMessage;
 public final class DirectAppendRequest extends AbstractMessage implements AppendRequest {
 
     /** Byte length without content*/
-    public static final int BYTE_LENGTH = 4 + 4 + 4 + 8 + 8 + 4;
+    private static final int TERM_OFF = TYPE_OFF + TYPE_LEN;
+    private static final int TERM_LEN = 4;
+    private static final int LEADER_ID_OFF = TERM_OFF + TERM_LEN;
+    private static final int LEADER_ID_LEN = 4;
+    private static final int PREV_LOG_TERM_OFF = LEADER_ID_OFF + LEADER_ID_LEN;
+    private static final int PREV_LOG_TERM_LEN = 4;
+    private static final int PREV_LOG_INDEX_OFF = PREV_LOG_TERM_OFF + PREV_LOG_TERM_LEN;
+    private static final int PREV_LOG_INDEX_LEN = 8;
+    private static final int LEADER_COMMIT_OFF = PREV_LOG_INDEX_OFF + PREV_LOG_INDEX_LEN;
+    private static final int LEADER_COMMIT_LEN = 8;
+    private static final int USER_MESSAGE_OFF = LEADER_COMMIT_OFF + LEADER_COMMIT_LEN;
+    private static final int USER_MESSAGE_LEN = 4;
+
+    public static final int BYTE_LENGTH = USER_MESSAGE_OFF + USER_MESSAGE_LEN;
 
     private final DirectUserMessage userMessage = new DirectUserMessage();
 
@@ -47,52 +60,52 @@ public final class DirectAppendRequest extends AbstractMessage implements Append
     }
 
     public int term() {
-        return readBuffer.getInt(offset);
+        return readBuffer.getInt(offset + TERM_OFF);
     }
 
     @Override
     public AppendRequest term(final int term) {
-        writeBuffer().putInt(offset, term);
+        writeBuffer().putInt(offset + TERM_OFF, term);
         return this;
     }
 
     public int leaderId() {
-        return readBuffer.getInt(offset + 4);
+        return readBuffer.getInt(offset + LEADER_ID_OFF);
     }
 
     @Override
     public AppendRequest leaderId(final int leaderId) {
-        writeBuffer().putInt(offset + 4, leaderId);
+        writeBuffer().putInt(offset + LEADER_ID_OFF, leaderId);
         return this;
     }
 
     public int prevLogTerm() {
-        return readBuffer.getInt(offset + 8);
+        return readBuffer.getInt(offset + PREV_LOG_TERM_OFF);
     }
 
     @Override
     public AppendRequest prevLogTerm(final int prevLogTerm) {
-        writeBuffer().putInt(offset + 8, prevLogTerm);
+        writeBuffer().putInt(offset + PREV_LOG_TERM_OFF, prevLogTerm);
         return this;
     }
 
     public long prevLogIndex() {
-        return readBuffer.getLong(offset + 12);
+        return readBuffer.getLong(offset + PREV_LOG_INDEX_OFF);
     }
 
     @Override
     public AppendRequest prevLogIndex(final long prevLogIndex) {
-        writeBuffer().putLong(offset + 12, prevLogIndex);
+        writeBuffer().putLong(offset + PREV_LOG_INDEX_OFF, prevLogIndex);
         return this;
     }
 
     public long leaderCommit() {
-        return readBuffer.getLong(offset + 20);
+        return readBuffer.getLong(offset + LEADER_COMMIT_OFF);
     }
 
     @Override
     public AppendRequest leaderCommit(final long leaderCommit) {
-        writeBuffer().putLong(offset + 20, leaderCommit);
+        writeBuffer().putLong(offset + LEADER_COMMIT_OFF, leaderCommit);
         return this;
     }
 
@@ -111,16 +124,16 @@ public final class DirectAppendRequest extends AbstractMessage implements Append
 
     public final class DirectUserMessage implements UserMessage {
         public int usserMessageLength() {
-            return readBuffer.getInt(offset + 28);
+            return readBuffer.getInt(offset + USER_MESSAGE_OFF);
         }
 
         public UserMessage usserMessageLength(final int usserMessageLength) {
-            writeBuffer().putInt(offset + 28, usserMessageLength);
+            writeBuffer().putInt(offset + USER_MESSAGE_OFF, usserMessageLength);
             return this;
         }
 
         public int userMessageOffset() {
-            return BYTE_LENGTH;
+            return USER_MESSAGE_OFF;
         }
     }
 }

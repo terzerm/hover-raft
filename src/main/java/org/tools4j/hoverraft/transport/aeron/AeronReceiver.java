@@ -21,11 +21,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.transport.direct;
+package org.tools4j.hoverraft.transport.aeron;
 
-import org.agrona.DirectBuffer;
-import org.tools4j.hoverraft.io.Subscription;
-import org.tools4j.hoverraft.message.MessageType;
+import io.aeron.Subscription;
+import io.aeron.logbuffer.FragmentHandler;
 import org.tools4j.hoverraft.message.direct.DirectMessage;
 import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
 import org.tools4j.hoverraft.transport.Receiver;
@@ -33,28 +32,22 @@ import org.tools4j.hoverraft.transport.Receiver;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-public class DirectReceiver implements Receiver<DirectMessage, DirectBuffer> {
+public class AeronReceiver implements Receiver<DirectMessage> {
 
     private final DirectMessageFactory directMessageFactory;
     private final Subscription subscription;
 
-    public DirectReceiver(final DirectMessageFactory directMessageFactory, final Subscription subscription) {
+    public AeronReceiver(final DirectMessageFactory directMessageFactory, final Subscription subscription) {
         this.directMessageFactory = Objects.requireNonNull(directMessageFactory);
         this.subscription = Objects.requireNonNull(subscription);
     }
 
     @Override
-    public int poll(final Consumer<? super DirectMessage> messageMandler, final int offset, final int limit) {
-        return subscription.poll((buf, off, len, hdr) -> {
-            final int type = buf.getInt(offset);
-            if (type >= 0 && type <= MessageType.maxOrdinal()) {
-                final MessageType messageType = MessageType.valueByOrdinal(type);
-                final DirectMessage message = directMessageFactory.createByType(messageType);
-                message.wrap(buf, offset + 4);
-                messageMandler.accept(message);
-            } else {
-                throw new RuntimeException("Invalid message type: " + type);
-            }
-        }, limit);
+    public Poller poller(final Consumer<? super DirectMessage> messageMandler) {
+        final FragmentHandler fragmentHandler = (buf, off, len, hdr) -> {
+            final DirectMessage message = directMessageFactory.wrapForReading(buf, off);
+            messageMandler.accept(message);
+        };
+        return (limit) -> subscription.poll(fragmentHandler, limit);
     }
 }

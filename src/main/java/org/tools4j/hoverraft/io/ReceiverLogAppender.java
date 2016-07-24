@@ -23,36 +23,37 @@
  */
 package org.tools4j.hoverraft.io;
 
-import io.aeron.logbuffer.FragmentHandler;
-import org.tools4j.hoverraft.message.MessageLog;
+import org.tools4j.hoverraft.message.direct.DirectMessage;
+import org.tools4j.hoverraft.transport.MessageLog;
+import org.tools4j.hoverraft.transport.Receiver;
 
 import java.util.Objects;
 
 /**
- * Reads messages from a {@link Subscription} and appends them to a {@link MessageLog} via
- * {@link #pollSubscriptionAppendToLog(int)}.
+ * Reads messages from a {@link Receiver} and appends them to a {@link MessageLog} via
+ * {@link #receiveAndAppendToLog(int)}.
  */
-public final class SubscriptionPollerLogAppender {
+public final class ReceiverLogAppender {
 
-    private final Subscription subscription;
-    private final MessageLog messageLog;
-    private final FragmentHandler subscriptionPollerLogAppender;
+    private final Receiver<DirectMessage> receiver;
+    private final MessageLog<DirectMessage> messageLog;
+    private final Receiver.Poller poller;
 
-    public SubscriptionPollerLogAppender(final Subscription subscription, final MessageLog messageLog) {
-        this.subscription = Objects.requireNonNull(subscription);
-        this.messageLog = Objects.requireNonNull(messageLog);
-        this.subscriptionPollerLogAppender = (buf, off, len, hdr) -> messageLog.append(buf, off, len);
+    public ReceiverLogAppender(final Receiver<DirectMessage> receiver, final MessageLog<DirectMessage> directMessageLog) {
+        this.receiver = Objects.requireNonNull(receiver);
+        this.messageLog = Objects.requireNonNull(directMessageLog);
+        this.poller = receiver.poller(msg -> messageLog.append(msg));
     }
 
-    public Subscription subscription() {
-        return subscription;
+    public Receiver<DirectMessage> receiver() {
+        return receiver;
     }
 
-    public MessageLog messageLog() {
+    public MessageLog<DirectMessage> messageLog() {
         return messageLog;
     }
 
-    public int pollSubscriptionAppendToLog(int fragmentLimit) {
-        return subscription().poll(subscriptionPollerLogAppender, fragmentLimit);
+    public int receiveAndAppendToLog(final int limit) {
+        return poller.poll(limit);
     }
 }

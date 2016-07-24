@@ -29,8 +29,8 @@ import org.agrona.concurrent.UnsafeBuffer;
 import org.tools4j.hoverraft.config.ConsensusConfig;
 import org.tools4j.hoverraft.config.ServerConfig;
 import org.tools4j.hoverraft.io.Files;
-import org.tools4j.hoverraft.message.MessageLog;
 import org.tools4j.hoverraft.message.direct.DirectCommandMessage;
+import org.tools4j.hoverraft.transport.MessageLog;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,10 +42,10 @@ public final class PersistentState {
 
     private static final int STATE_SIZE = 4 + 4;
 
-    private final Int2ObjectHashMap<MessageLog> messageLogsBySourceId;
+    private final Int2ObjectHashMap<MessageLog<DirectCommandMessage>> messageLogsBySourceId;
     private final DirectCommandMessage commandMessage = new DirectCommandMessage();
     private final MutableDirectBuffer state;
-    private final MessageLog commandLog;
+    private final MessageLog<DirectCommandMessage> commandLog;
 
     public PersistentState(final ServerConfig serverConfig, final ConsensusConfig consensusConfig) throws IOException {
         this.state = initState(serverConfig, consensusConfig);
@@ -61,11 +61,11 @@ public final class PersistentState {
         return state.getInt(4);
     }
 
-    public MessageLog commandLog() {
+    public MessageLog<DirectCommandMessage> commandLog() {
         return commandLog;
     }
 
-    public MessageLog sourceLog(int sourceId) {
+    public MessageLog<DirectCommandMessage> sourceLog(int sourceId) {
         return messageLogsBySourceId.get(sourceId);
     }
 
@@ -88,7 +88,7 @@ public final class PersistentState {
 
     public int lastLogTerm() {
         commandLog.readIndex(lastLogIndex());
-        return commandMessage.read(commandLog).term();
+        return commandLog.read().term();
     }
 
     public long lastLogIndex() {
@@ -103,13 +103,13 @@ public final class PersistentState {
         return new UnsafeBuffer(byteBuffer);
     }
 
-    private static MessageLog initCommandLog(final ServerConfig serverConfig, final ConsensusConfig consensusConfig) throws IOException {
+    private static MessageLog<DirectCommandMessage> initCommandLog(final ServerConfig serverConfig, final ConsensusConfig consensusConfig) throws IOException {
         return Files.messageLog(serverConfig.id(), "commandlog");
     }
 
-    private static Int2ObjectHashMap<MessageLog> initSourceLogs(final ServerConfig serverConfig, final ConsensusConfig consensusConfig) throws IOException {
+    private static Int2ObjectHashMap<MessageLog<DirectCommandMessage>> initSourceLogs(final ServerConfig serverConfig, final ConsensusConfig consensusConfig) throws IOException {
         final int n = consensusConfig.sourceCount();
-        final Int2ObjectHashMap<MessageLog> messageLogsById = new Int2ObjectHashMap<>(1 + (n * 3) / 2, 0.66);
+        final Int2ObjectHashMap<MessageLog<DirectCommandMessage>> messageLogsById = new Int2ObjectHashMap<>(1 + (n * 3) / 2, 0.66);
         for (int i = 0; i < n; i++) {
             final int id = consensusConfig.sourceConfig(i).id();
             messageLogsById.put(id, Files.messageLog(serverConfig.id(), "sourceLog-" + id));

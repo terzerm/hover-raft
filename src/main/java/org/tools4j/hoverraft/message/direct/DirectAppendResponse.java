@@ -31,7 +31,12 @@ public final class DirectAppendResponse extends AbstractMessage implements Appen
     private static final byte SUCCESSFUL = 1;
     private static final byte UNSUCCESSFUL = 0;
 
-    public static final int BYTE_LENGTH = 4 + 1;
+    private static final int TERM_OFF = TYPE_OFF + TYPE_LEN;
+    private static final int TERM_LEN = 4;
+    private static final int SUCCESSFUL_OFF = TERM_OFF + TERM_LEN;
+    private static final int SUCCESSFUL_LEN = 1;
+
+    public static final int BYTE_LENGTH = SUCCESSFUL_OFF + SUCCESSFUL_LEN;
 
     @Override
     public MessageType type() {
@@ -44,20 +49,20 @@ public final class DirectAppendResponse extends AbstractMessage implements Appen
     }
 
     public int term() {
-        return readBuffer.getInt(offset);
+        return readBuffer.getInt(offset + TERM_OFF);
     }
 
     public DirectAppendResponse term(final int term) {
-        writeBuffer.putInt(offset, term);
+        writeBuffer.putInt(offset + TERM_OFF, term);
         return this;
     }
 
     public boolean successful() {
-        return readBuffer.getByte(offset + 4) == 1;
+        return readBuffer.getByte(offset + SUCCESSFUL_OFF) == 1;
     }
 
     public DirectAppendResponse successful(final boolean successful) {
-        writeBuffer.putByte(offset + 4, successful ? SUCCESSFUL : UNSUCCESSFUL);
+        writeBuffer.putByte(offset + SUCCESSFUL_OFF, successful ? SUCCESSFUL : UNSUCCESSFUL);
         return this;
     }
 

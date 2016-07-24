@@ -23,13 +23,14 @@
  */
 package org.tools4j.hoverraft.server;
 
+import io.aeron.Publication;
 import org.tools4j.hoverraft.config.ConsensusConfig;
 import org.tools4j.hoverraft.config.ServerConfig;
 import org.tools4j.hoverraft.config.ThreadingMode;
 import org.tools4j.hoverraft.io.Connections;
 import org.tools4j.hoverraft.message.MessageBroker;
-import org.tools4j.hoverraft.message.MessageFactory;
 import org.tools4j.hoverraft.message.MessageHandler;
+import org.tools4j.hoverraft.message.direct.DirectMessage;
 import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
 import org.tools4j.hoverraft.state.ElectionTimer;
 import org.tools4j.hoverraft.state.Role;
@@ -45,7 +46,7 @@ public final class Server {
     private final ServerState serverState;
     private final Connections connections;
     private final MessageBroker messageBroker = new MessageBroker(this);
-    private final MessageFactory messageFactory = new DirectMessageFactory();
+    private final DirectMessageFactory messageFactory = new DirectMessageFactory();
 
     public Server(final int serverId,
                   final ConsensusConfig consensusConfig,
@@ -73,7 +74,7 @@ public final class Server {
         return connections;
     }
 
-    public MessageFactory messageFactory() {
+    public DirectMessageFactory messageFactory() {
         return messageFactory;
     }
 
@@ -94,6 +95,11 @@ public final class Server {
 
     public void pollEachServer(final MessageHandler messageHandler, final int messageLimitPerServer) {
         messageBroker.pollEachServer(messageHandler, messageLimitPerServer);
+    }
+
+    public void send(final Publication publication, final DirectMessage message) {
+        publication.offer(message.buffer(), message.offset(), message.byteLength());
+        //FIXME try sending again if failed
     }
 
     private void pollNextInputMessage() {

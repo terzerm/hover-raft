@@ -21,26 +21,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.aeron;
+package org.tools4j.hoverraft.chronicle;
 
+import net.openhft.chronicle.ExcerptAppender;
 import org.agrona.DirectBuffer;
-import org.tools4j.hoverraft.io.Publication;
+import org.tools4j.hoverraft.message.direct.DirectMessage;
+import org.tools4j.hoverraft.transport.Sender;
 
 import java.util.Objects;
 
 /**
- * Publication to aeron channel/stream pair.
+ * Publication writing to a chronicle queue.
  */
-public class AeronPublication implements Publication {
+public class ChronicleSender implements Sender<DirectMessage> {
 
-    private final io.aeron.Publication publication;
+    private final ExcerptAppender appender;
 
-    public AeronPublication(final io.aeron.Publication publication) {
-        this.publication = Objects.requireNonNull(publication);
+    public ChronicleSender(final ExcerptAppender appender) {
+        this.appender = Objects.requireNonNull(appender);
     }
 
     @Override
-    public long offer(final DirectBuffer buffer, final int offset, final int length) {
-        return publication.offer(buffer, offset, length);
+    public long offer(final DirectMessage message) {
+        final DirectBuffer buffer = Objects.requireNonNull(message.buffer());
+        final int len = message.byteLength();
+        appender.startExcerpt(len + 4);
+        appender.writeInt(len);
+        final int end = len + 4;
+        int index = 4;
+        while (index < end) {
+            if (index + 8 <= len) {
+                appender.writeLong(buffer.getLong(index));
+                index += 8;
+            } else {
+                appender.writeByte(buffer.getByte(index));
+                index++;
+            }
+        }
+        appender.finish();
+        return appender.position();
     }
 }

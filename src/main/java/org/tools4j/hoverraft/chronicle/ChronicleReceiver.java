@@ -23,43 +23,57 @@
  */
 package org.tools4j.hoverraft.chronicle;
 
-import io.aeron.logbuffer.FragmentHandler;
 import net.openhft.chronicle.ExcerptTailer;
-import org.agrona.ExpandableArrayBuffer;
+import org.agrona.DirectBuffer;
 import org.agrona.MutableDirectBuffer;
-import org.tools4j.hoverraft.io.Subscription;
+import org.tools4j.hoverraft.message.direct.DirectMessage;
+import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
+import org.tools4j.hoverraft.transport.Receiver;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * Subscription reading from a chronicle queue.
  */
-public class ChronicleSubscription implements Subscription {
+public class ChronicleReceiver implements Receiver<DirectMessage> {
 
     private final ExcerptTailer tailer;
-    private final MutableDirectBuffer buffer;
+    private final MutableDirectBuffer mutableDirectBuffer;
+    private final DirectMessageFactory directMessageFactory;
 
-    public ChronicleSubscription(final ExcerptTailer tailer, final int initialBufferCapacity) {
+    public ChronicleReceiver(final ExcerptTailer tailer, MutableDirectBuffer buffer) {
         this.tailer = Objects.requireNonNull(tailer);
-        this.buffer = new ExpandableArrayBuffer(initialBufferCapacity);
+        this.mutableDirectBuffer = Objects.requireNonNull(buffer);
+        this.directMessageFactory = new DirectMessageFactory().wrapForWriting(buffer, 0);
     }
 
     @Override
-    public int poll(final FragmentHandler fragmentHandler, final int fragmentLimit) {
-        int fragmentsRead = 0;
-        while (fragmentsRead < fragmentLimit && tailer.nextIndex()) {
+    public Poller poller(final Consumer<? super DirectMessage> messageMandler) {
+        return limit -> poll(messageMandler, limit);
+    }
+
+    private int poll(final Consumer<? super DirectMessage> messageMandler, final int limit) {
+        int messagesRead = 0;
+        while (messagesRead < limit && tailer.nextIndex()) {
             final int len = tailer.readInt();
             for (int i = 0; i < len; ) {
                 if (i + 8 <= len) {
-                    buffer.putLong(i, tailer.readLong());
+                    mutableDirectBuffer.putLong(i, tailer.readLong());
                     i += 8;
                 } else {
-                    buffer.putByte(i, tailer.readByte());
+                    mutableDirectBuffer.putByte(i, tailer.readByte());
                     i++;
                 }
             }
-            fragmentsRead++;
+            consume(messageMandler);
+            messagesRead++;
         }
-        return fragmentsRead;
+        return messagesRead;
+    }
+
+    private void consume(final Consumer<? super DirectMessage> messageMandler) {
+        final DirectMessage message = directMessageFactory.wrapForReading((DirectBuffer) mutableDirectBuffer, 0);
+        messageMandler.accept(message);
     }
 }

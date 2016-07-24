@@ -25,14 +25,24 @@ package org.tools4j.hoverraft.transport;
 
 import java.util.function.Consumer;
 
-public interface Receiver<M, T> {
+public interface Receiver<M> {
     /**
-     * Polls messages in non-blocking mode.
+     * Returns a poller handling polled messages with the given {@code messageHandler}.
      *
-     * @param messageMandler the handler invoked for each message.
-     * @param offset the offset for the transport passed to the unmarshaller
-     * @param limit maximum number of messages to receive in response to this invocation
-     * @return number of messages received
+     * @param messageMandler the handler invoked for each message
+     * @return the poller used to start polling messages
      */
-    int poll(Consumer<? super M> messageMandler, int offset, int limit);
+    Poller poller(Consumer<? super M> messageMandler);
+
+    interface Poller {
+        /**
+         * Polls messages in non-blocking mode. Messages are passed to the message handler
+         * that was used to create this poller.
+         *
+         * @param limit maximum number of messages to receive in response a single poll
+         *              invocation
+         * @return number of messages received, zero to at most {@code limit} messages
+         */
+        int poll(int limit);
+    }
 }

@@ -26,8 +26,10 @@ package org.tools4j.hoverraft.io;
 import net.openhft.chronicle.Chronicle;
 import net.openhft.chronicle.ChronicleQueueBuilder;
 import net.openhft.chronicle.VanillaChronicle;
+import org.agrona.ExpandableArrayBuffer;
 import org.tools4j.hoverraft.chronicle.ChronicleMessageLog;
-import org.tools4j.hoverraft.message.MessageLog;
+import org.tools4j.hoverraft.message.direct.DirectCommandMessage;
+import org.tools4j.hoverraft.transport.MessageLog;
 
 import java.io.IOException;
 
@@ -35,6 +37,8 @@ import java.io.IOException;
  * File names and locations.
  */
 public class Files {
+
+    private static final int INITIAL_BUFFER_SIZE = 1024;
 
     public static final String SYS_PROP_FILE_DIR = "org.tools4j.hoverraft.FileDir";
 
@@ -50,10 +54,10 @@ public class Files {
         return "hover-raft_" + serverId + "_" + name;
     }
 
-    public static final MessageLog messageLog(final int serverId, final String name) throws IOException {
+    public static final MessageLog<DirectCommandMessage> messageLog(final int serverId, final String name) throws IOException {
         final String path = Files.fileDirectory();
         final String child = Files.fileName(serverId, name);
         final Chronicle chronicle = ChronicleQueueBuilder.vanilla(path, child).build();
-        return new ChronicleMessageLog((VanillaChronicle)chronicle);
+        return new ChronicleMessageLog((VanillaChronicle)chronicle, new ExpandableArrayBuffer(INITIAL_BUFFER_SIZE));
     }
 }

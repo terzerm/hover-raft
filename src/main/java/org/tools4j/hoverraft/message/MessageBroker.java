@@ -23,12 +23,12 @@
  */
 package org.tools4j.hoverraft.message;
 
+import io.aeron.Subscription;
 import io.aeron.logbuffer.FragmentHandler;
 import io.aeron.logbuffer.Header;
 import org.agrona.DirectBuffer;
 import org.tools4j.hoverraft.config.ConsensusConfig;
 import org.tools4j.hoverraft.config.ServerConfig;
-import org.tools4j.hoverraft.io.Subscription;
 import org.tools4j.hoverraft.server.Server;
 
 import java.util.Objects;

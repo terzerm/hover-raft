@@ -23,8 +23,9 @@
  */
 package org.tools4j.hoverraft.server;
 
-import org.tools4j.hoverraft.io.Publication;
+import io.aeron.Publication;
 import org.tools4j.hoverraft.message.VoteRequest;
+import org.tools4j.hoverraft.message.direct.DirectMessage;
 import org.tools4j.hoverraft.state.PersistentState;
 import org.tools4j.hoverraft.state.Role;
 import org.tools4j.hoverraft.state.ServerState;
@@ -51,10 +52,10 @@ public final class VoteRequestHandler {
             granted = false;
         }
         final Publication serverPublication = server.connections().serverPublication(candidateId);
-        server.messageFactory().voteResponse()
-                .term(server.currentTerm())
-                .voteGranted(granted)
-                .offerTo(serverPublication, MAX_TRIES);
+        final DirectMessage message = server.messageFactory().voteResponse()
+                    .term(server.currentTerm())
+                    .voteGranted(granted);
+        server.send(serverPublication, message);
     }
 
     private static boolean isValidCandidate(final Server server, final VoteRequest voteRequest) {
