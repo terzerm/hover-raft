@@ -21,44 +21,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.message.direct;
+package org.tools4j.hoverraft.transport.direct;
 
-import org.tools4j.hoverraft.message.AppendResponse;
-import org.tools4j.hoverraft.message.MessageType;
+import org.agrona.MutableDirectBuffer;
+import org.tools4j.hoverraft.io.Publication;
+import org.tools4j.hoverraft.message.direct.DirectMessage;
+import org.tools4j.hoverraft.transport.Sender;
 
-public final class DirectAppendResponse extends AbstractMessage implements AppendResponse {
+import java.util.Objects;
 
-    private static final byte SUCCESSFUL = 1;
-    private static final byte UNSUCCESSFUL = 0;
+public class DirectSender implements Sender<DirectMessage> {
 
-    public static final int BYTE_LENGTH = 4 + 1;
+    private final Publication publication;
+    private final MutableDirectBuffer buffer;
 
-    @Override
-    public MessageType type() {
-        return MessageType.APPEND_RESPONSE;
+    public DirectSender(final Publication publication, final MutableDirectBuffer buffer) {
+        this.publication = Objects.requireNonNull(publication);
+        this.buffer = Objects.requireNonNull(buffer);
     }
 
     @Override
-    public int byteLength() {
-        return BYTE_LENGTH;
+    public <M extends DirectMessage> M start(final M message) {
+        buffer.putInt(0, message.type().ordinal());
+        message.wrap(buffer, 4);
+        return message;
     }
 
-    public int term() {
-        return readBuffer.getInt(offset);
+    @Override
+    public long trySend(final DirectMessage message) {
+        final int len = 4 + message.byteLength();
+        return publication.offer(buffer, 0, len);
     }
-
-    public DirectAppendResponse term(final int term) {
-        writeBuffer.putInt(offset, term);
-        return this;
-    }
-
-    public boolean successful() {
-        return readBuffer.getByte(offset + 4) == 1;
-    }
-
-    public DirectAppendResponse successful(final boolean successful) {
-        writeBuffer.putByte(offset + 4, successful ? SUCCESSFUL : UNSUCCESSFUL);
-        return this;
-    }
-
 }

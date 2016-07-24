@@ -23,11 +23,17 @@
  */
 package org.tools4j.hoverraft.message.direct;
 
+import org.tools4j.hoverraft.message.MessageType;
 import org.tools4j.hoverraft.message.VoteRequest;
 
 public final class DirectVoteRequest extends AbstractMessage implements VoteRequest {
 
     public static final int BYTE_LENGTH = 4 + 4 + 4 + 8;
+
+    @Override
+    public MessageType type() {
+        return MessageType.VOTE_REQUEST;
+    }
 
     @Override
     public int byteLength() {

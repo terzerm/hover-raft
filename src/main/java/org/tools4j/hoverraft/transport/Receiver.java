@@ -21,44 +21,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.message.direct;
+package org.tools4j.hoverraft.transport;
 
-import org.tools4j.hoverraft.message.AppendResponse;
-import org.tools4j.hoverraft.message.MessageType;
+import java.util.function.Consumer;
 
-public final class DirectAppendResponse extends AbstractMessage implements AppendResponse {
-
-    private static final byte SUCCESSFUL = 1;
-    private static final byte UNSUCCESSFUL = 0;
-
-    public static final int BYTE_LENGTH = 4 + 1;
-
-    @Override
-    public MessageType type() {
-        return MessageType.APPEND_RESPONSE;
-    }
-
-    @Override
-    public int byteLength() {
-        return BYTE_LENGTH;
-    }
-
-    public int term() {
-        return readBuffer.getInt(offset);
-    }
-
-    public DirectAppendResponse term(final int term) {
-        writeBuffer.putInt(offset, term);
-        return this;
-    }
-
-    public boolean successful() {
-        return readBuffer.getByte(offset + 4) == 1;
-    }
-
-    public DirectAppendResponse successful(final boolean successful) {
-        writeBuffer.putByte(offset + 4, successful ? SUCCESSFUL : UNSUCCESSFUL);
-        return this;
-    }
-
+public interface Receiver<M, T> {
+    /**
+     * Polls messages in non-blocking mode.
+     *
+     * @param messageMandler the handler invoked for each message.
+     * @param offset the offset for the transport passed to the unmarshaller
+     * @param limit maximum number of messages to receive in response to this invocation
+     * @return number of messages received
+     */
+    int poll(Consumer<? super M> messageMandler, int offset, int limit);
 }

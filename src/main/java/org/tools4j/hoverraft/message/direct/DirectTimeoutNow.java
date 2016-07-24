@@ -23,6 +23,7 @@
  */
 package org.tools4j.hoverraft.message.direct;
 
+import org.tools4j.hoverraft.message.MessageType;
 import org.tools4j.hoverraft.message.TimeoutNow;
 
 /**
@@ -31,6 +32,11 @@ import org.tools4j.hoverraft.message.TimeoutNow;
 public final class DirectTimeoutNow extends AbstractMessage implements TimeoutNow {
 
     public static final int BYTE_LENGTH = 4 + 4;
+
+    @Override
+    public MessageType type() {
+        return MessageType.TIMEOUT_NOW;
+    }
 
     @Override
     public int byteLength() {

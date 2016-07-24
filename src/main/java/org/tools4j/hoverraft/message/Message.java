@@ -29,6 +29,9 @@ import org.tools4j.hoverraft.io.Publication;
  * Base interface for all messages.
  */
 public interface Message {
+
+    MessageType type();
+
     long offerTo(Publication publication);
 
     default long offerTo(final Publication publication, final int maxTries) {

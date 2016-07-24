@@ -26,6 +26,7 @@ package org.tools4j.hoverraft.message.direct;
 import org.agrona.concurrent.UnsafeBuffer;
 import org.tools4j.hoverraft.message.CommandMessage;
 import org.tools4j.hoverraft.message.MessageLog;
+import org.tools4j.hoverraft.message.MessageType;
 
 import java.nio.ByteBuffer;
 
@@ -35,6 +36,11 @@ public final class DirectCommandMessage extends AbstractMessage implements Comma
 
     public DirectCommandMessage() {
         wrap(new UnsafeBuffer(ByteBuffer.allocateDirect(BYTE_LENGTH)), 0);
+    }
+
+    @Override
+    public MessageType type() {
+        return MessageType.COMMAND_MESSAGE;
     }
 
     @Override

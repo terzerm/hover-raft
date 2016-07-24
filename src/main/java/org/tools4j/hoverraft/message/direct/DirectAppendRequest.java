@@ -26,6 +26,7 @@ package org.tools4j.hoverraft.message.direct;
 import org.agrona.DirectBuffer;
 import org.agrona.MutableDirectBuffer;
 import org.tools4j.hoverraft.message.AppendRequest;
+import org.tools4j.hoverraft.message.MessageType;
 import org.tools4j.hoverraft.message.UserMessage;
 
 public final class DirectAppendRequest extends AbstractMessage implements AppendRequest {
@@ -34,6 +35,11 @@ public final class DirectAppendRequest extends AbstractMessage implements Append
     public static final int BYTE_LENGTH = 4 + 4 + 4 + 8 + 8 + 4;
 
     private final DirectUserMessage userMessage = new DirectUserMessage();
+
+    @Override
+    public MessageType type() {
+        return MessageType.APPEND_REQUEST;
+    }
 
     @Override
     public int byteLength() {

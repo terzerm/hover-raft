@@ -55,6 +55,11 @@ public final class HigherTermHandler implements MessageHandler {
         onTerm(server, timeoutRequest.term());
     }
 
+    @Override
+    public void onCommandMessage(Server server, CommandMessage commandMessage) {
+        onTerm(server, commandMessage.term());
+    }
+
     private void onTerm(final Server server, final int term) {
         final ServerState state = server.state();
         final PersistentState pstate = state.persistentState();

@@ -29,6 +29,11 @@ import org.tools4j.hoverraft.server.Server;
 public enum MessageType {
     VOTE_REQUEST {
         @Override
+        public Message create(final MessageFactory factory) {
+            return factory.voteRequest();
+        }
+
+        @Override
         protected void accept(final Server server,
                               final MessageFactory messageFactory,
                               final MessageHandler messageHandler) {
@@ -36,6 +41,11 @@ public enum MessageType {
         }
     },
     VOTE_RESPONSE {
+        @Override
+        public Message create(final MessageFactory factory) {
+            return factory.voteResponse();
+        }
+
         @Override
         protected void accept(final Server server,
                               final MessageFactory messageFactory,
@@ -45,6 +55,11 @@ public enum MessageType {
     },
     APPEND_REQUEST {
         @Override
+        public Message create(final MessageFactory factory) {
+            return factory.appendRequest();
+        }
+
+        @Override
         protected void accept(final Server server,
                               final MessageFactory messageFactory,
                               final MessageHandler messageHandler) {
@@ -53,25 +68,53 @@ public enum MessageType {
     },
     APPEND_RESPONSE {
         @Override
+        public Message create(final MessageFactory factory) {
+            return factory.appendResponse();
+        }
+
+        @Override
         protected void accept(final Server server,
                               final MessageFactory messageFactory,
                               final MessageHandler messageHandler) {
             messageHandler.onAppendResponse(server, messageFactory.appendResponse());
         }
     },
-    TIMEOUT_REQUEST {
+    TIMEOUT_NOW {
+        @Override
+        public Message create(final MessageFactory factory) {
+            return factory.timeoutNow();
+        }
+
         @Override
         protected void accept(final Server server,
                               final MessageFactory messageFactory,
                               final MessageHandler messageHandler) {
             messageHandler.onTimeoutNow(server, messageFactory.timeoutNow());
         }
+    },
+    COMMAND_MESSAGE {
+        @Override
+        public Message create(final MessageFactory factory) {
+            return factory.commandMessage();
+        }
+
+        @Override
+        protected void accept(final Server server,
+                              final MessageFactory messageFactory,
+                              final MessageHandler messageHandler) {
+            messageHandler.onCommandMessage(server, messageFactory.commandMessage());
+        }
     };
+
 
     private static final MessageType[] VALUES = values();
 
     public static final MessageType valueByOrdinal(final int ordinal) {
         return VALUES[ordinal];
+    }
+
+    public static final int maxOrdinal() {
+        return VALUES.length - 1;
     }
 
     public static boolean dispatch(final Server server,
@@ -89,7 +132,10 @@ public enum MessageType {
         return false;
     }
 
+    abstract public Message create(MessageFactory factory);
+
     abstract protected void accept(Server server,
                                    MessageFactory messageFactory,
                                    MessageHandler messageHandler);
+
 }
