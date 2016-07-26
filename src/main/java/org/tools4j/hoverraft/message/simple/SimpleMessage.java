@@ -21,19 +21,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.transport;
+package org.tools4j.hoverraft.message.simple;
 
-public interface Sender<M> {
-    /**
-     * Terminates composing and offsers the message to the transport in
-     * non-blocking mode. Can be called multiple times for same message if sending
-     * failed which is indicated through a negative return value.
-     *
-     * @param message the message to send
-     * @return Non-negative transpport state such as position, otherwise zero if
-     * not applicable and successful or a negative error value
-     * {@link RejectReason#NOT_CONNECTED}, {@link RejectReason#BACK_PRESSURED},
-     * {@link RejectReason#ADMIN_ACTION} or {@link RejectReason#CLOSED}.
-     */
-    long offer(M message);
+import org.tools4j.hoverraft.message.Message;
+import org.tools4j.hoverraft.transport.ResendStrategy;
+import org.tools4j.hoverraft.transport.Sender;
+
+/**
+ * Simple pojo message.
+ */
+public interface SimpleMessage extends Message {
+    SimpleMessage clone();
+    void sendTo(Sender<? super SimpleMessage> sender, ResendStrategy resendStrategy);
 }

@@ -60,7 +60,7 @@ public final class MessageBroker {
         for (int i = 0; i < servers - 1; i++) {
             final ServerConfig serverConfig = consensusConfig.serverConfig(i);
             if (serverConfig.id() != server.serverConfig().id()) {
-                subscriptions[i] = server.connections().serverSubscription(serverConfig.id());
+                subscriptions[i] = null;//FIXME: server.connections().serverReceiver(serverConfig.id());
                 index++;
             }
         }

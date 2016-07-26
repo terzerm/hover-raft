@@ -23,17 +23,24 @@
  */
 package org.tools4j.hoverraft.transport;
 
-public interface Sender<M> {
+public interface RejectReason {
     /**
-     * Terminates composing and offsers the message to the transport in
-     * non-blocking mode. Can be called multiple times for same message if sending
-     * failed which is indicated through a negative return value.
-     *
-     * @param message the message to send
-     * @return Non-negative transpport state such as position, otherwise zero if
-     * not applicable and successful or a negative error value
-     * {@link RejectReason#NOT_CONNECTED}, {@link RejectReason#BACK_PRESSURED},
-     * {@link RejectReason#ADMIN_ACTION} or {@link RejectReason#CLOSED}.
+     * Not yet connected to a source.
      */
-    long offer(M message);
+    long NOT_CONNECTED = -1;
+
+    /**
+     * The offer failed due to back pressure from the connected sources preventing further transmission.
+     */
+    long BACK_PRESSURED = -2;
+
+    /**
+     * The offer failed due to an administration action and should be retried.
+     */
+    long ADMIN_ACTION = -3;
+
+    /**
+     * The transport has been closed and should no longer be used.
+     */
+    long CLOSED = -4;
 }

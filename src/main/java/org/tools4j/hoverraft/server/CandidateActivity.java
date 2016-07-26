@@ -23,10 +23,8 @@
  */
 package org.tools4j.hoverraft.server;
 
-import io.aeron.Publication;
 import org.tools4j.hoverraft.message.MessageHandler;
 import org.tools4j.hoverraft.message.VoteResponse;
-import org.tools4j.hoverraft.message.direct.DirectMessage;
 import org.tools4j.hoverraft.state.ElectionState;
 import org.tools4j.hoverraft.state.PersistentState;
 import org.tools4j.hoverraft.state.Role;
@@ -68,12 +66,11 @@ public final class CandidateActivity implements ServerActivity {
     }
 
     private void requestVoteFromAllServers(final Server server, final int self) {
-        int maxTries = 100;//TODO how often should we retry sending?
-        final Publication serverMulticast = server.connections().serverMulticast();
-        final DirectMessage message = server.messageFactory().voteRequest()
+        server.messageFactory().voteRequest()
                 .term(server.currentTerm())
-                .candidateId(self);
-        server.send(serverMulticast, message);
+                .candidateId(self)
+                .sendTo(server.connections().serverMulticastSender(),
+                        server.resendStrategy());
     }
 
     private void incVoteCount(final Server server) {

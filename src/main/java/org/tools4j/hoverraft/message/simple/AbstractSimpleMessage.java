@@ -21,57 +21,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.message.direct;
+package org.tools4j.hoverraft.message.simple;
 
-import org.agrona.DirectBuffer;
-import org.agrona.MutableDirectBuffer;
 import org.tools4j.hoverraft.transport.ResendStrategy;
 import org.tools4j.hoverraft.transport.Sender;
 
-import java.util.Objects;
-
-abstract public class AbstractMessage implements DirectMessage {
-
-    protected static final int TYPE_OFF = 0;
-    protected static final int TYPE_LEN = 4;
-    protected DirectBuffer readBuffer;
-    protected MutableDirectBuffer writeBuffer;
-    protected int offset;
-
+abstract public class AbstractSimpleMessage implements SimpleMessage, Cloneable {
     @Override
-    public int offset() {
-        return offset;
-    }
-
-    @Override
-    public DirectBuffer buffer() {
-        return readBuffer;
-    }
-
-    public void wrap(final DirectBuffer buffer, final int offset) {
-        if (buffer.getInt(offset) != type().ordinal()) {
-            throw new IllegalArgumentException("Buffer must contain message type " + type());
+    public SimpleMessage clone() {
+        try {
+            return (SimpleMessage)super.clone();
+        } catch (final CloneNotSupportedException e) {
+            throw new RuntimeException("should be cloneable", e);
         }
-        this.readBuffer = Objects.requireNonNull(buffer);
-        this.writeBuffer = null;
-        this.offset = offset;
     }
-
-    public void wrap(final MutableDirectBuffer buffer, final int offset) {
-        Objects.requireNonNull(buffer);
-        this.readBuffer = buffer;
-        this.writeBuffer = buffer;
-        this.offset = offset;
-        buffer.putInt(offset, type().ordinal());
-    }
-
-    public void unwrap() {
-        this.readBuffer = null;
-        this.writeBuffer = null;
-        this.offset = 0;
-    }
-
-    public void sendTo(final Sender<? super DirectMessage> sender, final ResendStrategy resendStrategy) {
+    public void sendTo(final Sender<? super SimpleMessage> sender, final ResendStrategy resendStrategy) {
         final long res = sender.offer(this);
         if (res < 0) {
             resendStrategy.offerRejected(sender, this, res);

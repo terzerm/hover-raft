@@ -27,15 +27,16 @@ import io.aeron.Publication;
 import org.tools4j.hoverraft.config.ConsensusConfig;
 import org.tools4j.hoverraft.config.ServerConfig;
 import org.tools4j.hoverraft.config.ThreadingMode;
-import org.tools4j.hoverraft.io.Connections;
-import org.tools4j.hoverraft.message.MessageBroker;
 import org.tools4j.hoverraft.message.MessageHandler;
 import org.tools4j.hoverraft.message.direct.DirectMessage;
 import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
+import org.tools4j.hoverraft.message.direct.MessageBroker;
 import org.tools4j.hoverraft.state.ElectionTimer;
 import org.tools4j.hoverraft.state.Role;
 import org.tools4j.hoverraft.state.ServerState;
 import org.tools4j.hoverraft.state.VolatileState;
+import org.tools4j.hoverraft.transport.Connections;
+import org.tools4j.hoverraft.transport.ResendStrategy;
 
 import java.util.Objects;
 
@@ -132,4 +133,7 @@ public final class Server {
         serverState.volatileState().role().perform(this);
     }
 
+    public ResendStrategy resendStrategy() {
+        return ResendStrategy.NOOP;//FIXME use better resend strategy
+    }
 }

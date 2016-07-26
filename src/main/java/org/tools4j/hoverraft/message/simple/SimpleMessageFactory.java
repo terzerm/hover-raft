@@ -21,14 +21,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.io;
+package org.tools4j.hoverraft.message.simple;
 
-import io.aeron.Publication;
-import io.aeron.Subscription;
+import org.tools4j.hoverraft.message.MessageFactory;
 
-public interface Connections {
-    Subscription sourceSubscription(int sourceId);
-    Subscription serverSubscription(int serverId);
-    Publication serverPublication(int serverId);
-    Publication serverMulticast();
+/**
+ * Factory for simple pojo messages.
+ */
+public final class SimpleMessageFactory implements MessageFactory {
+
+    public SimpleAppendRequest appendRequest() {
+        return new SimpleAppendRequest();
+    }
+
+    public SimpleAppendResponse appendResponse() {
+        return new SimpleAppendResponse();
+    }
+
+    public SimpleVoteRequest voteRequest() {
+        return new SimpleVoteRequest();
+    }
+
+    public SimpleVoteResponse voteResponse() {
+        return new SimpleVoteResponse();
+    }
+
+    public SimpleTimeoutNow timeoutNow() {
+        return new SimpleTimeoutNow();
+    }
+
+    public SimpleCommandMessage commandMessage() {
+        return new SimpleCommandMessage();
+    }
 }

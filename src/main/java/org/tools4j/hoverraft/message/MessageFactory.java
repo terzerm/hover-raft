@@ -23,8 +23,6 @@
  */
 package org.tools4j.hoverraft.message;
 
-import org.tools4j.hoverraft.message.direct.DirectCommandMessage;
-
 /**
  * Factory for messages.
  */
@@ -40,5 +38,5 @@ public interface MessageFactory {
 
     TimeoutNow timeoutNow();
 
-    DirectCommandMessage commandMessage();
+    CommandMessage commandMessage();
 }

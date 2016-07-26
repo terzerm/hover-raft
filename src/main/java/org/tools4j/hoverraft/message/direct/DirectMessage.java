@@ -26,6 +26,8 @@ package org.tools4j.hoverraft.message.direct;
 import org.agrona.DirectBuffer;
 import org.agrona.MutableDirectBuffer;
 import org.tools4j.hoverraft.message.Message;
+import org.tools4j.hoverraft.transport.ResendStrategy;
+import org.tools4j.hoverraft.transport.Sender;
 
 /**
  * A message
@@ -43,4 +45,6 @@ public interface DirectMessage extends Message {
     void wrap(MutableDirectBuffer buffer, int offset);
 
     void unwrap();
+
+    void sendTo(Sender<? super DirectMessage> sender, ResendStrategy resendStrategy);
 }

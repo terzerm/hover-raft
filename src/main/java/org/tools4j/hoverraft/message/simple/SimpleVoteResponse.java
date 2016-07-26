@@ -21,19 +21,48 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.transport;
+package org.tools4j.hoverraft.message.simple;
 
-public interface Sender<M> {
-    /**
-     * Terminates composing and offsers the message to the transport in
-     * non-blocking mode. Can be called multiple times for same message if sending
-     * failed which is indicated through a negative return value.
-     *
-     * @param message the message to send
-     * @return Non-negative transpport state such as position, otherwise zero if
-     * not applicable and successful or a negative error value
-     * {@link RejectReason#NOT_CONNECTED}, {@link RejectReason#BACK_PRESSURED},
-     * {@link RejectReason#ADMIN_ACTION} or {@link RejectReason#CLOSED}.
-     */
-    long offer(M message);
+import org.tools4j.hoverraft.message.MessageType;
+import org.tools4j.hoverraft.message.VoteResponse;
+
+public final class SimpleVoteResponse extends AbstractSimpleMessage implements VoteResponse {
+
+    private int term;
+    private boolean voteGranted;
+
+    @Override
+    public MessageType type() {
+        return MessageType.VOTE_RESPONSE;
+    }
+
+    @Override
+    public int term() {
+        return term;
+    }
+
+    @Override
+    public SimpleVoteResponse term(final int term) {
+        this.term = term;
+        return this;
+    }
+
+    @Override
+    public boolean voteGranted() {
+        return voteGranted;
+    }
+
+    @Override
+    public SimpleVoteResponse voteGranted(final boolean voteGranted) {
+        this.voteGranted = voteGranted;
+        return this;
+    }
+
+    @Override
+    public String toString() {
+        return "SimpleVoteResponse{" +
+                "term=" + term +
+                ", voteGranted=" + voteGranted +
+                '}';
+    }
 }
