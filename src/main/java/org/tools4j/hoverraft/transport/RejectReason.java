@@ -23,24 +23,29 @@
  */
 package org.tools4j.hoverraft.transport;
 
+import io.aeron.Publication;
+
+/**
+ * Reject reasons that may be returned by {@link Sender#offer(Object)}.
+ */
 public interface RejectReason {
     /**
-     * Not yet connected to a source.
+     * Not yet connected to a receiver.
      */
-    long NOT_CONNECTED = -1;
+    long NOT_CONNECTED = Publication.NOT_CONNECTED;
 
     /**
      * The offer failed due to back pressure from the connected sources preventing further transmission.
      */
-    long BACK_PRESSURED = -2;
+    long BACK_PRESSURED = Publication.BACK_PRESSURED;
 
     /**
      * The offer failed due to an administration action and should be retried.
      */
-    long ADMIN_ACTION = -3;
+    long ADMIN_ACTION = Publication.ADMIN_ACTION;
 
     /**
      * The transport has been closed and should no longer be used.
      */
-    long CLOSED = -4;
+    long CLOSED = Publication.CLOSED;
 }
