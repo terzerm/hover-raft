@@ -38,7 +38,7 @@ abstract public class AbstractSimpleMessage implements SimpleMessage, Cloneable 
     public void sendTo(final Sender<? super SimpleMessage> sender, final ResendStrategy resendStrategy) {
         final long res = sender.offer(this);
         if (res < 0) {
-            resendStrategy.offerRejected(sender, this, res);
+            resendStrategy.onRejectedOffer(sender, this, res);
         }
     }
 }

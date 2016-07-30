@@ -74,7 +74,7 @@ abstract public class AbstractMessage implements DirectMessage {
     public void sendTo(final Sender<? super DirectMessage> sender, final ResendStrategy resendStrategy) {
         final long res = sender.offer(this);
         if (res < 0) {
-            resendStrategy.offerRejected(sender, this, res);
+            resendStrategy.onRejectedOffer(sender, this, res);
         }
     }
 }

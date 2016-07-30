@@ -23,13 +23,10 @@
  */
 package org.tools4j.hoverraft.transport;
 
-public interface ResendStrategy {
-    <M> void onRejectedOffer(Sender<? super M> sender, M message, long rejectReason);
+public final class Pollers {
 
-    ResendStrategy NOOP = new ResendStrategy() {
-        @Override
-        public <M> void onRejectedOffer(final Sender<? super M> sender, final M message, final long rejectReason) {
-            //no op
-        }
-    };
+    public static <M> Receiver.Poller pollToMessageLog(final Receiver<M> receiver, final MessageLog<? super M> messageLog) {
+        return receiver.poller(m -> messageLog.append(m));
+    }
+
 }

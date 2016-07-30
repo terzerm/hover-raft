@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.chronicle;
+package org.tools4j.hoverraft.transport.chronicle;
 
 import net.openhft.chronicle.Chronicle;
 import net.openhft.chronicle.Excerpt;

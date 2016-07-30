@@ -21,39 +21,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.io;
+package org.tools4j.hoverraft.transport.chronicle;
 
+import net.openhft.chronicle.ExcerptAppender;
+import org.agrona.DirectBuffer;
 import org.tools4j.hoverraft.message.direct.DirectMessage;
-import org.tools4j.hoverraft.transport.MessageLog;
-import org.tools4j.hoverraft.transport.Receiver;
+import org.tools4j.hoverraft.transport.Sender;
 
 import java.util.Objects;
 
 /**
- * Reads messages from a {@link Receiver} and appends them to a {@link MessageLog} via
- * {@link #receiveAndAppendToLog(int)}.
+ * Publication writing to a chronicle queue.
  */
-public final class ReceiverLogAppender {
+public class ChronicleSender implements Sender<DirectMessage> {
 
-    private final Receiver<DirectMessage> receiver;
-    private final MessageLog<DirectMessage> messageLog;
-    private final Receiver.Poller poller;
+    private final ExcerptAppender appender;
 
-    public ReceiverLogAppender(final Receiver<DirectMessage> receiver, final MessageLog<DirectMessage> directMessageLog) {
-        this.receiver = Objects.requireNonNull(receiver);
-        this.messageLog = Objects.requireNonNull(directMessageLog);
-        this.poller = receiver.poller(msg -> messageLog.append(msg));
+    public ChronicleSender(final ExcerptAppender appender) {
+        this.appender = Objects.requireNonNull(appender);
     }
 
-    public Receiver<DirectMessage> receiver() {
-        return receiver;
-    }
-
-    public MessageLog<DirectMessage> messageLog() {
-        return messageLog;
-    }
-
-    public int receiveAndAppendToLog(final int limit) {
-        return poller.poll(limit);
+    @Override
+    public long offer(final DirectMessage message) {
+        final DirectBuffer buffer = Objects.requireNonNull(message.buffer());
+        final int len = message.byteLength();
+        appender.startExcerpt(len + 4);
+        appender.writeInt(len);
+        final int end = len + 4;
+        int index = 4;
+        while (index < end) {
+            if (index + 8 <= len) {
+                appender.writeLong(buffer.getLong(index));
+                index += 8;
+            } else {
+                appender.writeByte(buffer.getByte(index));
+                index++;
+            }
+        }
+        appender.finish();
+        return appender.position();
     }
 }
