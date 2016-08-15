@@ -41,16 +41,17 @@ buildscript {
 	dependencies {
         classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
 		classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.11.0'
-		classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.3"
+        classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.3"
 	}
 }
 
 dependencies {
-    compile 'io.aeron:aeron-all:0.9.7'
+    compile 'io.aeron:aeron-all:1.0'
 //    compile 'net.openhft:chronicle-queue:4.4.2'
     compile 'net.openhft:chronicle:3.6.2'
     compile 'org.hdrhistogram:HdrHistogram:2.1.9'
     testCompile 'junit:junit:4.11'
+    testCompile 'org.mockito:mockito-core:1.10.19'
     testCompile 'org.assertj:assertj-core:3.4.1'
     testCompile 'ByteWatcher:bytewatcher:1.1'
 }

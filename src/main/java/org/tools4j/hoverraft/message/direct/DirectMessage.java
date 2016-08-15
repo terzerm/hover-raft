@@ -32,7 +32,7 @@ import org.tools4j.hoverraft.transport.Sender;
 /**
  * A message
  */
-public interface DirectMessage extends Message {
+public interface DirectMessage extends Message<DirectMessage> {
 
     int byteLength();
 
@@ -45,6 +45,4 @@ public interface DirectMessage extends Message {
     void wrap(MutableDirectBuffer buffer, int offset);
 
     void unwrap();
-
-    void sendTo(Sender<? super DirectMessage> sender, ResendStrategy resendStrategy);
 }

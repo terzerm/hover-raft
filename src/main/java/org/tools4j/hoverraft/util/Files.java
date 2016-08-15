@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.io;
+package org.tools4j.hoverraft.util;
 
 import net.openhft.chronicle.Chronicle;
 import net.openhft.chronicle.ChronicleQueueBuilder;
@@ -43,7 +43,7 @@ public class Files {
     public static final String SYS_PROP_FILE_DIR = "org.tools4j.hoverraft.FileDir";
 
     public static final String defaultFileDirectory() {
-        return System.getProperty("java.io.tmpdir");
+        return System.getProperty("java.util.tmpdir");
     }
 
     public static final String fileDirectory() {

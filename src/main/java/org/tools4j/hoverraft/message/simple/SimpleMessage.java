@@ -24,13 +24,10 @@
 package org.tools4j.hoverraft.message.simple;
 
 import org.tools4j.hoverraft.message.Message;
-import org.tools4j.hoverraft.transport.ResendStrategy;
-import org.tools4j.hoverraft.transport.Sender;
 
 /**
  * Simple pojo message.
  */
-public interface SimpleMessage extends Message {
+public interface SimpleMessage extends Message<SimpleMessage> {
     SimpleMessage clone();
-    void sendTo(Sender<? super SimpleMessage> sender, ResendStrategy resendStrategy);
 }

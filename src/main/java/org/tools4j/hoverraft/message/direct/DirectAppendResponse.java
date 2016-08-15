@@ -26,7 +26,7 @@ package org.tools4j.hoverraft.message.direct;
 import org.tools4j.hoverraft.message.AppendResponse;
 import org.tools4j.hoverraft.message.MessageType;
 
-public final class DirectAppendResponse extends AbstractMessage implements AppendResponse {
+public final class DirectAppendResponse extends AbstractMessage implements AppendResponse<DirectMessage> {
 
     private static final byte SUCCESSFUL = 1;
     private static final byte UNSUCCESSFUL = 0;

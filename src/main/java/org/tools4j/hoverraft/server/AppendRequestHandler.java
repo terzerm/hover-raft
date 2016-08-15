@@ -26,6 +26,7 @@ package org.tools4j.hoverraft.server;
 import org.tools4j.hoverraft.message.AppendRequest;
 import org.tools4j.hoverraft.state.Role;
 import org.tools4j.hoverraft.state.VolatileState;
+import org.tools4j.hoverraft.util.Clock;
 
 public final class AppendRequestHandler {
 
@@ -38,10 +39,10 @@ public final class AppendRequestHandler {
         if (server.currentTerm() == term) /* should never be larger */ {
             final VolatileState vstate = server.state().volatileState();
             if (vstate.role() == Role.FOLLOWER) {
-                vstate.electionState().electionTimer().reset();
+                vstate.electionState().electionTimer().reset(Clock.DEFAULT);
             } else {
                 vstate.changeRoleTo(Role.FOLLOWER);
-                vstate.electionState().electionTimer().restart();
+                vstate.electionState().electionTimer().restart(Clock.DEFAULT);
             }
             successful = appendToLog(server, appendRequest);
         } else {

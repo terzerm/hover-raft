@@ -27,7 +27,7 @@ import org.tools4j.hoverraft.message.AppendRequest;
 import org.tools4j.hoverraft.message.MessageType;
 import org.tools4j.hoverraft.message.UserMessage;
 
-public final class SimpleAppendRequest extends AbstractSimpleMessage implements AppendRequest {
+public final class SimpleAppendRequest extends AbstractSimpleMessage implements AppendRequest<SimpleMessage> {
 
     private int term;
     private int leaderId;

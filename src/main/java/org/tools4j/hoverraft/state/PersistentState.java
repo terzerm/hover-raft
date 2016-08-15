@@ -28,9 +28,9 @@ import org.agrona.collections.Int2ObjectHashMap;
 import org.agrona.concurrent.UnsafeBuffer;
 import org.tools4j.hoverraft.config.ConsensusConfig;
 import org.tools4j.hoverraft.config.ServerConfig;
-import org.tools4j.hoverraft.io.Files;
 import org.tools4j.hoverraft.message.direct.DirectCommandMessage;
 import org.tools4j.hoverraft.transport.MessageLog;
+import org.tools4j.hoverraft.util.Files;
 
 import java.io.File;
 import java.io.IOException;
@@ -109,7 +109,7 @@ public final class PersistentState {
 
     private static Int2ObjectHashMap<MessageLog<DirectCommandMessage>> initSourceLogs(final ServerConfig serverConfig, final ConsensusConfig consensusConfig) throws IOException {
         final int n = consensusConfig.sourceCount();
-        final Int2ObjectHashMap<MessageLog<DirectCommandMessage>> messageLogsById = new Int2ObjectHashMap<>(1 + (n * 3) / 2, 0.66);
+        final Int2ObjectHashMap<MessageLog<DirectCommandMessage>> messageLogsById = new Int2ObjectHashMap<>(1 + (n * 3) / 2, 0.66f);
         for (int i = 0; i < n; i++) {
             final int id = consensusConfig.sourceConfig(i).id();
             messageLogsById.put(id, Files.messageLog(serverConfig.id(), "sourceLog-" + id));

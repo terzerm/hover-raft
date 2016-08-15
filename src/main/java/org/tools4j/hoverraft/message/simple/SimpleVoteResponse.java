@@ -26,7 +26,7 @@ package org.tools4j.hoverraft.message.simple;
 import org.tools4j.hoverraft.message.MessageType;
 import org.tools4j.hoverraft.message.VoteResponse;
 
-public final class SimpleVoteResponse extends AbstractSimpleMessage implements VoteResponse {
+public final class SimpleVoteResponse extends AbstractSimpleMessage implements VoteResponse<SimpleMessage> {
 
     private int term;
     private boolean voteGranted;

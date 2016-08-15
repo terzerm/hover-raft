@@ -21,16 +21,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.message;
+package org.tools4j.hoverraft.util;
 
-public interface AppendResponse<M extends Message<M>> extends Message<M> {
+public interface Clock {
+    long currentTimeMillis();
 
-    int term();
+    Clock DEFAULT = () -> System.currentTimeMillis();
 
-    AppendResponse term(int term);
-
-    boolean successful();
-
-    AppendResponse successful(boolean successful);
-
+    static Clock fixed(final long time) {
+        return () -> time;
+    }
 }

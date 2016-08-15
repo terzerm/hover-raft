@@ -27,9 +27,10 @@ import io.aeron.Publication;
 import org.tools4j.hoverraft.config.ConsensusConfig;
 import org.tools4j.hoverraft.config.ServerConfig;
 import org.tools4j.hoverraft.config.ThreadingMode;
+import org.tools4j.hoverraft.message.Message;
+import org.tools4j.hoverraft.message.MessageFactory;
 import org.tools4j.hoverraft.message.MessageHandler;
 import org.tools4j.hoverraft.message.direct.DirectMessage;
-import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
 import org.tools4j.hoverraft.message.direct.MessageBroker;
 import org.tools4j.hoverraft.state.ElectionTimer;
 import org.tools4j.hoverraft.state.Role;
@@ -37,26 +38,29 @@ import org.tools4j.hoverraft.state.ServerState;
 import org.tools4j.hoverraft.state.VolatileState;
 import org.tools4j.hoverraft.transport.Connections;
 import org.tools4j.hoverraft.transport.ResendStrategy;
+import org.tools4j.hoverraft.util.Clock;
 
 import java.util.Objects;
 
-public final class Server {
+public final class Server<M extends Message<M>> {
 
     private final ServerConfig serverConfig;
     private final ConsensusConfig consensusConfig;
     private final ServerState serverState;
-    private final Connections connections;
+    private final Connections<M> connections;
     private final MessageBroker messageBroker = new MessageBroker(this);
-    private final DirectMessageFactory messageFactory = new DirectMessageFactory();
+    private final MessageFactory messageFactory;
 
     public Server(final int serverId,
                   final ConsensusConfig consensusConfig,
                   final ServerState serverState,
-                  final Connections connections) {
+                  final Connections<M> connections,
+                  final MessageFactory<M> messageFactory) {
         this.serverConfig = Objects.requireNonNull(consensusConfig.serverConfigById(serverId), "No server serverConfig found for ID " + serverId);
         this.consensusConfig = Objects.requireNonNull(consensusConfig);
         this.serverState = Objects.requireNonNull(serverState);
         this.connections = Objects.requireNonNull(connections);
+        this.messageFactory = Objects.requireNonNull(messageFactory);
     }
 
     public ServerConfig serverConfig() {
@@ -75,7 +79,7 @@ public final class Server {
         return connections;
     }
 
-    public DirectMessageFactory messageFactory() {
+    public MessageFactory messageFactory() {
         return messageFactory;
     }
 
@@ -113,10 +117,10 @@ public final class Server {
         final ServerState state = serverState;
         final VolatileState vstate = state.volatileState();
         final ElectionTimer timer = vstate.electionState().electionTimer();
-        if (timer.hasTimeoutElapsed()) {
+        if (timer.hasTimeoutElapsed(Clock.DEFAULT)) {
             state.persistentState().clearVotedForAndIncCurrentTerm();
             vstate.changeRoleTo(Role.CANDIDATE);
-            timer.restart();
+            timer.restart(Clock.DEFAULT);
         }
     }
 

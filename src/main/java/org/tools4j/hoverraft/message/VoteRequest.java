@@ -23,7 +23,7 @@
  */
 package org.tools4j.hoverraft.message;
 
-public interface VoteRequest extends Message {
+public interface VoteRequest<M extends Message<M>> extends Message<M> {
 
     int term();
 

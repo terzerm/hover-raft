@@ -24,6 +24,7 @@
 package org.tools4j.hoverraft.state;
 
 import org.tools4j.hoverraft.config.ConsensusConfig;
+import org.tools4j.hoverraft.util.Clock;
 
 import java.util.Random;
 
@@ -53,18 +54,20 @@ public final class ElectionTimer {
 
     /**
      * Starts a new random timeout.
+     * @param clock the clock used to get the current time
      */
-    public void restart() {
+    public void restart(final Clock clock) {
         timeoutMillis = randomTimeoutMillis();
-        reset();
+        reset(clock);
     }
 
     /**
      * Resets the current timeout to the start without calculating a new
      * random timout.
+     * @param clock the clock used to get the current time
      */
-    public void reset() {
-        timerStartMillis = System.currentTimeMillis();
+    public void reset(final Clock clock) {
+        timerStartMillis = clock.currentTimeMillis();
     }
 
     /**
@@ -74,8 +77,13 @@ public final class ElectionTimer {
         timeoutMillis = 0;
     }
 
-    public boolean hasTimeoutElapsed() {
-        return System.currentTimeMillis() - timeoutMillis >= timeoutMillis;
+    /**
+     * Returns true if the timeout has elapsed if compared with the current time.
+     * @param clock the clock used to get the current time
+     * @return true if timeout has elapsed
+     */
+    public boolean hasTimeoutElapsed(final Clock clock) {
+        return clock.currentTimeMillis() - timerStartMillis >= timeoutMillis;
     }
 
     private long randomTimeoutMillis() {
