@@ -23,98 +23,19 @@
  */
 package org.tools4j.hoverraft.state;
 
-import org.agrona.MutableDirectBuffer;
-import org.agrona.collections.Int2ObjectHashMap;
-import org.agrona.concurrent.UnsafeBuffer;
-import org.tools4j.hoverraft.config.ConsensusConfig;
-import org.tools4j.hoverraft.config.ServerConfig;
-import org.tools4j.hoverraft.message.direct.DirectCommandMessage;
-import org.tools4j.hoverraft.transport.MessageLog;
-import org.tools4j.hoverraft.util.Files;
+public interface PersistentState {
 
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
+    int currentTerm();
 
-public final class PersistentState {
+    int votedFor();
 
-    private static final int STATE_SIZE = 4 + 4;
+    int clearVotedForAndSetCurrentTerm(int term);
 
-    private final Int2ObjectHashMap<MessageLog<DirectCommandMessage>> messageLogsBySourceId;
-    private final DirectCommandMessage commandMessage = new DirectCommandMessage();
-    private final MutableDirectBuffer state;
-    private final MessageLog<DirectCommandMessage> commandLog;
+    int clearVotedForAndIncCurrentTerm();
 
-    public PersistentState(final ServerConfig serverConfig, final ConsensusConfig consensusConfig) throws IOException {
-        this.state = initState(serverConfig, consensusConfig);
-        this.commandLog = initCommandLog(serverConfig, consensusConfig);
-        this.messageLogsBySourceId = initSourceLogs(serverConfig, consensusConfig);
-    }
+    void votedFor(final int candidateId);
 
-    public int currentTerm() {
-        return state.getInt(0);
-    }
+    int lastLogTerm();
 
-    public int votedFor() {
-        return state.getInt(4);
-    }
-
-    public MessageLog<DirectCommandMessage> commandLog() {
-        return commandLog;
-    }
-
-    public MessageLog<DirectCommandMessage> sourceLog(int sourceId) {
-        return messageLogsBySourceId.get(sourceId);
-    }
-
-    public int clearVotedForAndSetCurrentTerm(int term) {
-        state.putInt(0, term);
-        state.putInt(4, -1);
-        return term;
-    }
-
-    public int clearVotedForAndIncCurrentTerm() {
-        final int term = currentTerm() + 1;
-        state.putInt(0, term);
-        state.putInt(4, -1);
-        return term;
-    }
-
-    public void votedFor(final int candidateId) {
-        state.putInt(4, candidateId);
-    }
-
-    public int lastLogTerm() {
-        commandLog.readIndex(lastLogIndex());
-        return commandLog.read().term();
-    }
-
-    public long lastLogIndex() {
-        return commandLog.size() - 1;
-    }
-
-    private static MutableDirectBuffer initState(final ServerConfig serverConfig, final ConsensusConfig consensusConfig) throws IOException {
-        final String path = Files.fileDirectory();
-        final String file = Files.fileName(serverConfig.id(), "persistentState");
-        final RandomAccessFile raf = new RandomAccessFile(new File(path, file), "rw");
-        final ByteBuffer byteBuffer = raf.getChannel().map(FileChannel.MapMode.READ_WRITE, 0, STATE_SIZE);
-        return new UnsafeBuffer(byteBuffer);
-    }
-
-    private static MessageLog<DirectCommandMessage> initCommandLog(final ServerConfig serverConfig, final ConsensusConfig consensusConfig) throws IOException {
-        return Files.messageLog(serverConfig.id(), "commandlog");
-    }
-
-    private static Int2ObjectHashMap<MessageLog<DirectCommandMessage>> initSourceLogs(final ServerConfig serverConfig, final ConsensusConfig consensusConfig) throws IOException {
-        final int n = consensusConfig.sourceCount();
-        final Int2ObjectHashMap<MessageLog<DirectCommandMessage>> messageLogsById = new Int2ObjectHashMap<>(1 + (n * 3) / 2, 0.66f);
-        for (int i = 0; i < n; i++) {
-            final int id = consensusConfig.sourceConfig(i).id();
-            messageLogsById.put(id, Files.messageLog(serverConfig.id(), "sourceLog-" + id));
-        }
-        return messageLogsById;
-    }
-
+    long lastLogIndex();
 }

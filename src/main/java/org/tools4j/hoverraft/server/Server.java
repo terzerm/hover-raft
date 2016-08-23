@@ -48,7 +48,7 @@ public final class Server<M extends Message<M>> {
     private final ConsensusConfig consensusConfig;
     private final ServerState serverState;
     private final Connections<M> connections;
-    private final MessageBroker messageBroker = new MessageBroker(this);
+    private final MessageBroker messageBroker;
     private final MessageFactory messageFactory;
 
     public Server(final int serverId,
@@ -61,6 +61,7 @@ public final class Server<M extends Message<M>> {
         this.serverState = Objects.requireNonNull(serverState);
         this.connections = Objects.requireNonNull(connections);
         this.messageFactory = Objects.requireNonNull(messageFactory);
+        this.messageBroker = new MessageBroker(this);
     }
 
     public ServerConfig serverConfig() {

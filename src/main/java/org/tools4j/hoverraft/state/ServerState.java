@@ -26,14 +26,22 @@ package org.tools4j.hoverraft.state;
 import org.tools4j.hoverraft.config.ConsensusConfig;
 import org.tools4j.hoverraft.config.ServerConfig;
 
+import java.util.Objects;
+
 public final class ServerState {
 
     private final PersistentState persistentState;
     private final VolatileState volatileState;
 
-    public ServerState(final ServerConfig serverConfig, final ConsensusConfig consensusConfig) {
-        this.persistentState = null;//FIXME
-        this.volatileState = new VolatileState(serverConfig.id(), consensusConfig);
+    public ServerState(final ServerConfig serverConfig,
+                       final ConsensusConfig consensusConfig,
+                       final PersistentState persistentState) {
+        this(persistentState, new VolatileState(serverConfig.id(), consensusConfig));
+    }
+
+    public ServerState(final PersistentState persistentState, final VolatileState volatileState) {
+        this.persistentState = Objects.requireNonNull(persistentState);
+        this.volatileState = Objects.requireNonNull(volatileState);
     }
 
     public PersistentState persistentState() {
