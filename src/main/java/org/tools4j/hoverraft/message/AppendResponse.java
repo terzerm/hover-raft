@@ -23,7 +23,7 @@
  */
 package org.tools4j.hoverraft.message;
 
-public interface AppendResponse<M extends Message<M>> extends Message<M> {
+public interface AppendResponse extends Message {
 
     int term();
 

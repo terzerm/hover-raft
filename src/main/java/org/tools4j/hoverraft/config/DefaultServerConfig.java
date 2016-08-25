@@ -29,6 +29,9 @@ public final class DefaultServerConfig implements ServerConfig {
     private final String channel;
 
     public DefaultServerConfig(final int id, final String channel) {
+        if (id < 0) {
+            throw new IllegalArgumentException("id cannot be negative: " + id);
+        }
         this.id = id;
         this.channel = channel;
     }

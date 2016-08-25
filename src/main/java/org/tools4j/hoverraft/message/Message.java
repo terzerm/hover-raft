@@ -29,9 +29,9 @@ import org.tools4j.hoverraft.transport.Sender;
 /**
  * Base interface for all messages.
  */
-public interface Message<M extends Message<M>> {
+public interface Message {
 
     MessageType type();
 
-    void sendTo(Sender<? super M> sender, ResendStrategy resendStrategy);
+    void sendTo(Sender<? super Message> sender, ResendStrategy resendStrategy);
 }

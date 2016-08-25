@@ -23,7 +23,9 @@
  */
 package org.tools4j.hoverraft.transport;
 
-public interface Connections<M> {
+import org.tools4j.hoverraft.message.Message;
+
+public interface Connections<M extends Message> {
     Receiver<M> sourceReceiver(int sourceId);
     Receiver<M> serverReceiver(int serverId);
     Sender<M> serverSender(int serverId);

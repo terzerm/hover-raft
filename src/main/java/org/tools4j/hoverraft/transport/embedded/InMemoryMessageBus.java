@@ -23,7 +23,7 @@
  */
 package org.tools4j.hoverraft.transport.embedded;
 
-import org.tools4j.hoverraft.message.simple.SimpleMessage;
+import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.transport.Receiver;
 import org.tools4j.hoverraft.transport.RejectReason;
 import org.tools4j.hoverraft.transport.Sender;
@@ -38,12 +38,12 @@ import java.util.function.Consumer;
 /**
  * In-process message bus for simple messages.
  */
-public class SimpleMessageBus implements Sender<SimpleMessage>, Receiver<SimpleMessage> {
+public class InMemoryMessageBus<M extends Message> implements Sender<M>, Receiver<M> {
 
     private final Collection<BufferingPoller> pollers = new ConcurrentLinkedQueue<>();
 
     @Override
-    public long offer(final SimpleMessage message) {
+    public long offer(final M message) {
         int count = 0;
         for (final BufferingPoller poller : pollers) {
             if (poller.buffer.offer(message)) {
@@ -54,27 +54,27 @@ public class SimpleMessageBus implements Sender<SimpleMessage>, Receiver<SimpleM
     }
 
     @Override
-    public Poller poller(final Consumer<? super SimpleMessage> messageMandler) {
+    public Poller poller(final Consumer<? super M> messageMandler) {
         final BufferingPoller poller = new BufferingPoller(messageMandler);
         pollers.add(poller);
         return poller;
     }
 
-    private static final class BufferingPoller implements Poller {
-        private final Consumer<? super SimpleMessage> messageHandler;
-        private final Deque<SimpleMessage> buffer = new ConcurrentLinkedDeque<>();
+    private final class BufferingPoller implements Poller {
+        private final Consumer<? super M> messageHandler;
+        private final Deque<M> buffer = new ConcurrentLinkedDeque<>();
 
-        public BufferingPoller(final Consumer<? super SimpleMessage> messageHandler) {
+        public BufferingPoller(final Consumer<? super M> messageHandler) {
             this.messageHandler = Objects.requireNonNull(messageHandler);
         }
         @Override
         public int poll(final int limit) {
             for (int i = 0; i < limit; i++) {
-                final SimpleMessage msg = buffer.pollFirst();
+                final M msg = buffer.pollFirst();
                 if (msg == null) {
                     return i;
                 }
-                messageHandler.accept(msg.clone());
+                messageHandler.accept(msg);
             }
             return limit;
         }

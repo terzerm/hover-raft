@@ -25,6 +25,7 @@ package org.tools4j.hoverraft.transport.aeron;
 
 import io.aeron.Subscription;
 import io.aeron.logbuffer.FragmentHandler;
+import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.message.direct.DirectMessage;
 import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
 import org.tools4j.hoverraft.transport.Receiver;

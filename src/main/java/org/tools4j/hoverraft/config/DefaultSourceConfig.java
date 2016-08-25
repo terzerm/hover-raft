@@ -29,6 +29,9 @@ public final class DefaultSourceConfig implements ServerConfig {
     private final String channel;
 
     public DefaultSourceConfig(final int id, final String channel) {
+        if (id < 0) {
+            throw new IllegalArgumentException("id cannot be negative: " + id);
+        }
         this.id = id;
         this.channel = channel;
     }

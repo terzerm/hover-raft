@@ -29,7 +29,7 @@ import org.tools4j.hoverraft.message.AppendRequest;
 import org.tools4j.hoverraft.message.MessageType;
 import org.tools4j.hoverraft.message.UserMessage;
 
-public final class DirectAppendRequest extends AbstractMessage implements AppendRequest<DirectMessage> {
+public final class DirectAppendRequest extends AbstractDirectMessage implements AppendRequest {
 
     /** Byte length without content*/
     private static final int TERM_OFF = TYPE_OFF + TYPE_LEN;

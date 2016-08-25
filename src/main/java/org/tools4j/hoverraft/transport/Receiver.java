@@ -23,9 +23,11 @@
  */
 package org.tools4j.hoverraft.transport;
 
+import org.tools4j.hoverraft.message.Message;
+
 import java.util.function.Consumer;
 
-public interface Receiver<M> {
+public interface Receiver<M extends Message> {
     /**
      * Returns a poller handling polled messages with the given {@code messageHandler}.
      *

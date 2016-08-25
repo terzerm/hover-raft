@@ -27,9 +27,9 @@ import net.openhft.chronicle.Chronicle;
 import net.openhft.chronicle.ChronicleQueueBuilder;
 import net.openhft.chronicle.VanillaChronicle;
 import org.agrona.ExpandableArrayBuffer;
-import org.tools4j.hoverraft.transport.chronicle.ChronicleMessageLog;
 import org.tools4j.hoverraft.message.direct.DirectCommandMessage;
 import org.tools4j.hoverraft.transport.MessageLog;
+import org.tools4j.hoverraft.transport.chronicle.ChronicleMessageLog;
 
 import java.io.IOException;
 

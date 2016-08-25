@@ -26,7 +26,7 @@ package org.tools4j.hoverraft.message;
 /**
  * Timeout request to initiate leadership transfer.
  */
-public interface TimeoutNow<M extends Message<M>> extends Message<M> {
+public interface TimeoutNow extends Message {
 
     int term();
 

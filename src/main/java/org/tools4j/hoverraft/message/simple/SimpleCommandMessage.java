@@ -26,7 +26,7 @@ package org.tools4j.hoverraft.message.simple;
 import org.tools4j.hoverraft.message.CommandMessage;
 import org.tools4j.hoverraft.message.MessageType;
 
-public final class SimpleCommandMessage extends AbstractSimpleMessage implements CommandMessage<SimpleMessage> {
+public final class SimpleCommandMessage extends AbstractSimpleMessage implements CommandMessage {
 
     private int term;
     private int commandSourceId;

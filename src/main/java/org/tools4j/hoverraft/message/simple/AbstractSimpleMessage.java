@@ -23,22 +23,15 @@
  */
 package org.tools4j.hoverraft.message.simple;
 
-import org.tools4j.hoverraft.transport.ResendStrategy;
-import org.tools4j.hoverraft.transport.Sender;
+import org.tools4j.hoverraft.message.AbstractMessage;
 
-abstract public class AbstractSimpleMessage implements SimpleMessage, Cloneable {
+abstract public class AbstractSimpleMessage extends AbstractMessage implements SimpleMessage, Cloneable {
     @Override
     public SimpleMessage clone() {
         try {
             return (SimpleMessage)super.clone();
         } catch (final CloneNotSupportedException e) {
             throw new RuntimeException("should be cloneable", e);
-        }
-    }
-    public void sendTo(final Sender<? super SimpleMessage> sender, final ResendStrategy resendStrategy) {
-        final long res = sender.offer(this);
-        if (res < 0) {
-            resendStrategy.onRejectedOffer(sender, this, res);
         }
     }
 }

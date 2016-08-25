@@ -28,6 +28,6 @@ import org.tools4j.hoverraft.message.Message;
 /**
  * Simple pojo message.
  */
-public interface SimpleMessage extends Message<SimpleMessage> {
+public interface SimpleMessage extends Message {
     SimpleMessage clone();
 }

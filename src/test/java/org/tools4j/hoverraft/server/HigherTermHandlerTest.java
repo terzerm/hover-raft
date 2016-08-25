@@ -31,7 +31,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.tools4j.hoverraft.message.*;
 import org.tools4j.hoverraft.message.direct.DirectMessage;
 import org.tools4j.hoverraft.state.PersistentState;
-import org.tools4j.hoverraft.transport.Connections;
 
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.*;
@@ -39,31 +38,23 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class HigherTermHandlerTest {
 
-    private static final int SERVER_ID = 12345;
-    private static final int TERM = 42;
-
-    private Server<DirectMessage> server;
-
-    @Mock
-    private MessageFactory<DirectMessage> messageFactory;
-    @Mock
-    private Connections<DirectMessage> connections;
-
-    @Mock
-    private VoteRequest<DirectMessage> voteRequest;
-    @Mock
-    private VoteResponse<DirectMessage> voteResponse;
-    @Mock
-    private AppendRequest<DirectMessage> appendRequest;
-    @Mock
-    private AppendResponse<DirectMessage> appendResponse;
-    @Mock
-    private TimeoutNow<DirectMessage> timeoutNow;
-    @Mock
-    private CommandMessage<DirectMessage> commandMessage;
-
     //under test
     private MessageHandler handler;
+
+    private Server server;
+
+    @Mock
+    private VoteRequest voteRequest;
+    @Mock
+    private VoteResponse voteResponse;
+    @Mock
+    private AppendRequest appendRequest;
+    @Mock
+    private AppendResponse appendResponse;
+    @Mock
+    private TimeoutNow timeoutNow;
+    @Mock
+    private CommandMessage commandMessage;
 
     @Before
     public void init() {

@@ -23,7 +23,7 @@
  */
 package org.tools4j.hoverraft.message;
 
-public interface CommandMessage<M extends Message<M>> extends Message<M> {
+public interface CommandMessage extends Message {
 
     int term();
 

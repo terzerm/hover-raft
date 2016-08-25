@@ -81,7 +81,7 @@ public final class DefaultConsensusConfig implements ConsensusConfig {
 
     @Override
     public ServerConfig serverConfig(int index) {
-        return serverConfig(index);
+        return serverConfigs.get(index);
     }
 
     @Override

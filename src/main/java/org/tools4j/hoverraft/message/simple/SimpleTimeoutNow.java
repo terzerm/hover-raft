@@ -26,7 +26,7 @@ package org.tools4j.hoverraft.message.simple;
 import org.tools4j.hoverraft.message.MessageType;
 import org.tools4j.hoverraft.message.TimeoutNow;
 
-public final class SimpleTimeoutNow extends AbstractSimpleMessage implements TimeoutNow<SimpleMessage> {
+public final class SimpleTimeoutNow extends AbstractSimpleMessage implements TimeoutNow {
 
     private int term;
     private int candidateId;

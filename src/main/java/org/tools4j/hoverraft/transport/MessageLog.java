@@ -23,7 +23,9 @@
  */
 package org.tools4j.hoverraft.transport;
 
-public interface MessageLog<M> {
+import org.tools4j.hoverraft.message.Message;
+
+public interface MessageLog<M extends Message> {
     long size();
     void size(long size);
     long readIndex();

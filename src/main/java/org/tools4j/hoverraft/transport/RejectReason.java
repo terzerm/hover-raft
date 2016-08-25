@@ -24,9 +24,10 @@
 package org.tools4j.hoverraft.transport;
 
 import io.aeron.Publication;
+import org.tools4j.hoverraft.message.Message;
 
 /**
- * Reject reasons that may be returned by {@link Sender#offer(Object)}.
+ * Reject reasons that may be returned by {@link Sender#offer(Message)}.
  */
 public interface RejectReason {
     /**

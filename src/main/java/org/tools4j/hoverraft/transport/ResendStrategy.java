@@ -23,12 +23,14 @@
  */
 package org.tools4j.hoverraft.transport;
 
+import org.tools4j.hoverraft.message.Message;
+
 public interface ResendStrategy {
-    <M> void onRejectedOffer(Sender<? super M> sender, M message, long rejectReason);
+    <M extends Message> void onRejectedOffer(Sender<? super M> sender, M message, long rejectReason);
 
     ResendStrategy NOOP = new ResendStrategy() {
         @Override
-        public <M> void onRejectedOffer(final Sender<? super M> sender, final M message, final long rejectReason) {
+        public <M extends Message> void onRejectedOffer(Sender<? super M> sender, M message, long rejectReason) {
             //no op
         }
     };

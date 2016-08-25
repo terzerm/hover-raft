@@ -26,7 +26,7 @@ package org.tools4j.hoverraft.message.direct;
 import org.tools4j.hoverraft.message.MessageType;
 import org.tools4j.hoverraft.message.VoteResponse;
 
-public final class DirectVoteResponse extends AbstractMessage implements VoteResponse<DirectMessage> {
+public final class DirectVoteResponse extends AbstractDirectMessage implements VoteResponse {
 
     private static final byte GRANTED = 1;
     private static final byte DENIED = 0;

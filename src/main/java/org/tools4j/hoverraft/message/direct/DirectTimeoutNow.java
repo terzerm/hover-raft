@@ -29,7 +29,7 @@ import org.tools4j.hoverraft.message.TimeoutNow;
 /**
  * Timeout request to initiate leadership transfer.
  */
-public final class DirectTimeoutNow extends AbstractMessage implements TimeoutNow<DirectMessage> {
+public final class DirectTimeoutNow extends AbstractDirectMessage implements TimeoutNow {
 
     private static final int TERM_OFF = TYPE_OFF + TYPE_LEN;
     private static final int TERM_LEN = 4;

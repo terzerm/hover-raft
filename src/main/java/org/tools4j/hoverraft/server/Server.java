@@ -23,42 +23,44 @@
  */
 package org.tools4j.hoverraft.server;
 
-import io.aeron.Publication;
 import org.tools4j.hoverraft.config.ConsensusConfig;
 import org.tools4j.hoverraft.config.ServerConfig;
 import org.tools4j.hoverraft.config.ThreadingMode;
 import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.message.MessageFactory;
 import org.tools4j.hoverraft.message.MessageHandler;
-import org.tools4j.hoverraft.message.direct.DirectMessage;
 import org.tools4j.hoverraft.message.direct.MessageBroker;
 import org.tools4j.hoverraft.state.ElectionTimer;
 import org.tools4j.hoverraft.state.Role;
 import org.tools4j.hoverraft.state.ServerState;
 import org.tools4j.hoverraft.state.VolatileState;
 import org.tools4j.hoverraft.transport.Connections;
+import org.tools4j.hoverraft.transport.MessageLog;
 import org.tools4j.hoverraft.transport.ResendStrategy;
 import org.tools4j.hoverraft.util.Clock;
 
 import java.util.Objects;
 
-public final class Server<M extends Message<M>> {
+public final class Server {
 
     private final ServerConfig serverConfig;
     private final ConsensusConfig consensusConfig;
     private final ServerState serverState;
-    private final Connections<M> connections;
+    private final MessageLog<?> messageLog;
+    private final Connections<Message> connections;
     private final MessageBroker messageBroker;
     private final MessageFactory messageFactory;
 
     public Server(final int serverId,
                   final ConsensusConfig consensusConfig,
                   final ServerState serverState,
-                  final Connections<M> connections,
-                  final MessageFactory<M> messageFactory) {
+                  final MessageLog<?> messageLog,
+                  final Connections<Message> connections,
+                  final MessageFactory messageFactory) {
         this.serverConfig = Objects.requireNonNull(consensusConfig.serverConfigById(serverId), "No server serverConfig found for ID " + serverId);
         this.consensusConfig = Objects.requireNonNull(consensusConfig);
         this.serverState = Objects.requireNonNull(serverState);
+        this.messageLog = Objects.requireNonNull(messageLog);
         this.connections = Objects.requireNonNull(connections);
         this.messageFactory = Objects.requireNonNull(messageFactory);
         this.messageBroker = new MessageBroker(this);
@@ -76,7 +78,7 @@ public final class Server<M extends Message<M>> {
         return serverState;
     }
 
-    public Connections connections() {
+    public Connections<Message> connections() {
         return connections;
     }
 
@@ -101,11 +103,6 @@ public final class Server<M extends Message<M>> {
 
     public void pollEachServer(final MessageHandler messageHandler, final int messageLimitPerServer) {
         messageBroker.pollEachServer(messageHandler, messageLimitPerServer);
-    }
-
-    public void send(final Publication publication, final DirectMessage message) {
-        publication.offer(message.buffer(), message.offset(), message.byteLength());
-        //FIXME try sending again if failed
     }
 
     private void pollNextInputMessage() {

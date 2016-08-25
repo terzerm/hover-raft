@@ -26,7 +26,7 @@ package org.tools4j.hoverraft.message.direct;
 import org.tools4j.hoverraft.message.MessageType;
 import org.tools4j.hoverraft.message.VoteRequest;
 
-public final class DirectVoteRequest extends AbstractMessage implements VoteRequest<DirectMessage> {
+public final class DirectVoteRequest extends AbstractDirectMessage implements VoteRequest {
 
     private static final int TERM_OFF = TYPE_OFF + TYPE_LEN;
     private static final int TERM_LEN = 4;

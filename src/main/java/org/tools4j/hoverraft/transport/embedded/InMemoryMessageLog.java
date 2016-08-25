@@ -23,7 +23,7 @@
  */
 package org.tools4j.hoverraft.transport.embedded;
 
-import org.tools4j.hoverraft.message.simple.SimpleMessage;
+import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.transport.MessageLog;
 
 import java.util.ArrayList;
@@ -31,9 +31,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class InMemoryMessageLog implements MessageLog<SimpleMessage> {
+public class InMemoryMessageLog<M extends Message> implements MessageLog<M> {
 
-    private final List<SimpleMessage> messages = new ArrayList<SimpleMessage>();
+    private final List<M> messages = new ArrayList<>();
     private final AtomicInteger readIndex = new AtomicInteger(0);
 
     @Override
@@ -70,7 +70,7 @@ public class InMemoryMessageLog implements MessageLog<SimpleMessage> {
     }
 
     @Override
-    public synchronized SimpleMessage read() {
+    public synchronized M read() {
         if (readIndex.get() < messages.size()) {
             return messages.get(readIndex.getAndIncrement());
         }
@@ -78,7 +78,7 @@ public class InMemoryMessageLog implements MessageLog<SimpleMessage> {
     }
 
     @Override
-    public synchronized void append(final SimpleMessage message) {
+    public synchronized void append(final M message) {
         messages.add(Objects.requireNonNull(message));
     }
 }

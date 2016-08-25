@@ -39,7 +39,7 @@ import java.lang.reflect.Method;
 import java.util.Objects;
 
 /**
- * AbstractMessage log based on a chronicle queue.
+ * AbstractDirectMessage log based on a chronicle queue.
  */
 public final class ChronicleMessageLog implements MessageLog<DirectCommandMessage> {
 

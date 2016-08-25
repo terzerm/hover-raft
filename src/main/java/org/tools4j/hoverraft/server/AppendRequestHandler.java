@@ -57,6 +57,6 @@ public final class AppendRequestHandler {
 
     private boolean appendToLog(final Server server, final AppendRequest appendRequest) {
         //FIXME append log entries here
-        return false;
+        return true;
     }
 }

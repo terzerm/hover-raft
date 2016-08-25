@@ -23,9 +23,11 @@
  */
 package org.tools4j.hoverraft.transport;
 
+import org.tools4j.hoverraft.message.Message;
+
 public final class Pollers {
 
-    public static <M> Receiver.Poller pollToMessageLog(final Receiver<M> receiver, final MessageLog<? super M> messageLog) {
+    public static <M extends Message> Receiver.Poller pollToMessageLog(final Receiver<M> receiver, final MessageLog<? super M> messageLog) {
         return receiver.poller(m -> messageLog.append(m));
     }
 

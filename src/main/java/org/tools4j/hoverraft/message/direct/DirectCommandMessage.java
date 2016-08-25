@@ -29,7 +29,7 @@ import org.tools4j.hoverraft.message.MessageType;
 
 import java.nio.ByteBuffer;
 
-public final class DirectCommandMessage extends AbstractMessage implements CommandMessage<DirectMessage> {
+public final class DirectCommandMessage extends AbstractDirectMessage implements CommandMessage {
 
     private static final int TERM_OFF = TYPE_OFF + TYPE_LEN;
     private static final int TERM_LEN = 4;

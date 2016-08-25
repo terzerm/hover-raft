@@ -25,12 +25,11 @@ package org.tools4j.hoverraft.message.direct;
 
 import org.agrona.DirectBuffer;
 import org.agrona.MutableDirectBuffer;
-import org.tools4j.hoverraft.transport.ResendStrategy;
-import org.tools4j.hoverraft.transport.Sender;
+import org.tools4j.hoverraft.message.AbstractMessage;
 
 import java.util.Objects;
 
-abstract public class AbstractMessage implements DirectMessage {
+abstract public class AbstractDirectMessage extends AbstractMessage implements DirectMessage {
 
     protected static final int TYPE_OFF = 0;
     protected static final int TYPE_LEN = 4;
@@ -69,12 +68,5 @@ abstract public class AbstractMessage implements DirectMessage {
         this.readBuffer = null;
         this.writeBuffer = null;
         this.offset = 0;
-    }
-
-    public void sendTo(final Sender<? super DirectMessage> sender, final ResendStrategy resendStrategy) {
-        final long res = sender.offer(this);
-        if (res < 0) {
-            resendStrategy.onRejectedOffer(sender, this, res);
-        }
     }
 }

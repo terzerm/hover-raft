@@ -26,17 +26,17 @@ package org.tools4j.hoverraft.message;
 /**
  * Factory for messages.
  */
-public interface MessageFactory<M extends Message<M>> {
+public interface MessageFactory {
 
-    AppendRequest<? extends M> appendRequest();
+    AppendRequest appendRequest();
 
-    AppendResponse<? extends M> appendResponse();
+    AppendResponse appendResponse();
 
-    VoteRequest<? extends M> voteRequest();
+    VoteRequest voteRequest();
 
-    VoteResponse<? extends M> voteResponse();
+    VoteResponse voteResponse();
 
-    TimeoutNow<? extends M> timeoutNow();
+    TimeoutNow timeoutNow();
 
-    CommandMessage<? extends M> commandMessage();
+    CommandMessage commandMessage();
 }

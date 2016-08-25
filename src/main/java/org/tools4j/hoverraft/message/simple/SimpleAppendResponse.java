@@ -26,7 +26,7 @@ package org.tools4j.hoverraft.message.simple;
 import org.tools4j.hoverraft.message.AppendResponse;
 import org.tools4j.hoverraft.message.MessageType;
 
-public final class SimpleAppendResponse extends AbstractSimpleMessage implements AppendResponse<SimpleMessage> {
+public final class SimpleAppendResponse extends AbstractSimpleMessage implements AppendResponse {
 
     private int term;
     private boolean successful;
