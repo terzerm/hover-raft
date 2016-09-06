@@ -26,7 +26,11 @@ package org.tools4j.hoverraft.state;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
+import org.tools4j.hoverraft.config.ConsensusConfig;
 import org.tools4j.hoverraft.util.Clock;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ElectionTimerTest {
 
@@ -91,6 +95,33 @@ public class ElectionTimerTest {
         Assertions
                 .assertThat(electionTimer.hasTimeoutElapsed(Clock.fixed(100)))
                 .isTrue();
+    }
+
+    @Test
+    public void constructWithConsensusConfig() {
+        //given
+        final ConsensusConfig consensusConfig = mock(ConsensusConfig.class);
+        when(consensusConfig.minElectionTimeoutMillis()).thenReturn(MIN_TIMEOUT);
+        when(consensusConfig.maxElectionTimeoutMillis()).thenReturn(MAX_TIMEOUT);
+        electionTimer = new ElectionTimer(consensusConfig);
+
+        //when + then
+        Assertions
+                .assertThat(electionTimer.minElectionTimeoutMillis())
+                .isEqualTo(MIN_TIMEOUT);
+        Assertions
+                .assertThat(electionTimer.maxElectionTimeoutMillis())
+                .isEqualTo(MAX_TIMEOUT);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void constructWithTimeoutValuesWrongOrder() {
+        new ElectionTimer(MAX_TIMEOUT, MIN_TIMEOUT);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void constructWithTimeoutValuesTooLarge() {
+        new ElectionTimer(MIN_TIMEOUT, MIN_TIMEOUT + Integer.MAX_VALUE + 1);
     }
 
     private void assertThatTimeoutIsBetweenMinAndMax(final long startTime) {

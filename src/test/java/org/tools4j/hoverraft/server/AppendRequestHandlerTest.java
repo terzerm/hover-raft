@@ -32,6 +32,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.message.simple.SimpleAppendRequest;
 import org.tools4j.hoverraft.message.simple.SimpleAppendResponse;
+import org.tools4j.hoverraft.state.Role;
 import org.tools4j.hoverraft.transport.Sender;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,7 +48,7 @@ public class AppendRequestHandlerTest {
     private Server server;
 
     @Mock
-    private Sender sender;
+    private Sender<Message> sender;
 
     @Before
     public void init() {
@@ -57,7 +58,16 @@ public class AppendRequestHandlerTest {
     }
 
     @Test
-    public void onAppendRequest() throws Exception {
+    public void onAppendRequest_roleCandidate() throws Exception {
+        onAppendRequest(Role.CANDIDATE);
+    }
+
+    @Test
+    public void onAppendRequest_roleFollower() throws Exception {
+        onAppendRequest(Role.FOLLOWER);
+    }
+
+    private void onAppendRequest(final Role currentRole) throws Exception {
         //given
         final int term = server.currentTerm();
         final int serverId = server.id();
@@ -65,6 +75,7 @@ public class AppendRequestHandlerTest {
         final SimpleAppendRequest appendRequest = new SimpleAppendRequest()
                 .term(term)
                 .leaderId(leaderId);
+        server.state().volatileState().changeRoleTo(currentRole);
         when(server.connections().serverSender(leaderId)).thenReturn(sender);
 
         //when
@@ -77,6 +88,7 @@ public class AppendRequestHandlerTest {
         final SimpleAppendResponse response = (SimpleAppendResponse)captor.getValue();
         assertThat(response.successful()).isTrue();
         assertThat(response.term()).isEqualTo(term);
+        assertThat(server.state().volatileState().role()).isEqualTo(Role.FOLLOWER);
     }
 
     @Test

@@ -52,6 +52,14 @@ public final class ElectionTimer {
         this.maxElectionTimeoutMillis = maxElectionTimeoutMillis;
     }
 
+    public long minElectionTimeoutMillis() {
+        return minElectionTimeoutMillis;
+    }
+
+    public long maxElectionTimeoutMillis() {
+        return maxElectionTimeoutMillis;
+    }
+
     /**
      * Starts a new random timeout.
      * @param clock the clock used to get the current time
