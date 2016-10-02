@@ -57,7 +57,7 @@ public final class ChronicleMessageLog implements MessageLog<DirectCommandMessag
         this.appender = chronicle.createAppender();
         this.setLastWrittenIndexMethod = initLastWrittenIndexMethod();
         this.mutableDirectBuffer = Objects.requireNonNull(mutableDirectBuffer);
-        this.directMessageFactory = new DirectMessageFactory().wrapForWriting(mutableDirectBuffer, 0);
+        this.directMessageFactory = DirectMessageFactory.createForWriting(mutableDirectBuffer, 0);
     }
 
     public DirectMessageFactory messageFactory() {

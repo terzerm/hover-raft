@@ -29,7 +29,6 @@ import org.tools4j.hoverraft.config.ThreadingMode;
 import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.message.MessageFactory;
 import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
-import org.tools4j.hoverraft.message.simple.SimpleMessageFactory;
 import org.tools4j.hoverraft.state.PersistentState;
 import org.tools4j.hoverraft.state.ServerState;
 import org.tools4j.hoverraft.state.VolatileState;
@@ -54,11 +53,11 @@ public class Mockery {
     }
 
     public static Server direct(final int servers, final int sources, final int connections) {
-        return server(servers, sources, connections, new DirectMessageFactory());
+        return server(servers, sources, connections, DirectMessageFactory.createForWriting());
     }
 
     public static Server simple(final int servers, final int sources, final int connections) {
-        return server(servers, sources, connections, new SimpleMessageFactory());
+        return server(servers, sources, connections, DirectMessageFactory.createForWriting());
     }
 
     private static Server server(final int servers, final int sources, final int connections,

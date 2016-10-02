@@ -23,5 +23,17 @@
  */
 package org.tools4j.hoverraft.message;
 
+import org.agrona.DirectBuffer;
+import org.agrona.MutableDirectBuffer;
+
+import java.nio.ByteBuffer;
+
 public interface UserMessage {
+    int byteLength();
+    void bytesFrom(byte[] bytes, int offset);
+    void bytesFrom(ByteBuffer bytes, int offset);
+    void bytesFrom(DirectBuffer bytes, int offset);
+    void bytesTo(byte[] bytes, int offset);
+    void bytesTo(ByteBuffer bytes, int offset);
+    void bytesTo(MutableDirectBuffer bytes, int offset);
 }

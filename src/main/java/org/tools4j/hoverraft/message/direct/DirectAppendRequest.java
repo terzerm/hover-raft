@@ -29,6 +29,8 @@ import org.tools4j.hoverraft.message.AppendRequest;
 import org.tools4j.hoverraft.message.MessageType;
 import org.tools4j.hoverraft.message.UserMessage;
 
+import java.nio.ByteBuffer;
+
 public final class DirectAppendRequest extends AbstractDirectMessage implements AppendRequest {
 
     /** Byte length without content*/
@@ -56,7 +58,7 @@ public final class DirectAppendRequest extends AbstractDirectMessage implements 
 
     @Override
     public int byteLength() {
-        return BYTE_LENGTH + userMessage.usserMessageLength();
+        return BYTE_LENGTH + userMessage.byteLength();
     }
 
     public int term() {
@@ -123,17 +125,45 @@ public final class DirectAppendRequest extends AbstractDirectMessage implements 
     }
 
     public final class DirectUserMessage implements UserMessage {
-        public int usserMessageLength() {
-            return readBuffer.getInt(offset + USER_MESSAGE_OFF);
+
+        public int byteLength() {
+            return readBuffer == null || readBuffer.capacity() < offset + USER_MESSAGE_OFF + USER_MESSAGE_LEN ? 0 : readBuffer.getInt(offset + USER_MESSAGE_OFF);
         }
 
-        public UserMessage usserMessageLength(final int usserMessageLength) {
-            writeBuffer().putInt(offset + USER_MESSAGE_OFF, usserMessageLength);
+        @Override
+        public void bytesFrom(byte[] bytes, int offset) {
+            writeBuffer().putBytes(USER_MESSAGE_OFF, bytes, offset, byteLength());
+        }
+
+        @Override
+        public void bytesFrom(ByteBuffer bytes, int offset) {
+            writeBuffer().putBytes(USER_MESSAGE_OFF, bytes, offset, byteLength());
+        }
+
+        @Override
+        public void bytesFrom(DirectBuffer bytes, int offset) {
+            writeBuffer().putBytes(USER_MESSAGE_OFF, bytes, offset, byteLength());
+        }
+
+        @Override
+        public void bytesTo(byte[] bytes, int offset) {
+            readBuffer().getBytes(USER_MESSAGE_OFF, bytes, offset, byteLength());
+        }
+
+        @Override
+        public void bytesTo(ByteBuffer bytes, int offset) {
+            readBuffer().getBytes(USER_MESSAGE_OFF, bytes, offset, byteLength());
+        }
+
+        @Override
+        public void bytesTo(MutableDirectBuffer bytes, int offset) {
+            readBuffer().getBytes(USER_MESSAGE_OFF, bytes, offset, byteLength());
+        }
+
+        public UserMessage byteLength(final int len) {
+            writeBuffer().putInt(offset + USER_MESSAGE_OFF, len);
             return this;
         }
 
-        public int userMessageOffset() {
-            return USER_MESSAGE_OFF;
-        }
     }
 }

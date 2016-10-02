@@ -25,8 +25,11 @@ package org.tools4j.hoverraft.message.direct;
 
 import org.agrona.DirectBuffer;
 import org.agrona.MutableDirectBuffer;
+import org.agrona.concurrent.UnsafeBuffer;
 import org.tools4j.hoverraft.message.MessageFactory;
 import org.tools4j.hoverraft.message.MessageType;
+
+import java.nio.ByteBuffer;
 
 /**
  * Factory for messages writing data into an internal readBuffer. Messages and readBuffer are reused accross
@@ -40,6 +43,10 @@ public final class DirectMessageFactory implements MessageFactory {
     private final DirectVoteResponse voteResponse = new DirectVoteResponse();
     private final DirectTimeoutNow timeoutNow = new DirectTimeoutNow();
     private final DirectCommandMessage commandMessage = new DirectCommandMessage();
+
+    private DirectMessageFactory() {
+        super();
+    }
 
     public DirectAppendRequest appendRequest() {
         return appendRequest;
@@ -63,6 +70,28 @@ public final class DirectMessageFactory implements MessageFactory {
 
     public DirectCommandMessage commandMessage() {
         return commandMessage;
+    }
+
+    public static DirectMessageFactory createForReading() {
+        return new DirectMessageFactory();
+    }
+
+    public static DirectMessageFactory createForWriting() {
+        final DirectMessageFactory factory = new DirectMessageFactory();
+        int len = 0;
+        len = Math.max(len, factory.appendRequest.byteLength());
+        len = Math.max(len, factory.appendResponse.byteLength());
+        len = Math.max(len, factory.voteRequest.byteLength());
+        len = Math.max(len, factory.voteResponse.byteLength());
+        len = Math.max(len, factory.timeoutNow.byteLength());
+        len = Math.max(len, factory.commandMessage.byteLength());
+        return createForWriting(new UnsafeBuffer(ByteBuffer.allocateDirect(len)), 0);
+    }
+
+    public static DirectMessageFactory createForWriting(final MutableDirectBuffer buffer, final int offset) {
+        final DirectMessageFactory factory = new DirectMessageFactory();
+        factory.wrapForWriting(buffer, offset);
+        return factory;
     }
 
     public DirectMessage wrapForReading(final DirectBuffer directBuffer, final int offset) {

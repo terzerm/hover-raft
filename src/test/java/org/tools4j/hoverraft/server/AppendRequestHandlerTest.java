@@ -29,9 +29,10 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.tools4j.hoverraft.message.AppendRequest;
+import org.tools4j.hoverraft.message.AppendResponse;
 import org.tools4j.hoverraft.message.Message;
-import org.tools4j.hoverraft.message.simple.SimpleAppendRequest;
-import org.tools4j.hoverraft.message.simple.SimpleAppendResponse;
+import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
 import org.tools4j.hoverraft.state.Role;
 import org.tools4j.hoverraft.transport.Sender;
 
@@ -72,7 +73,8 @@ public class AppendRequestHandlerTest {
         final int term = server.currentTerm();
         final int serverId = server.id();
         final int leaderId = serverId + 1;
-        final SimpleAppendRequest appendRequest = new SimpleAppendRequest()
+        final AppendRequest appendRequest = DirectMessageFactory.createForWriting()
+                .appendRequest()
                 .term(term)
                 .leaderId(leaderId);
         server.state().volatileState().changeRoleTo(currentRole);
@@ -84,8 +86,8 @@ public class AppendRequestHandlerTest {
         //then
         final ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
         verify(sender).offer(captor.capture());
-        assertThat(captor.getValue()).isInstanceOf(SimpleAppendResponse.class);
-        final SimpleAppendResponse response = (SimpleAppendResponse)captor.getValue();
+        assertThat(captor.getValue()).isInstanceOf(AppendResponse.class);
+        final AppendResponse response = (AppendResponse)captor.getValue();
         assertThat(response.successful()).isTrue();
         assertThat(response.term()).isEqualTo(term);
         assertThat(server.state().volatileState().role()).isEqualTo(Role.FOLLOWER);
@@ -98,7 +100,8 @@ public class AppendRequestHandlerTest {
         final int badTerm = term - 1;
         final int serverId = server.id();
         final int leaderId = serverId + 1;
-        final SimpleAppendRequest appendRequest = new SimpleAppendRequest()
+        final AppendRequest appendRequest = DirectMessageFactory.createForWriting()
+                .appendRequest()
                 .term(badTerm)
                 .leaderId(leaderId);
         when(server.connections().serverSender(leaderId)).thenReturn(sender);
@@ -109,8 +112,8 @@ public class AppendRequestHandlerTest {
         //then
         final ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
         verify(sender).offer(captor.capture());
-        assertThat(captor.getValue()).isInstanceOf(SimpleAppendResponse.class);
-        final SimpleAppendResponse response = (SimpleAppendResponse)captor.getValue();
+        assertThat(captor.getValue()).isInstanceOf(AppendResponse.class);
+        final AppendResponse response = (AppendResponse)captor.getValue();
         assertThat(response.successful()).isFalse();
         assertThat(response.term()).isEqualTo(term);
     }

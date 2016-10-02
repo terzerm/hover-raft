@@ -45,7 +45,7 @@ public class ChronicleReceiver implements Receiver<DirectMessage> {
     public ChronicleReceiver(final ExcerptTailer tailer, MutableDirectBuffer buffer) {
         this.tailer = Objects.requireNonNull(tailer);
         this.mutableDirectBuffer = Objects.requireNonNull(buffer);
-        this.directMessageFactory = new DirectMessageFactory().wrapForWriting(buffer, 0);
+        this.directMessageFactory = DirectMessageFactory.createForWriting(buffer, 0);
     }
 
     @Override
