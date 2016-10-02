@@ -72,19 +72,18 @@ public final class DirectMessageFactory implements MessageFactory {
         return commandMessage;
     }
 
-    public static DirectMessageFactory createForReading() {
+    public static DirectMessageFactory create() {
         return new DirectMessageFactory();
     }
 
-    public static DirectMessageFactory createForWriting() {
-        final DirectMessageFactory factory = new DirectMessageFactory();
+    public static DirectMessageFactory createForWriting(final int maxUserMessageLength) {
         int len = 0;
-        len = Math.max(len, factory.appendRequest.byteLength());
-        len = Math.max(len, factory.appendResponse.byteLength());
-        len = Math.max(len, factory.voteRequest.byteLength());
-        len = Math.max(len, factory.voteResponse.byteLength());
-        len = Math.max(len, factory.timeoutNow.byteLength());
-        len = Math.max(len, factory.commandMessage.byteLength());
+        len = Math.max(len, DirectAppendRequest.BYTE_LENGTH + maxUserMessageLength);
+        len = Math.max(len, DirectAppendResponse.BYTE_LENGTH);
+        len = Math.max(len, DirectVoteRequest.BYTE_LENGTH);
+        len = Math.max(len, DirectVoteResponse.BYTE_LENGTH);
+        len = Math.max(len, DirectTimeoutNow.BYTE_LENGTH);
+        len = Math.max(len, DirectCommandMessage.BYTE_LENGTH);
         return createForWriting(new UnsafeBuffer(ByteBuffer.allocateDirect(len)), 0);
     }
 

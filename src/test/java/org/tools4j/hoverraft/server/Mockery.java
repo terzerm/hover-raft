@@ -53,11 +53,11 @@ public class Mockery {
     }
 
     public static Server direct(final int servers, final int sources, final int connections) {
-        return server(servers, sources, connections, DirectMessageFactory.createForWriting());
+        return server(servers, sources, connections, DirectMessageFactory.createForWriting(0));
     }
 
     public static Server simple(final int servers, final int sources, final int connections) {
-        return server(servers, sources, connections, DirectMessageFactory.createForWriting());
+        return server(servers, sources, connections, DirectMessageFactory.createForWriting(0));
     }
 
     private static Server server(final int servers, final int sources, final int connections,

@@ -127,7 +127,7 @@ public final class DirectAppendRequest extends AbstractDirectMessage implements 
     public final class DirectUserMessage implements UserMessage {
 
         public int byteLength() {
-            return readBuffer == null || readBuffer.capacity() < offset + USER_MESSAGE_OFF + USER_MESSAGE_LEN ? 0 : readBuffer.getInt(offset + USER_MESSAGE_OFF);
+            return readBuffer.getInt(offset + USER_MESSAGE_OFF);
         }
 
         @Override
