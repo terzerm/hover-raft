@@ -24,6 +24,7 @@
 package org.tools4j.hoverraft.message.direct;
 
 import org.agrona.DirectBuffer;
+import org.agrona.ExpandableArrayBuffer;
 import org.agrona.MutableDirectBuffer;
 import org.agrona.concurrent.UnsafeBuffer;
 import org.tools4j.hoverraft.message.MessageFactory;
@@ -76,15 +77,8 @@ public final class DirectMessageFactory implements MessageFactory {
         return new DirectMessageFactory();
     }
 
-    public static DirectMessageFactory createForWriting(final int maxUserMessageLength) {
-        int len = 0;
-        len = Math.max(len, DirectAppendRequest.BYTE_LENGTH + maxUserMessageLength);
-        len = Math.max(len, DirectAppendResponse.BYTE_LENGTH);
-        len = Math.max(len, DirectVoteRequest.BYTE_LENGTH);
-        len = Math.max(len, DirectVoteResponse.BYTE_LENGTH);
-        len = Math.max(len, DirectTimeoutNow.BYTE_LENGTH);
-        len = Math.max(len, DirectCommandMessage.BYTE_LENGTH);
-        return createForWriting(new UnsafeBuffer(ByteBuffer.allocateDirect(len)), 0);
+    public static DirectMessageFactory createForWriting() {
+        return createForWriting(new ExpandableArrayBuffer(), 0);
     }
 
     public static DirectMessageFactory createForWriting(final MutableDirectBuffer buffer, final int offset) {

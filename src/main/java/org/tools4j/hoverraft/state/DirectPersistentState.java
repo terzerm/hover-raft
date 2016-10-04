@@ -71,14 +71,14 @@ public final class DirectPersistentState implements PersistentState {
 
     public int clearVotedForAndSetCurrentTerm(int term) {
         state.putInt(0, term);
-        state.putInt(4, -1);
+        state.putInt(4, NOT_VOTED_YET);
         return term;
     }
 
     public int clearVotedForAndIncCurrentTerm() {
         final int term = currentTerm() + 1;
         state.putInt(0, term);
-        state.putInt(4, -1);
+        state.putInt(4, NOT_VOTED_YET);
         return term;
     }
 

@@ -39,6 +39,6 @@ public interface VoteRequest extends Message {
 
     long lastLogIndex();
 
-    VoteRequest lastLogIndex(int lastLogIndex);
+    VoteRequest lastLogIndex(long lastLogIndex);
 
 }

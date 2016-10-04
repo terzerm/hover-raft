@@ -79,7 +79,7 @@ public final class DirectVoteRequest extends AbstractDirectMessage implements Vo
         return readBuffer.getLong(offset + LAST_LOG_INDEX_OFF);
     }
 
-    public DirectVoteRequest lastLogIndex(final int lastLogIndex) {
+    public DirectVoteRequest lastLogIndex(final long lastLogIndex) {
         writeBuffer.putLong(offset + LAST_LOG_INDEX_OFF, lastLogIndex);
         return this;
     }

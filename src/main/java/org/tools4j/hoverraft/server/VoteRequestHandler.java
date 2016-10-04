@@ -30,8 +30,6 @@ import org.tools4j.hoverraft.state.ServerState;
 
 public final class VoteRequestHandler {
 
-    private static final int MAX_TRIES = 10;//TODO how often should we retry sending?
-
     public void onVoteRequest(final Server server, final VoteRequest voteRequest) {
         final int term = voteRequest.term();
         final int candidateId = voteRequest.candidateId();

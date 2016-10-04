@@ -25,6 +25,8 @@ package org.tools4j.hoverraft.state;
 
 public interface PersistentState {
 
+    int NOT_VOTED_YET = -1;
+
     int currentTerm();
 
     int votedFor();

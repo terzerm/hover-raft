@@ -53,11 +53,11 @@ public class Mockery {
     }
 
     public static Server direct(final int servers, final int sources, final int connections) {
-        return server(servers, sources, connections, DirectMessageFactory.createForWriting(0));
+        return server(servers, sources, connections, DirectMessageFactory.createForWriting());
     }
 
     public static Server simple(final int servers, final int sources, final int connections) {
-        return server(servers, sources, connections, DirectMessageFactory.createForWriting(0));
+        return server(servers, sources, connections, DirectMessageFactory.createForWriting());
     }
 
     private static Server server(final int servers, final int sources, final int connections,
@@ -102,7 +102,7 @@ public class Mockery {
         when(persistentState.currentTerm()).thenReturn(1);
         when(persistentState.lastLogTerm()).thenReturn(0);
         when(persistentState.lastLogIndex()).thenReturn(-1L);
-        when(persistentState.votedFor()).thenReturn(-1);
+        when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
         return persistentState;
     }
 }

@@ -73,7 +73,7 @@ public class AppendRequestHandlerTest {
         final int term = server.currentTerm();
         final int serverId = server.id();
         final int leaderId = serverId + 1;
-        final AppendRequest appendRequest = DirectMessageFactory.createForWriting(0)
+        final AppendRequest appendRequest = DirectMessageFactory.createForWriting()
                 .appendRequest()
                 .term(term)
                 .leaderId(leaderId);
@@ -94,13 +94,13 @@ public class AppendRequestHandlerTest {
     }
 
     @Test
-    public void onAppendRequestWithWrongTerm() throws Exception {
+    public void onAppendRequest_wrongTerm() throws Exception {
         //given
         final int term = server.currentTerm();
         final int badTerm = term - 1;
         final int serverId = server.id();
         final int leaderId = serverId + 1;
-        final AppendRequest appendRequest = DirectMessageFactory.createForWriting(0)
+        final AppendRequest appendRequest = DirectMessageFactory.createForWriting()
                 .appendRequest()
                 .term(badTerm)
                 .leaderId(leaderId);
