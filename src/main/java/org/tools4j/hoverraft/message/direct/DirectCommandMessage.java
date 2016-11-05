@@ -23,7 +23,10 @@
  */
 package org.tools4j.hoverraft.message.direct;
 
+import org.agrona.DirectBuffer;
+import org.agrona.MutableDirectBuffer;
 import org.agrona.concurrent.UnsafeBuffer;
+import org.tools4j.hoverraft.machine.Command;
 import org.tools4j.hoverraft.message.CommandMessage;
 import org.tools4j.hoverraft.message.MessageType;
 
@@ -37,8 +40,26 @@ public final class DirectCommandMessage extends AbstractDirectMessage implements
     private static final int COMMAND_SOURCE_ID_LEN = 4;
     private static final int COMMAND_INDEX_OFF = COMMAND_SOURCE_ID_OFF + COMMAND_SOURCE_ID_LEN;
     private static final int COMMAND_INDEX_LEN = 8;
+    private static final int COMMAND_OFF = COMMAND_INDEX_OFF + COMMAND_INDEX_LEN;
 
     public static final int BYTE_LENGTH = COMMAND_INDEX_OFF + COMMAND_INDEX_LEN;
+
+    private final DirectCommand command = new DirectCommand() {
+        @Override
+        protected DirectBuffer readBuffer() {
+            return readBuffer;
+        }
+
+        @Override
+        protected MutableDirectBuffer writeBuffer() {
+            return writeBuffer;
+        }
+
+        @Override
+        protected int offset() {
+            return COMMAND_OFF;
+        }
+    };
 
     public DirectCommandMessage() {
         wrap(new UnsafeBuffer(ByteBuffer.allocateDirect(BYTE_LENGTH)), 0);
@@ -79,5 +100,10 @@ public final class DirectCommandMessage extends AbstractDirectMessage implements
     public DirectCommandMessage commandIndex(final long commandIndex) {
         writeBuffer.putLong(offset + COMMAND_INDEX_OFF, commandIndex);
         return this;
+    }
+
+    @Override
+    public Command command() {
+        return command;
     }
 }

@@ -23,6 +23,9 @@
  */
 package org.tools4j.hoverraft.message;
 
+import org.tools4j.hoverraft.machine.Command;
+import org.tools4j.hoverraft.server.Server;
+
 public interface AppendRequest extends Message {
 
     int term();
@@ -45,5 +48,9 @@ public interface AppendRequest extends Message {
 
     AppendRequest leaderCommit(long leaderCommit);
 
-    UserMessage userMessage();
+    Command command();
+
+    default void accept(final Server server, final MessageHandler messageHandler) {
+        messageHandler.onAppendRequest(server, this);
+    }
 }

@@ -23,6 +23,10 @@
  */
 package org.tools4j.hoverraft.state;
 
+import io.aeron.logbuffer.FragmentHandler;
+import org.tools4j.hoverraft.message.MessageHandler;
+import org.tools4j.hoverraft.message.MessageType;
+import org.tools4j.hoverraft.message.direct.DirectMessage;
 import org.tools4j.hoverraft.server.*;
 
 public enum Role {
@@ -32,13 +36,31 @@ public enum Role {
 
     private final ServerActivity serverActivity;
 
+    private FragmentHandler fragmentHandler;
+
     Role(final ServerActivity serverActivity) {
         this.serverActivity = serverActivity;
     }
 
     public void perform(final Server server) {
-        server.pollEachServer(serverActivity.messageHandler(), 1);
+        server.pollNextMessages(fragmentHandler(server));
         serverActivity.perform(server);
     }
+
+    private FragmentHandler fragmentHandler(final Server server) {
+        if (fragmentHandler == null) {
+            final MessageHandler messageHandler = serverActivity.messageHandler();
+            fragmentHandler = (buf, off, len, hdr) -> {
+                final DirectMessage message = MessageType.createOrNull(server, buf, off, len);
+                if (message != null) {
+                    message.accept(server, messageHandler);
+                } else {
+                    //TODO log or handle properly
+                    System.err.println("unsupported message data: offset=" + off + ", length=" + len + ", type=" + (len >= 4 ? buf.getInt(0) : -1));
+                }
+            };
+        }
+        return fragmentHandler;
+    };
 
 }

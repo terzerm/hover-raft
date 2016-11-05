@@ -23,6 +23,8 @@
  */
 package org.tools4j.hoverraft.message;
 
+import org.tools4j.hoverraft.server.Server;
+
 public interface VoteResponse extends Message {
 
     int term();
@@ -32,4 +34,8 @@ public interface VoteResponse extends Message {
     boolean voteGranted();
 
     VoteResponse voteGranted(boolean granted);
+
+    default void accept(final Server server, final MessageHandler messageHandler) {
+        messageHandler.onVoteResponse(server, this);
+    }
 }

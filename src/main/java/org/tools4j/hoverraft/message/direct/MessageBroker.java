@@ -25,12 +25,9 @@ package org.tools4j.hoverraft.message.direct;
 
 import io.aeron.Subscription;
 import io.aeron.logbuffer.FragmentHandler;
-import io.aeron.logbuffer.Header;
-import org.agrona.DirectBuffer;
 import org.tools4j.hoverraft.config.ConsensusConfig;
 import org.tools4j.hoverraft.config.ServerConfig;
 import org.tools4j.hoverraft.message.MessageHandler;
-import org.tools4j.hoverraft.message.MessageType;
 import org.tools4j.hoverraft.server.Server;
 
 import java.util.Objects;
@@ -43,9 +40,8 @@ public final class MessageBroker {
 
     private final Server server;
     private final Subscription[] serverSubscriptions;
-    private final FragmentHandler fragmentHandler = this::onFragment;
 
-    private MessageHandler messageHandler = MessageHandler.NOOP;
+    private int index;
 
     public MessageBroker(final Server server) {
         this.server = Objects.requireNonNull(server);
@@ -70,19 +66,18 @@ public final class MessageBroker {
         return subscriptions;
     }
 
-
-    private void onFragment(final DirectBuffer buffer, final int offset, final int length, final Header header) {
-        if (!MessageType.dispatch(server, buffer, offset, length, messageHandler)) {
-            //TODO log or handle properly
-            System.err.println("unsupported message data: offset=" + offset + ", length=" + length + ", type=" + (length >= 4 ? buffer.getInt(0) : -1));
+    public int pollNextMessage(final FragmentHandler fragmentHandler) {
+        final int len = serverSubscriptions.length;
+        int count = 0;
+        for (int i = 0; i < len; i++) {
+            final Subscription subscription = serverSubscriptions[index];
+            count += subscription.poll(fragmentHandler, 1);
+            index++;
+            if (index >= len) {
+                index = 0;
+            }
         }
+        return count;
     }
 
-    public void pollEachServer(final MessageHandler messageHandler, final int messageLimitPerServer) {
-        this.messageHandler = messageHandler != null ? messageHandler : MessageHandler.NOOP;
-        for (final Subscription subscription : serverSubscriptions) {
-            subscription.poll(fragmentHandler, messageLimitPerServer);
-        }
-        this.messageHandler = MessageHandler.NOOP;
-    }
 }

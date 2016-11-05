@@ -23,12 +23,13 @@
  */
 package org.tools4j.hoverraft.server;
 
+import io.aeron.logbuffer.FragmentHandler;
 import org.tools4j.hoverraft.config.ConsensusConfig;
 import org.tools4j.hoverraft.config.ServerConfig;
-import org.tools4j.hoverraft.config.ThreadingMode;
+import org.tools4j.hoverraft.machine.StateMachine;
+import org.tools4j.hoverraft.message.CommandMessage;
 import org.tools4j.hoverraft.message.Message;
-import org.tools4j.hoverraft.message.MessageFactory;
-import org.tools4j.hoverraft.message.MessageHandler;
+import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
 import org.tools4j.hoverraft.message.direct.MessageBroker;
 import org.tools4j.hoverraft.state.ElectionTimer;
 import org.tools4j.hoverraft.state.Role;
@@ -46,21 +47,24 @@ public final class Server {
     private final ServerConfig serverConfig;
     private final ConsensusConfig consensusConfig;
     private final ServerState serverState;
-    private final MessageLog<?> messageLog;
+    private final MessageLog<CommandMessage> messageLog;
+    private final StateMachine stateMachine;
     private final Connections<Message> connections;
     private final MessageBroker messageBroker;
-    private final MessageFactory messageFactory;
+    private final DirectMessageFactory messageFactory;
 
     public Server(final int serverId,
                   final ConsensusConfig consensusConfig,
                   final ServerState serverState,
-                  final MessageLog<?> messageLog,
+                  final MessageLog<CommandMessage> messageLog,
+                  final StateMachine stateMachine,
                   final Connections<Message> connections,
-                  final MessageFactory messageFactory) {
+                  final DirectMessageFactory messageFactory) {
         this.serverConfig = Objects.requireNonNull(consensusConfig.serverConfigById(serverId), "No server serverConfig found for ID " + serverId);
         this.consensusConfig = Objects.requireNonNull(consensusConfig);
         this.serverState = Objects.requireNonNull(serverState);
         this.messageLog = Objects.requireNonNull(messageLog);
+        this.stateMachine = Objects.requireNonNull(stateMachine);
         this.connections = Objects.requireNonNull(connections);
         this.messageFactory = Objects.requireNonNull(messageFactory);
         this.messageBroker = new MessageBroker(this);
@@ -82,7 +86,7 @@ public final class Server {
         return connections;
     }
 
-    public MessageFactory messageFactory() {
+    public DirectMessageFactory messageFactory() {
         return messageFactory;
     }
 
@@ -95,20 +99,13 @@ public final class Server {
     }
 
     public void perform() {
-        pollNextInputMessage();
-        invokeStateMachineWithCommittedLogEntry();
         checkElectionTimeout();
         performRoleSpecificActivity();
+        invokeStateMachineWithCommittedLogEntry();
     }
 
-    public void pollEachServer(final MessageHandler messageHandler, final int messageLimitPerServer) {
-        messageBroker.pollEachServer(messageHandler, messageLimitPerServer);
-    }
-
-    private void pollNextInputMessage() {
-        if (consensusConfig.threadingMode() == ThreadingMode.SHARED) {
-            //FIXME impl
-        }
+    public void pollNextMessages(final FragmentHandler fragmentHandler) {
+        messageBroker.pollNextMessage(fragmentHandler);
     }
 
     private void checkElectionTimeout() {
@@ -124,10 +121,13 @@ public final class Server {
 
     private void invokeStateMachineWithCommittedLogEntry() {
         final VolatileState vstate = serverState.volatileState();
-        if (vstate.commitIndex() > vstate.lastApplied()) {
-            //FIXME
-//            stateMachine.applyCommand(server, vstate.lastApplied());
-            System.out.println("STATE MACHINE APPLIED: " + vstate.lastApplied());
+        long lastApplied = vstate.lastApplied();
+        while (vstate.commitIndex() > lastApplied) {
+            lastApplied++;
+            messageLog.readIndex(lastApplied);
+            final CommandMessage commandMsg = messageLog.read();
+            stateMachine.onMessage(commandMsg.command());
+            vstate.lastApplied(lastApplied);
         }
     }
 

@@ -55,6 +55,11 @@ public final class VolatileState {
         return lastApplied;
     }
 
+    public VolatileState lastApplied(final long lastApplied) {
+        this.lastApplied = lastApplied;
+        return this;
+    }
+
     public int followerCount() {
         return followerStates.length;
     }

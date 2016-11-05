@@ -24,6 +24,8 @@
 package org.tools4j.hoverraft.message;
 
 import org.agrona.DirectBuffer;
+import org.tools4j.hoverraft.message.direct.DirectMessage;
+import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
 import org.tools4j.hoverraft.server.Server;
 
 public enum MessageType {
@@ -32,12 +34,9 @@ public enum MessageType {
         public Message create(final MessageFactory factory) {
             return factory.voteRequest();
         }
-
         @Override
-        protected void accept(final Server server,
-                              final MessageFactory messageFactory,
-                              final MessageHandler messageHandler) {
-            messageHandler.onVoteRequest(server, messageFactory.voteRequest());
+        public DirectMessage create(final DirectMessageFactory factory) {
+            return factory.voteRequest();
         }
     },
     VOTE_RESPONSE {
@@ -45,12 +44,9 @@ public enum MessageType {
         public Message create(final MessageFactory factory) {
             return factory.voteResponse();
         }
-
         @Override
-        protected void accept(final Server server,
-                              final MessageFactory messageFactory,
-                              final MessageHandler messageHandler) {
-            messageHandler.onVoteResponse(server, messageFactory.voteResponse());
+        public DirectMessage create(final DirectMessageFactory factory) {
+            return factory.voteResponse();
         }
     },
     APPEND_REQUEST {
@@ -58,12 +54,9 @@ public enum MessageType {
         public Message create(final MessageFactory factory) {
             return factory.appendRequest();
         }
-
         @Override
-        protected void accept(final Server server,
-                              final MessageFactory messageFactory,
-                              final MessageHandler messageHandler) {
-            messageHandler.onAppendRequest(server, messageFactory.appendRequest());
+        public DirectMessage create(final DirectMessageFactory factory) {
+            return factory.appendRequest();
         }
     },
     APPEND_RESPONSE {
@@ -71,12 +64,9 @@ public enum MessageType {
         public Message create(final MessageFactory factory) {
             return factory.appendResponse();
         }
-
         @Override
-        protected void accept(final Server server,
-                              final MessageFactory messageFactory,
-                              final MessageHandler messageHandler) {
-            messageHandler.onAppendResponse(server, messageFactory.appendResponse());
+        public DirectMessage create(final DirectMessageFactory factory) {
+            return factory.appendResponse();
         }
     },
     TIMEOUT_NOW {
@@ -84,12 +74,9 @@ public enum MessageType {
         public Message create(final MessageFactory factory) {
             return factory.timeoutNow();
         }
-
         @Override
-        protected void accept(final Server server,
-                              final MessageFactory messageFactory,
-                              final MessageHandler messageHandler) {
-            messageHandler.onTimeoutNow(server, messageFactory.timeoutNow());
+        public DirectMessage create(final DirectMessageFactory factory) {
+            return factory.timeoutNow();
         }
     },
     COMMAND_MESSAGE {
@@ -97,15 +84,11 @@ public enum MessageType {
         public Message create(final MessageFactory factory) {
             return factory.commandMessage();
         }
-
         @Override
-        protected void accept(final Server server,
-                              final MessageFactory messageFactory,
-                              final MessageHandler messageHandler) {
-            messageHandler.onCommandMessage(server, messageFactory.commandMessage());
+        public DirectMessage create(final DirectMessageFactory factory) {
+            return factory.commandMessage();
         }
     };
-
 
     private static final MessageType[] VALUES = values();
 
@@ -117,25 +100,23 @@ public enum MessageType {
         return VALUES.length - 1;
     }
 
-    public static boolean dispatch(final Server server,
-                                   final DirectBuffer buffer,
-                                   final int offset,
-                                   final int length,
-                                   final MessageHandler messageHandler) {
-        if (length >=4 ) {
-            final int type = buffer.getInt(offset);
-            if (0 <= type & type <= VALUES.length) {
-                valueByOrdinal(type).dispatch(server, buffer, offset + 4, length - 4, messageHandler);
-                return true;
-            }
-        }
-        return false;
-    }
-
     abstract public Message create(MessageFactory factory);
 
-    abstract protected void accept(Server server,
-                                   MessageFactory messageFactory,
-                                   MessageHandler messageHandler);
+    abstract public DirectMessage create(DirectMessageFactory factory);
+
+    public static DirectMessage createOrNull(final Server server,
+                                             final DirectBuffer buffer,
+                                             final int offset,
+                                             final int length) {
+        if (length >= 4) {
+            final int type = buffer.getInt(offset);
+            if (0 <= type & type <= VALUES.length) {
+                final DirectMessage message = valueByOrdinal(type).create(server.messageFactory());
+                message.wrap(buffer, offset + 4);
+                return message;
+            }
+        }
+        return null;
+    }
 
 }

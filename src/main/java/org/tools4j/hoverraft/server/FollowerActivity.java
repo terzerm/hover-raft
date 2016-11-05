@@ -23,6 +23,7 @@
  */
 package org.tools4j.hoverraft.server;
 
+import io.aeron.logbuffer.FragmentHandler;
 import org.tools4j.hoverraft.message.MessageHandler;
 import org.tools4j.hoverraft.message.TimeoutNow;
 

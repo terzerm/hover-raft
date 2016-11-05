@@ -23,6 +23,7 @@
  */
 package org.tools4j.hoverraft.message;
 
+import org.tools4j.hoverraft.server.Server;
 import org.tools4j.hoverraft.transport.ResendStrategy;
 import org.tools4j.hoverraft.transport.Sender;
 
@@ -34,4 +35,6 @@ public interface Message {
     MessageType type();
 
     void sendTo(Sender<? super Message> sender, ResendStrategy resendStrategy);
+
+    void accept(Server server, MessageHandler messageHandler);
 }

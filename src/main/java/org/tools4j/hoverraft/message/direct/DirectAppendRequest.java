@@ -25,11 +25,9 @@ package org.tools4j.hoverraft.message.direct;
 
 import org.agrona.DirectBuffer;
 import org.agrona.MutableDirectBuffer;
+import org.tools4j.hoverraft.machine.Command;
 import org.tools4j.hoverraft.message.AppendRequest;
 import org.tools4j.hoverraft.message.MessageType;
-import org.tools4j.hoverraft.message.UserMessage;
-
-import java.nio.ByteBuffer;
 
 public final class DirectAppendRequest extends AbstractDirectMessage implements AppendRequest {
 
@@ -44,12 +42,26 @@ public final class DirectAppendRequest extends AbstractDirectMessage implements 
     private static final int PREV_LOG_INDEX_LEN = 8;
     private static final int LEADER_COMMIT_OFF = PREV_LOG_INDEX_OFF + PREV_LOG_INDEX_LEN;
     private static final int LEADER_COMMIT_LEN = 8;
-    private static final int USER_MESSAGE_OFF = LEADER_COMMIT_OFF + LEADER_COMMIT_LEN;
-    private static final int USER_MESSAGE_LEN = 4;
+    private static final int COMMAND_OFF = LEADER_COMMIT_OFF + LEADER_COMMIT_LEN;
 
-    public static final int BYTE_LENGTH = USER_MESSAGE_OFF + USER_MESSAGE_LEN;
+    public static final int BYTE_LENGTH = COMMAND_OFF + DirectCommand.BYTE_LENGTH_LEN;
 
-    private final DirectUserMessage userMessage = new DirectUserMessage();
+    private final DirectCommand command = new DirectCommand() {
+        @Override
+        protected DirectBuffer readBuffer() {
+            return readBuffer;
+        }
+
+        @Override
+        protected MutableDirectBuffer writeBuffer() {
+            return writeBuffer;
+        }
+
+        @Override
+        protected int offset() {
+            return COMMAND_OFF;
+        }
+    };
 
     @Override
     public MessageType type() {
@@ -58,7 +70,7 @@ public final class DirectAppendRequest extends AbstractDirectMessage implements 
 
     @Override
     public int byteLength() {
-        return BYTE_LENGTH + userMessage.byteLength();
+        return BYTE_LENGTH + command.byteLength();
     }
 
     public int term() {
@@ -67,7 +79,7 @@ public final class DirectAppendRequest extends AbstractDirectMessage implements 
 
     @Override
     public AppendRequest term(final int term) {
-        writeBuffer().putInt(offset + TERM_OFF, term);
+        writeBuffer.putInt(offset + TERM_OFF, term);
         return this;
     }
 
@@ -77,7 +89,7 @@ public final class DirectAppendRequest extends AbstractDirectMessage implements 
 
     @Override
     public AppendRequest leaderId(final int leaderId) {
-        writeBuffer().putInt(offset + LEADER_ID_OFF, leaderId);
+        writeBuffer.putInt(offset + LEADER_ID_OFF, leaderId);
         return this;
     }
 
@@ -87,7 +99,7 @@ public final class DirectAppendRequest extends AbstractDirectMessage implements 
 
     @Override
     public AppendRequest prevLogTerm(final int prevLogTerm) {
-        writeBuffer().putInt(offset + PREV_LOG_TERM_OFF, prevLogTerm);
+        writeBuffer.putInt(offset + PREV_LOG_TERM_OFF, prevLogTerm);
         return this;
     }
 
@@ -97,7 +109,7 @@ public final class DirectAppendRequest extends AbstractDirectMessage implements 
 
     @Override
     public AppendRequest prevLogIndex(final long prevLogIndex) {
-        writeBuffer().putLong(offset + PREV_LOG_INDEX_OFF, prevLogIndex);
+        writeBuffer.putLong(offset + PREV_LOG_INDEX_OFF, prevLogIndex);
         return this;
     }
 
@@ -107,63 +119,13 @@ public final class DirectAppendRequest extends AbstractDirectMessage implements 
 
     @Override
     public AppendRequest leaderCommit(final long leaderCommit) {
-        writeBuffer().putLong(offset + LEADER_COMMIT_OFF, leaderCommit);
+        writeBuffer.putLong(offset + LEADER_COMMIT_OFF, leaderCommit);
         return this;
     }
 
     @Override
-    public UserMessage userMessage() {
-        return userMessage;
+    public Command command() {
+        return command;
     }
 
-    public DirectBuffer readBuffer() {
-        return readBuffer;
-    }
-
-    public MutableDirectBuffer writeBuffer() {
-        return writeBuffer;
-    }
-
-    public final class DirectUserMessage implements UserMessage {
-
-        public int byteLength() {
-            return readBuffer.getInt(offset + USER_MESSAGE_OFF);
-        }
-
-        @Override
-        public void bytesFrom(byte[] bytes, int offset) {
-            writeBuffer().putBytes(USER_MESSAGE_OFF, bytes, offset, byteLength());
-        }
-
-        @Override
-        public void bytesFrom(ByteBuffer bytes, int offset) {
-            writeBuffer().putBytes(USER_MESSAGE_OFF, bytes, offset, byteLength());
-        }
-
-        @Override
-        public void bytesFrom(DirectBuffer bytes, int offset) {
-            writeBuffer().putBytes(USER_MESSAGE_OFF, bytes, offset, byteLength());
-        }
-
-        @Override
-        public void bytesTo(byte[] bytes, int offset) {
-            readBuffer().getBytes(USER_MESSAGE_OFF, bytes, offset, byteLength());
-        }
-
-        @Override
-        public void bytesTo(ByteBuffer bytes, int offset) {
-            readBuffer().getBytes(USER_MESSAGE_OFF, bytes, offset, byteLength());
-        }
-
-        @Override
-        public void bytesTo(MutableDirectBuffer bytes, int offset) {
-            readBuffer().getBytes(USER_MESSAGE_OFF, bytes, offset, byteLength());
-        }
-
-        public UserMessage byteLength(final int len) {
-            writeBuffer().putInt(offset + USER_MESSAGE_OFF, len);
-            return this;
-        }
-
-    }
 }

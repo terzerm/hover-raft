@@ -26,8 +26,8 @@ package org.tools4j.hoverraft.server;
 import org.tools4j.hoverraft.config.ConfigBuilder;
 import org.tools4j.hoverraft.config.ConsensusConfig;
 import org.tools4j.hoverraft.config.ThreadingMode;
+import org.tools4j.hoverraft.machine.StateMachine;
 import org.tools4j.hoverraft.message.Message;
-import org.tools4j.hoverraft.message.MessageFactory;
 import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
 import org.tools4j.hoverraft.state.PersistentState;
 import org.tools4j.hoverraft.state.ServerState;
@@ -61,11 +61,11 @@ public class Mockery {
     }
 
     private static Server server(final int servers, final int sources, final int connections,
-                                 final MessageFactory messageFactory) {
+                                 final DirectMessageFactory messageFactory) {
         final ConsensusConfig consensusConfig = consensusConfig(servers, sources);
         return new Server(SERVER_ID,
                 consensusConfig(servers, sources), serverState(consensusConfig),
-                messageLog(), connections(servers, sources), messageFactory);
+                messageLog(), stateMachine(), connections(servers, sources), messageFactory);
     }
 
     public static ConsensusConfig consensusConfig(final int servers, final int sources) {
@@ -80,6 +80,10 @@ public class Mockery {
             configBuilder.addSource(i, "source-" + i);
         }
         return configBuilder.build();
+    }
+
+    public static StateMachine stateMachine() {
+        return mock(StateMachine.class);
     }
 
     public static <M extends Message> MessageLog<M> messageLog() {

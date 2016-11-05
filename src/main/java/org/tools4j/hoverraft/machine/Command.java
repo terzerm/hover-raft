@@ -21,21 +21,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.message;
+package org.tools4j.hoverraft.machine;
 
-import org.tools4j.hoverraft.server.Server;
+import org.agrona.DirectBuffer;
+import org.agrona.MutableDirectBuffer;
 
-public interface AppendResponse extends Message {
+import java.nio.ByteBuffer;
 
-    int term();
-
-    AppendResponse term(int term);
-
-    boolean successful();
-
-    AppendResponse successful(boolean successful);
-
-    default void accept(final Server server, final MessageHandler messageHandler) {
-        messageHandler.onAppendResponse(server, this);
-    }
+public interface Command {
+    int byteLength();
+    void bytesFrom(byte[] bytes, int offset);
+    void bytesFrom(ByteBuffer bytes, int offset);
+    void bytesFrom(DirectBuffer bytes, int offset);
+    void bytesTo(byte[] bytes, int offset);
+    void bytesTo(ByteBuffer bytes, int offset);
+    void bytesTo(MutableDirectBuffer bytes, int offset);
 }
