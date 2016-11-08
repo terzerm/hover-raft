@@ -26,11 +26,8 @@ package org.tools4j.hoverraft.message.direct;
 import org.agrona.DirectBuffer;
 import org.agrona.ExpandableArrayBuffer;
 import org.agrona.MutableDirectBuffer;
-import org.agrona.concurrent.UnsafeBuffer;
 import org.tools4j.hoverraft.message.MessageFactory;
 import org.tools4j.hoverraft.message.MessageType;
-
-import java.nio.ByteBuffer;
 
 /**
  * Factory for messages writing data into an internal readBuffer. Messages and readBuffer are reused accross
@@ -91,7 +88,7 @@ public final class DirectMessageFactory implements MessageFactory {
         final int type = directBuffer.getInt(offset);
         if (type >= 0 & type <= MessageType.maxOrdinal()) {
             final MessageType messageType = MessageType.valueByOrdinal(type);
-            final DirectMessage message = (DirectMessage)messageType.create(this);
+            final DirectMessage message = messageType.create(this);
             message.wrap(directBuffer, offset);
             return message;
         }

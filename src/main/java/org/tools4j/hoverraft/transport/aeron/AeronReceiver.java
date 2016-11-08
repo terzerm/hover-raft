@@ -25,6 +25,8 @@ package org.tools4j.hoverraft.transport.aeron;
 
 import io.aeron.Subscription;
 import io.aeron.logbuffer.FragmentHandler;
+import io.aeron.logbuffer.Header;
+import org.agrona.DirectBuffer;
 import org.tools4j.hoverraft.message.direct.DirectMessage;
 import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
 import org.tools4j.hoverraft.transport.Receiver;
@@ -36,6 +38,7 @@ public class AeronReceiver implements Receiver<DirectMessage> {
 
     private final DirectMessageFactory directMessageFactory;
     private final Subscription subscription;
+    private final AeronHandler aeronHandler = new AeronHandler();
 
     public AeronReceiver(final DirectMessageFactory directMessageFactory, final Subscription subscription) {
         this.directMessageFactory = Objects.requireNonNull(directMessageFactory);
@@ -48,6 +51,24 @@ public class AeronReceiver implements Receiver<DirectMessage> {
             final DirectMessage message = directMessageFactory.wrapForReading(buf, off);
             messageMandler.accept(message);
         };
-        return subscription.poll(fragmentHandler, limit);
+        for (int i = 0; i < limit; i++) {
+            if (0 < subscription.poll(aeronHandler, 1)) {
+                messageMandler.accept(aeronHandler.message.get());
+                aeronHandler.message.set(null);
+            } else {
+                return i;
+            }
+        }
+        return limit;
+    }
+
+    private class AeronHandler implements FragmentHandler {
+        private final ThreadLocal<DirectMessage> message = ThreadLocal.withInitial(() -> null);
+
+        @Override
+        public void onFragment(DirectBuffer buffer, int offset, int length, Header header) {
+            final DirectMessage message = directMessageFactory.wrapForReading(buffer, offset);
+            this.message.set(message);
+        }
     }
 }
