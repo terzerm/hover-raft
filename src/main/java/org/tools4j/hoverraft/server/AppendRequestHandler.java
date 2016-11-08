@@ -30,8 +30,6 @@ import org.tools4j.hoverraft.util.Clock;
 
 public final class AppendRequestHandler {
 
-    private static final int MAX_TRIES = 10;//TODO how often should we retry sending?
-
     public void onAppendRequest(final Server server, final AppendRequest appendRequest) {
         final int term = appendRequest.term();
         final int leaderId = appendRequest.leaderId();

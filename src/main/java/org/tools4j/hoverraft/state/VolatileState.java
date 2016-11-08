@@ -30,7 +30,7 @@ public final class VolatileState {
     private final ElectionState electionState;
     private final FollowerState[] followerStates;
 
-    private Role role = Role.CANDIDATE;
+    private Role role = Role.FOLLOWER;
     private long commitIndex;
     private long lastApplied;
 

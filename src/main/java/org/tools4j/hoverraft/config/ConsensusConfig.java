@@ -35,7 +35,7 @@ public interface ConsensusConfig {
     SourceConfig sourceConfig(int index);
     ThreadingMode threadingMode();
 
-    default ServerConfig serverConfigById(int id) {
+    default ServerConfig serverConfigByIdOrNull(int id) {
         for (int i = 0; i < serverCount(); i++) {
             final ServerConfig config = serverConfig(i);
             if (config.id() == id) {
@@ -45,7 +45,7 @@ public interface ConsensusConfig {
         return null;
     }
 
-    default SourceConfig sourceConfigById(int id) {
+    default SourceConfig sourceConfigByIdOrNull(int id) {
         for (int i = 0; i < sourceCount(); i++) {
             final SourceConfig config = sourceConfig(i);
             if (config.id() == id) {

@@ -23,6 +23,7 @@
  */
 package org.tools4j.hoverraft.transport;
 
+import org.tools4j.hoverraft.message.CommandMessage;
 import org.tools4j.hoverraft.message.Message;
 
 import java.util.List;
@@ -30,11 +31,11 @@ import java.util.Objects;
 
 public class DefaultConnections<M extends Message> implements Connections<M> {
 
-    private final Receiver<M>[] sourceReceivers;
+    private final Receiver<CommandMessage>[] sourceReceivers;
     private final Receiver<M>[] serverReceivers;
     private final Sender<M> serverMulticastSender;
 
-    public DefaultConnections(final List<Receiver<? extends M>> sourceReceivers,
+    public DefaultConnections(final List<Receiver<? extends CommandMessage>> sourceReceivers,
                               final List<Receiver<? extends M>> serverReceivers,
                               final Sender<? super M> serverMulticastSender) {
         Objects.requireNonNull(serverMulticastSender);
@@ -43,18 +44,18 @@ public class DefaultConnections<M extends Message> implements Connections<M> {
         this.serverMulticastSender = (m) -> serverMulticastSender.offer(m);
     }
 
-    //safely wraps Receiver<? super M> to Receiver<M>
-    private Receiver<M>[] receivers(final List<Receiver<? extends M>> receivers) {
-        final Receiver<M>[] r = (Receiver<M>[])new Receiver<?>[receivers.size()];
-        for (int i = 0; i < r.length; i++) {
+    //safely wraps Receiver<? super M> to Receiver<M> and converts List to array
+    private static <M extends Message> Receiver<M>[] receivers(final List<Receiver<? extends M>> receivers) {
+        final Receiver<M>[] arr = (Receiver<M>[])new Receiver<?>[receivers.size()];
+        for (int i = 0; i < arr.length; i++) {
             final int index = i;
-            r[index] = (c) -> receivers.get(index).poller(c);
+            arr[index] = (c) -> receivers.get(index).poller(c);
         }
-        return r;
+        return arr;
     }
 
     @Override
-    public Receiver<M> sourceReceiver(int sourceId) {
+    public Receiver<CommandMessage> sourceReceiver(int sourceId) {
         return sourceReceivers[sourceId];
     }
 

@@ -23,17 +23,26 @@
  */
 package org.tools4j.hoverraft.machine;
 
-import org.agrona.DirectBuffer;
-import org.agrona.MutableDirectBuffer;
+import org.tools4j.hoverraft.message.CommandMessage;
+import org.tools4j.hoverraft.message.Message;
+import org.tools4j.hoverraft.transport.MessageLog;
 
-import java.nio.ByteBuffer;
+import java.util.Objects;
 
-public interface Command {
-    int byteLength();
-    void bytesFrom(byte[] bytes, int offset, int length);
-    void bytesFrom(ByteBuffer bytes, int offset, int length);
-    void bytesFrom(DirectBuffer bytes, int offset, int length);
-    void bytesTo(byte[] bytes, int offset);
-    void bytesTo(ByteBuffer bytes, int offset);
-    void bytesTo(MutableDirectBuffer bytes, int offset);
+/**
+ * A {@link StateMachine} which simply persists the messages passed to it into a {@link MessageLog}.
+ */
+public final class LogMachine implements StateMachine {
+
+    private final MessageLog<Message> messageLog;
+
+    public LogMachine(final MessageLog<Message> messageLog) {
+        this.messageLog = Objects.requireNonNull(messageLog);
+    }
+
+    @Override
+    public void onMessage(final CommandMessage message) {
+        messageLog.append(message);
+    }
+
 }

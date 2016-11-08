@@ -60,7 +60,7 @@ public final class Server {
                   final StateMachine stateMachine,
                   final Connections<Message> connections,
                   final DirectMessageFactory messageFactory) {
-        this.serverConfig = Objects.requireNonNull(consensusConfig.serverConfigById(serverId), "No server serverConfig found for ID " + serverId);
+        this.serverConfig = Objects.requireNonNull(consensusConfig.serverConfigByIdOrNull(serverId), "No server serverConfig found for ID " + serverId);
         this.consensusConfig = Objects.requireNonNull(consensusConfig);
         this.serverState = Objects.requireNonNull(serverState);
         this.messageLog = Objects.requireNonNull(messageLog);
@@ -126,7 +126,7 @@ public final class Server {
             lastApplied++;
             messageLog.readIndex(lastApplied);
             final CommandMessage commandMsg = messageLog.read();
-            stateMachine.onMessage(commandMsg.command());
+            stateMachine.onMessage(commandMsg);
             vstate.lastApplied(lastApplied);
         }
     }

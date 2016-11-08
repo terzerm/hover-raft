@@ -31,7 +31,9 @@ import java.nio.ByteBuffer;
 
 abstract public class DirectCommand implements Command {
 
-    protected static final int BYTE_LENGTH_LEN = 4;
+    protected static final int BYTE_LENGTH_OFF  = 0;
+    protected static final int BYTE_LENGTH_LEN  = 4;
+    protected static final int COMMAND_OFF      = BYTE_LENGTH_OFF + BYTE_LENGTH_LEN;
 
     abstract protected DirectBuffer readBuffer();
 
@@ -43,39 +45,42 @@ abstract public class DirectCommand implements Command {
         return readBuffer().getInt(offset());
     }
 
-    public Command byteLength(final int len) {
-        writeBuffer().putInt(offset(), len);
+    private Command byteLength(final int length) {
+        writeBuffer().putInt(offset() + BYTE_LENGTH_OFF, length);
         return this;
     }
 
     @Override
-    public void bytesFrom(byte[] bytes, int offset) {
-        writeBuffer().putBytes(offset() + BYTE_LENGTH_LEN, bytes, offset, byteLength());
+    public void bytesFrom(final byte[] bytes, final int offset, final int length) {
+        byteLength(length);
+        writeBuffer().putBytes(offset() + COMMAND_OFF, bytes, offset, length);
     }
 
     @Override
-    public void bytesFrom(ByteBuffer bytes, int offset) {
-        writeBuffer().putBytes(offset() + BYTE_LENGTH_LEN, bytes, offset, byteLength());
+    public void bytesFrom(final ByteBuffer bytes, final int offset, final int length) {
+        byteLength(length);
+        writeBuffer().putBytes(offset() + COMMAND_OFF, bytes, offset, length);
     }
 
     @Override
-    public void bytesFrom(DirectBuffer bytes, int offset) {
-        writeBuffer().putBytes(offset() + BYTE_LENGTH_LEN, bytes, offset, byteLength());
+    public void bytesFrom(final DirectBuffer bytes, final int offset, final int length) {
+        byteLength(length);
+        writeBuffer().putBytes(offset() + COMMAND_OFF, bytes, offset, length);
     }
 
     @Override
-    public void bytesTo(byte[] bytes, int offset) {
-        readBuffer().getBytes(offset() + BYTE_LENGTH_LEN, bytes, offset, byteLength());
+    public void bytesTo(final byte[] bytes, final int offset) {
+        readBuffer().getBytes(offset() + COMMAND_OFF, bytes, offset, byteLength());
     }
 
     @Override
-    public void bytesTo(ByteBuffer bytes, int offset) {
-        readBuffer().getBytes(offset() + BYTE_LENGTH_LEN, bytes, offset, byteLength());
+    public void bytesTo(final ByteBuffer bytes, final int offset) {
+        readBuffer().getBytes(offset() + COMMAND_OFF, bytes, offset, byteLength());
     }
 
     @Override
-    public void bytesTo(MutableDirectBuffer bytes, int offset) {
-        readBuffer().getBytes(offset() + BYTE_LENGTH_LEN, bytes, offset, byteLength());
+    public void bytesTo(final MutableDirectBuffer bytes, final int offset) {
+        readBuffer().getBytes(offset() + COMMAND_OFF, bytes, offset, byteLength());
     }
 
 }
