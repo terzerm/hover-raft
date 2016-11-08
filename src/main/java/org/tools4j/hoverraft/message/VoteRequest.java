@@ -23,7 +23,7 @@
  */
 package org.tools4j.hoverraft.message;
 
-import org.tools4j.hoverraft.server.Server;
+import org.tools4j.hoverraft.server.ServerContext;
 
 public interface VoteRequest extends Message {
 
@@ -43,7 +43,7 @@ public interface VoteRequest extends Message {
 
     VoteRequest lastLogIndex(long lastLogIndex);
 
-    default void accept(final Server server, final MessageHandler messageHandler) {
-        messageHandler.onVoteRequest(server, this);
+    default void accept(final ServerContext serverContext, final MessageHandler messageHandler) {
+        messageHandler.onVoteRequest(serverContext, this);
     }
 }

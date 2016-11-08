@@ -43,40 +43,40 @@ public final class CandidateActivity implements ServerActivity {
     }
 
     @Override
-    public void perform(final Server server) {
-        if (server.state().persistentState().votedFor() < 0) {
-            voteForMyself(server);
+    public void perform(final ServerContext serverContext) {
+        if (serverContext.state().persistentState().votedFor() < 0) {
+            voteForMyself(serverContext);
         }
     }
 
-    private void onVoteResponse(final Server server, final VoteResponse voteResponse) {
-        if (voteResponse.term() == server.currentTerm() && voteResponse.voteGranted()) {
-            incVoteCount(server);
+    private void onVoteResponse(final ServerContext serverContext, final VoteResponse voteResponse) {
+        if (voteResponse.term() == serverContext.currentTerm() && voteResponse.voteGranted()) {
+            incVoteCount(serverContext);
         }
     }
 
-    private void voteForMyself(final Server server) {
-        final VolatileState vstate = server.state().volatileState();
-        final PersistentState pstate = server.state().persistentState();
+    private void voteForMyself(final ServerContext serverContext) {
+        final VolatileState vstate = serverContext.state().volatileState();
+        final PersistentState pstate = serverContext.state().persistentState();
         final ElectionState estate = vstate.electionState();
-        final int self = server.serverConfig().id();
+        final int self = serverContext.serverConfig().id();
         pstate.votedFor(self);
         estate.initVoteCount();
-        requestVoteFromAllServers(server, self);
+        requestVoteFromAllServers(serverContext, self);
     }
 
-    private void requestVoteFromAllServers(final Server server, final int self) {
-        server.messageFactory().voteRequest()
-                .term(server.currentTerm())
+    private void requestVoteFromAllServers(final ServerContext serverContext, final int self) {
+        serverContext.messageFactory().voteRequest()
+                .term(serverContext.currentTerm())
                 .candidateId(self)
-                .sendTo(server.connections().serverMulticastSender(),
-                        server.resendStrategy());
+                .sendTo(serverContext.connections().serverMulticastSender(),
+                        serverContext.resendStrategy());
     }
 
-    private void incVoteCount(final Server server) {
-        final VolatileState vstate = server.state().volatileState();
+    private void incVoteCount(final ServerContext serverContext) {
+        final VolatileState vstate = serverContext.state().volatileState();
         vstate.electionState().incVoteCount();
-        final int servers = server.consensusConfig().serverCount();
+        final int servers = serverContext.consensusConfig().serverCount();
         final int majority = (servers + 1) / 2;
         if (vstate.electionState().voteCount() >= majority) {
             vstate.changeRoleTo(Role.LEADER);

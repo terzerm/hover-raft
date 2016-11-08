@@ -27,5 +27,5 @@ import org.tools4j.hoverraft.message.MessageHandler;
 
 public interface ServerActivity {
     MessageHandler messageHandler();
-    void perform(Server server);
+    void perform(ServerContext serverContext);
 }

@@ -21,20 +21,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.message;
+package org.tools4j.hoverraft.server;
 
-import org.tools4j.hoverraft.server.ServerContext;
+import org.tools4j.hoverraft.config.ConsensusConfig;
+import org.tools4j.hoverraft.config.ServerConfig;
+import org.tools4j.hoverraft.message.Message;
+import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
+import org.tools4j.hoverraft.state.ServerState;
+import org.tools4j.hoverraft.transport.Connections;
 import org.tools4j.hoverraft.transport.ResendStrategy;
-import org.tools4j.hoverraft.transport.Sender;
 
-/**
- * Base interface for all messages.
- */
-public interface Message {
+public interface ServerContext {
 
-    MessageType type();
+    ServerConfig serverConfig();
 
-    void sendTo(Sender<? super Message> sender, ResendStrategy resendStrategy);
+    ConsensusConfig consensusConfig();
 
-    void accept(ServerContext serverContext, MessageHandler messageHandler);
+    ServerState state();
+
+    Connections<Message> connections();
+
+    DirectMessageFactory messageFactory();
+
+    ResendStrategy resendStrategy();
+
+    default int currentTerm() {
+        return state().persistentState().currentTerm();
+    }
+
+    default int id() {
+        return serverConfig().id();
+    }
+
 }

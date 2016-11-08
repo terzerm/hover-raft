@@ -23,7 +23,6 @@
  */
 package org.tools4j.hoverraft.server;
 
-import io.aeron.logbuffer.FragmentHandler;
 import org.tools4j.hoverraft.message.MessageHandler;
 import org.tools4j.hoverraft.message.TimeoutNow;
 
@@ -40,13 +39,13 @@ public class FollowerActivity implements ServerActivity {
     }
 
     @Override
-    public void perform(final Server server) {
-        //no op, we are just responding to requests and perform all standard server ops
+    public void perform(final ServerContext serverContext) {
+        //no op, we are just responding to requests and perform all standard serverContext ops
     }
 
-    private void onTimeoutNow(final Server server, final TimeoutNow timeoutNow) {
-        if (timeoutNow.term() == server.currentTerm() && timeoutNow.candidateId() == server.id()) {
-            server.state().volatileState().electionState().electionTimer().timeoutNow();
+    private void onTimeoutNow(final ServerContext serverContext, final TimeoutNow timeoutNow) {
+        if (timeoutNow.term() == serverContext.currentTerm() && timeoutNow.candidateId() == serverContext.id()) {
+            serverContext.state().volatileState().electionState().electionTimer().timeoutNow();
         }
     }
 }

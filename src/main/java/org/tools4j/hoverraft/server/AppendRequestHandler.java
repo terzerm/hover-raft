@@ -30,30 +30,30 @@ import org.tools4j.hoverraft.util.Clock;
 
 public final class AppendRequestHandler {
 
-    public void onAppendRequest(final Server server, final AppendRequest appendRequest) {
+    public void onAppendRequest(final ServerContext serverContext, final AppendRequest appendRequest) {
         final int term = appendRequest.term();
         final int leaderId = appendRequest.leaderId();
         final boolean successful;
-        if (server.currentTerm() == term) /* should never be larger */ {
-            final VolatileState vstate = server.state().volatileState();
+        if (serverContext.currentTerm() == term) /* should never be larger */ {
+            final VolatileState vstate = serverContext.state().volatileState();
             if (vstate.role() == Role.FOLLOWER) {
                 vstate.electionState().electionTimer().reset(Clock.DEFAULT);
             } else {
                 vstate.changeRoleTo(Role.FOLLOWER);
                 vstate.electionState().electionTimer().restart(Clock.DEFAULT);
             }
-            successful = appendToLog(server, appendRequest);
+            successful = appendToLog(serverContext, appendRequest);
         } else {
             successful = false;
         }
-        server.messageFactory().appendResponse()
-                .term(server.currentTerm())
+        serverContext.messageFactory().appendResponse()
+                .term(serverContext.currentTerm())
                 .successful(successful)
-                .sendTo(server.connections().serverSender(leaderId),
-                        server.resendStrategy());
+                .sendTo(serverContext.connections().serverSender(leaderId),
+                        serverContext.resendStrategy());
     }
 
-    private boolean appendToLog(final Server server, final AppendRequest appendRequest) {
+    private boolean appendToLog(final ServerContext serverContext, final AppendRequest appendRequest) {
         //FIXME append log entries here
         return true;
     }

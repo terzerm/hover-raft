@@ -23,7 +23,7 @@
  */
 package org.tools4j.hoverraft.message;
 
-import org.tools4j.hoverraft.server.Server;
+import org.tools4j.hoverraft.server.ServerContext;
 
 public interface AppendResponse extends Message {
 
@@ -35,7 +35,7 @@ public interface AppendResponse extends Message {
 
     AppendResponse successful(boolean successful);
 
-    default void accept(final Server server, final MessageHandler messageHandler) {
-        messageHandler.onAppendResponse(server, this);
+    default void accept(final ServerContext serverContext, final MessageHandler messageHandler) {
+        messageHandler.onAppendResponse(serverContext, this);
     }
 }

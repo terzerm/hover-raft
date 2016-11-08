@@ -28,40 +28,40 @@ import io.aeron.logbuffer.FragmentHandler;
 import org.tools4j.hoverraft.config.ConsensusConfig;
 import org.tools4j.hoverraft.config.ServerConfig;
 import org.tools4j.hoverraft.message.MessageHandler;
-import org.tools4j.hoverraft.server.Server;
+import org.tools4j.hoverraft.server.ServerContext;
 
 import java.util.Objects;
 
 /**
- * Polls a message from each server and dispatches it to the appropriate method of a
+ * Polls a message from each serverContext and dispatches it to the appropriate method of a
  * {@link MessageHandler}.
  */
 public final class MessageBroker {
 
-    private final Server server;
+    private final ServerContext serverContext;
     private final Subscription[] serverSubscriptions;
 
     private int index;
 
-    public MessageBroker(final Server server) {
-        this.server = Objects.requireNonNull(server);
+    public MessageBroker(final ServerContext serverContext) {
+        this.serverContext = Objects.requireNonNull(serverContext);
         this.serverSubscriptions = serverSubscriptions();
     }
 
     private Subscription[] serverSubscriptions() {
-        final ConsensusConfig consensusConfig = server.consensusConfig();
+        final ConsensusConfig consensusConfig = serverContext.consensusConfig();
         final int servers = consensusConfig.serverCount();
         final Subscription[] subscriptions = new Subscription[servers - 1];
         int index = 0;
         for (int i = 0; i < servers - 1; i++) {
             final ServerConfig serverConfig = consensusConfig.serverConfig(i);
-            if (serverConfig.id() != server.serverConfig().id()) {
-                subscriptions[i] = null;//FIXME: server.connections().serverReceiver(serverConfig.id());
+            if (serverConfig.id() != serverContext.serverConfig().id()) {
+                subscriptions[i] = null;//FIXME: serverContext.connections().serverReceiver(serverConfig.id());
                 index++;
             }
         }
         if (index < servers - 1) {
-            throw new IllegalStateException("invalid server ID serverConfig: expected " + servers + " unique IDs but found " + (index + 1));
+            throw new IllegalStateException("invalid serverContext ID serverConfig: expected " + servers + " unique IDs but found " + (index + 1));
         }
         return subscriptions;
     }

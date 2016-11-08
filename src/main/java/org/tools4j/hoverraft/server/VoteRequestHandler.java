@@ -30,12 +30,12 @@ import org.tools4j.hoverraft.state.ServerState;
 
 public final class VoteRequestHandler {
 
-    public void onVoteRequest(final Server server, final VoteRequest voteRequest) {
+    public void onVoteRequest(final ServerContext serverContext, final VoteRequest voteRequest) {
         final int term = voteRequest.term();
         final int candidateId = voteRequest.candidateId();
         final boolean granted;
-        if (server.currentTerm() == term && isValidCandidate(server, voteRequest)) {
-            final ServerState state = server.state();
+        if (serverContext.currentTerm() == term && isValidCandidate(serverContext, voteRequest)) {
+            final ServerState state = serverContext.state();
             final PersistentState pstate = state.persistentState();
             if (pstate.votedFor() < 0) {
                 pstate.votedFor(candidateId);
@@ -47,17 +47,17 @@ public final class VoteRequestHandler {
         } else {
             granted = false;
         }
-        server.messageFactory().voteResponse()
-                .term(server.currentTerm())
+        serverContext.messageFactory().voteResponse()
+                .term(serverContext.currentTerm())
                 .voteGranted(granted)
-                .sendTo(server.connections().serverSender(candidateId),
-                        server.resendStrategy());
+                .sendTo(serverContext.connections().serverSender(candidateId),
+                        serverContext.resendStrategy());
     }
 
-    private static boolean isValidCandidate(final Server server, final VoteRequest voteRequest) {
+    private static boolean isValidCandidate(final ServerContext serverContext, final VoteRequest voteRequest) {
         final int lastLogTerm = voteRequest.lastLogTerm();
         final long lastLogIndex = voteRequest.lastLogIndex();
-        final PersistentState pstate = server.state().persistentState();
+        final PersistentState pstate = serverContext.state().persistentState();
         return pstate.lastLogTerm() < lastLogTerm ||
                 (pstate.lastLogTerm() == lastLogTerm && pstate.lastLogIndex() <= lastLogIndex);
     }

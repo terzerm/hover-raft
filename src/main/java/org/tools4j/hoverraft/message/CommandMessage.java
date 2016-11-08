@@ -24,7 +24,7 @@
 package org.tools4j.hoverraft.message;
 
 import org.tools4j.hoverraft.machine.Command;
-import org.tools4j.hoverraft.server.Server;
+import org.tools4j.hoverraft.server.ServerContext;
 
 public interface CommandMessage extends Message {
 
@@ -42,7 +42,7 @@ public interface CommandMessage extends Message {
 
     Command command();
 
-    default void accept(final Server server, final MessageHandler messageHandler) {
-        messageHandler.onCommandMessage(server, this);
+    default void accept(final ServerContext serverContext, final MessageHandler messageHandler) {
+        messageHandler.onCommandMessage(serverContext, this);
     }
 }

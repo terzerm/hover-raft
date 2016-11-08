@@ -46,14 +46,14 @@ public class AppendRequestHandlerTest {
     //under test
     private AppendRequestHandler handler;
 
-    private Server server;
+    private ServerContext serverContext;
 
     @Mock
     private Sender<Message> sender;
 
     @Before
     public void init() {
-        server = Mockery.simple(1);
+        serverContext = Mockery.simple(1);
 
         handler = new AppendRequestHandler();
     }
@@ -70,18 +70,18 @@ public class AppendRequestHandlerTest {
 
     private void onAppendRequest(final Role currentRole) throws Exception {
         //given
-        final int term = server.currentTerm();
-        final int serverId = server.id();
+        final int term = serverContext.currentTerm();
+        final int serverId = serverContext.id();
         final int leaderId = serverId + 1;
         final AppendRequest appendRequest = DirectMessageFactory.createForWriting()
                 .appendRequest()
                 .term(term)
                 .leaderId(leaderId);
-        server.state().volatileState().changeRoleTo(currentRole);
-        when(server.connections().serverSender(leaderId)).thenReturn(sender);
+        serverContext.state().volatileState().changeRoleTo(currentRole);
+        when(serverContext.connections().serverSender(leaderId)).thenReturn(sender);
 
         //when
-        handler.onAppendRequest(server, appendRequest);
+        handler.onAppendRequest(serverContext, appendRequest);
 
         //then
         final ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
@@ -90,24 +90,24 @@ public class AppendRequestHandlerTest {
         final AppendResponse response = (AppendResponse)captor.getValue();
         assertThat(response.successful()).isTrue();
         assertThat(response.term()).isEqualTo(term);
-        assertThat(server.state().volatileState().role()).isEqualTo(Role.FOLLOWER);
+        assertThat(serverContext.state().volatileState().role()).isEqualTo(Role.FOLLOWER);
     }
 
     @Test
     public void onAppendRequest_wrongTerm() throws Exception {
         //given
-        final int term = server.currentTerm();
+        final int term = serverContext.currentTerm();
         final int badTerm = term - 1;
-        final int serverId = server.id();
+        final int serverId = serverContext.id();
         final int leaderId = serverId + 1;
         final AppendRequest appendRequest = DirectMessageFactory.createForWriting()
                 .appendRequest()
                 .term(badTerm)
                 .leaderId(leaderId);
-        when(server.connections().serverSender(leaderId)).thenReturn(sender);
+        when(serverContext.connections().serverSender(leaderId)).thenReturn(sender);
 
         //when
-        handler.onAppendRequest(server, appendRequest);
+        handler.onAppendRequest(serverContext, appendRequest);
 
         //then
         final ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);

@@ -40,9 +40,10 @@ import org.tools4j.hoverraft.transport.MessageLog;
 import org.tools4j.hoverraft.transport.ResendStrategy;
 import org.tools4j.hoverraft.util.Clock;
 
+import java.util.EnumMap;
 import java.util.Objects;
 
-public final class Server {
+public final class Server implements ServerContext {
 
     private final ServerConfig serverConfig;
     private final ConsensusConfig consensusConfig;
@@ -52,6 +53,7 @@ public final class Server {
     private final Connections<Message> connections;
     private final MessageBroker messageBroker;
     private final DirectMessageFactory messageFactory;
+    private final EnumMap<Role, FragmentHandler> roleFragmentHandler;
 
     public Server(final int serverId,
                   final ConsensusConfig consensusConfig,
@@ -68,6 +70,7 @@ public final class Server {
         this.connections = Objects.requireNonNull(connections);
         this.messageFactory = Objects.requireNonNull(messageFactory);
         this.messageBroker = new MessageBroker(this);
+        this.roleFragmentHandler = initRoleFragmentHandlers();
     }
 
     public ServerConfig serverConfig() {
@@ -88,14 +91,6 @@ public final class Server {
 
     public DirectMessageFactory messageFactory() {
         return messageFactory;
-    }
-
-    public int currentTerm() {
-        return state().persistentState().currentTerm();
-    }
-
-    public int id() {
-        return serverConfig().id();
     }
 
     public void perform() {
@@ -132,10 +127,19 @@ public final class Server {
     }
 
     private void performRoleSpecificActivity() {
-        serverState.volatileState().role().perform(this);
+        final FragmentHandler fh = roleFragmentHandler.get(serverState.volatileState().role());
+        messageBroker.pollNextMessage(fh);
     }
 
     public ResendStrategy resendStrategy() {
         return ResendStrategy.NOOP;//FIXME use better resend strategy
+    }
+
+    private EnumMap<Role, FragmentHandler> initRoleFragmentHandlers() {
+        final EnumMap<Role, FragmentHandler> map = new EnumMap<>(Role.class);
+        for (final Role role : Role.values()) {
+            map.put(role, role.toFragmentHandler(this));
+        }
+        return map;
     }
 }

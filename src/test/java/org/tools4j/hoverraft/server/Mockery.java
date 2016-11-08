@@ -44,24 +44,24 @@ public class Mockery {
     public static final long MIN_ELECTION_TIMEOUT_MILLIS = 50;
     public static final long MAX_ELECTION_TIMEOUT_MILLIS = 100;
 
-    public static Server direct(final int servers) {
+    public static ServerContext direct(final int servers) {
         return direct(servers, 0, 0);
     }
 
-    public static Server simple(final int servers) {
+    public static ServerContext simple(final int servers) {
         return simple(servers, 0, 0);
     }
 
-    public static Server direct(final int servers, final int sources, final int connections) {
+    public static ServerContext direct(final int servers, final int sources, final int connections) {
         return server(servers, sources, connections, DirectMessageFactory.createForWriting());
     }
 
-    public static Server simple(final int servers, final int sources, final int connections) {
+    public static ServerContext simple(final int servers, final int sources, final int connections) {
         return server(servers, sources, connections, DirectMessageFactory.createForWriting());
     }
 
-    private static Server server(final int servers, final int sources, final int connections,
-                                 final DirectMessageFactory messageFactory) {
+    private static ServerContext server(final int servers, final int sources, final int connections,
+                                        final DirectMessageFactory messageFactory) {
         final ConsensusConfig consensusConfig = consensusConfig(servers, sources);
         return new Server(SERVER_ID,
                 consensusConfig(servers, sources), serverState(consensusConfig),

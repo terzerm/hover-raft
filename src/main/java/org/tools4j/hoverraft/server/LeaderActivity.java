@@ -40,20 +40,20 @@ public class LeaderActivity implements ServerActivity {
 
 
     @Override
-    public void perform(final Server server) {
-        updateCommitIndex(server);
-        sendAppendRequest(server);
+    public void perform(final ServerContext serverContext) {
+        updateCommitIndex(serverContext);
+        sendAppendRequest(serverContext);
     }
 
-    private void updateCommitIndex(final Server server) {
+    private void updateCommitIndex(final ServerContext serverContext) {
         //FIXME impl
     }
 
-    private void sendAppendRequest(final Server server) {
+    private void sendAppendRequest(final ServerContext serverContext) {
         //FIXME impl
     }
 
-    private void handleAppendResponse(final Server server, final AppendResponse appendResponse) {
+    private void handleAppendResponse(final ServerContext serverContext, final AppendResponse appendResponse) {
         //FIXME impl
     }
 }

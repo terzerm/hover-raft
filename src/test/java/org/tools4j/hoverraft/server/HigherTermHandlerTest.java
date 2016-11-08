@@ -29,7 +29,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.tools4j.hoverraft.message.*;
-import org.tools4j.hoverraft.message.direct.DirectMessage;
 import org.tools4j.hoverraft.state.PersistentState;
 
 import static org.mockito.Matchers.anyInt;
@@ -41,7 +40,7 @@ public class HigherTermHandlerTest {
     //under test
     private MessageHandler handler;
 
-    private Server server;
+    private ServerContext serverContext;
 
     @Mock
     private VoteRequest voteRequest;
@@ -58,7 +57,7 @@ public class HigherTermHandlerTest {
 
     @Before
     public void init() {
-        server = Mockery.direct(1);
+        serverContext = Mockery.direct(1);
 
         //under test
         handler = new HigherTermHandler();
@@ -67,132 +66,132 @@ public class HigherTermHandlerTest {
     @Test
     public void onVoteRequest() throws Exception {
         final int term = 43;
-        final PersistentState persistentState = server.state().persistentState();
+        final PersistentState persistentState = serverContext.state().persistentState();
         when(persistentState.currentTerm()).thenReturn(term);
 
         //message term < current term
         when(voteRequest.term()).thenReturn(term - 1);
-        handler.onVoteRequest(server, voteRequest);
+        handler.onVoteRequest(serverContext, voteRequest);
         verify(persistentState, never()).clearVotedForAndSetCurrentTerm(anyInt());
 
         //message term == current term
         when(voteRequest.term()).thenReturn(term);
-        handler.onVoteRequest(server, voteRequest);
+        handler.onVoteRequest(serverContext, voteRequest);
         verify(persistentState, never()).clearVotedForAndSetCurrentTerm(anyInt());
 
         //message term > current term
         when(voteRequest.term()).thenReturn(term + 1);
-        handler.onVoteRequest(server, voteRequest);
+        handler.onVoteRequest(serverContext, voteRequest);
         verify(persistentState).clearVotedForAndSetCurrentTerm(term + 1);
     }
 
     @Test
     public void onVoteResponse() throws Exception {
         final int term = 3;
-        final PersistentState persistentState = server.state().persistentState();
+        final PersistentState persistentState = serverContext.state().persistentState();
         when(persistentState.currentTerm()).thenReturn(term);
 
         //message term < current term
         when(voteResponse.term()).thenReturn(term - 2);
-        handler.onVoteResponse(server, voteResponse);
+        handler.onVoteResponse(serverContext, voteResponse);
         verify(persistentState, never()).clearVotedForAndSetCurrentTerm(anyInt());
 
         //message term == current term
         when(voteResponse.term()).thenReturn(term);
-        handler.onVoteResponse(server, voteResponse);
+        handler.onVoteResponse(serverContext, voteResponse);
         verify(persistentState, never()).clearVotedForAndSetCurrentTerm(anyInt());
 
         //message term > current term
         when(voteResponse.term()).thenReturn(term + 2);
-        handler.onVoteResponse(server, voteResponse);
+        handler.onVoteResponse(serverContext, voteResponse);
         verify(persistentState).clearVotedForAndSetCurrentTerm(term + 2);
     }
 
     @Test
     public void onAppendRequest() throws Exception {
         final int term = 33;
-        final PersistentState persistentState = server.state().persistentState();
+        final PersistentState persistentState = serverContext.state().persistentState();
         when(persistentState.currentTerm()).thenReturn(term);
 
         //message term < current term
         when(appendRequest.term()).thenReturn(term - 3);
-        handler.onAppendRequest(server, appendRequest);
+        handler.onAppendRequest(serverContext, appendRequest);
         verify(persistentState, never()).clearVotedForAndSetCurrentTerm(anyInt());
 
         //message term == current term
         when(appendRequest.term()).thenReturn(term);
-        handler.onAppendRequest(server, appendRequest);
+        handler.onAppendRequest(serverContext, appendRequest);
         verify(persistentState, never()).clearVotedForAndSetCurrentTerm(anyInt());
 
         //message term > current term
         when(appendRequest.term()).thenReturn(term + 100);
-        handler.onAppendRequest(server, appendRequest);
+        handler.onAppendRequest(serverContext, appendRequest);
         verify(persistentState).clearVotedForAndSetCurrentTerm(term + 100);
     }
 
     @Test
     public void onAppendResponse() throws Exception {
         final int term = 101;
-        final PersistentState persistentState = server.state().persistentState();
+        final PersistentState persistentState = serverContext.state().persistentState();
         when(persistentState.currentTerm()).thenReturn(term);
 
         //message term < current term
         when(appendResponse.term()).thenReturn(-99);
-        handler.onAppendResponse(server, appendResponse);
+        handler.onAppendResponse(serverContext, appendResponse);
         verify(persistentState, never()).clearVotedForAndSetCurrentTerm(anyInt());
 
         //message term == current term
         when(appendResponse.term()).thenReturn(term);
-        handler.onAppendResponse(server, appendResponse);
+        handler.onAppendResponse(serverContext, appendResponse);
         verify(persistentState, never()).clearVotedForAndSetCurrentTerm(anyInt());
 
         //message term > current term
         when(appendResponse.term()).thenReturn(10001);
-        handler.onAppendResponse(server, appendResponse);
+        handler.onAppendResponse(serverContext, appendResponse);
         verify(persistentState).clearVotedForAndSetCurrentTerm(10001);
     }
 
     @Test
     public void onTimeoutNow() throws Exception {
         final int term = 43;
-        final PersistentState persistentState = server.state().persistentState();
+        final PersistentState persistentState = serverContext.state().persistentState();
         when(persistentState.currentTerm()).thenReturn(term);
 
         //message term < current term
         when(timeoutNow.term()).thenReturn(term - 1);
-        handler.onTimeoutNow(server, timeoutNow);
+        handler.onTimeoutNow(serverContext, timeoutNow);
         verify(persistentState, never()).clearVotedForAndSetCurrentTerm(anyInt());
 
         //message term == current term
         when(timeoutNow.term()).thenReturn(term);
-        handler.onTimeoutNow(server, timeoutNow);
+        handler.onTimeoutNow(serverContext, timeoutNow);
         verify(persistentState, never()).clearVotedForAndSetCurrentTerm(anyInt());
 
         //message term > current term
         when(timeoutNow.term()).thenReturn(term + 1);
-        handler.onTimeoutNow(server, timeoutNow);
+        handler.onTimeoutNow(serverContext, timeoutNow);
         verify(persistentState).clearVotedForAndSetCurrentTerm(term + 1);
     }
 
     @Test
     public void onCommandMessage() throws Exception {
         final int term = 42;
-        final PersistentState persistentState = server.state().persistentState();
+        final PersistentState persistentState = serverContext.state().persistentState();
         when(persistentState.currentTerm()).thenReturn(term);
 
         //message term < current term
         when(commandMessage.term()).thenReturn(term - 1);
-        handler.onCommandMessage(server, commandMessage);
+        handler.onCommandMessage(serverContext, commandMessage);
         verify(persistentState, never()).clearVotedForAndSetCurrentTerm(anyInt());
 
         //message term == current term
         when(commandMessage.term()).thenReturn(term);
-        handler.onCommandMessage(server, commandMessage);
+        handler.onCommandMessage(serverContext, commandMessage);
         verify(persistentState, never()).clearVotedForAndSetCurrentTerm(anyInt());
 
         //message term > current term
         when(commandMessage.term()).thenReturn(term + 1);
-        handler.onCommandMessage(server, commandMessage);
+        handler.onCommandMessage(serverContext, commandMessage);
         verify(persistentState).clearVotedForAndSetCurrentTerm(term + 1);
     }
 

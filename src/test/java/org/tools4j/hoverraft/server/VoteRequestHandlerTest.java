@@ -48,24 +48,24 @@ public class VoteRequestHandlerTest {
     //under test
     private VoteRequestHandler handler;
 
-    private Server server;
+    private ServerContext serverContext;
 
     @Mock
     private Sender<Message> sender;
 
     @Before
     public void init() {
-        server = Mockery.simple(1);
+        serverContext = Mockery.simple(1);
 
         handler = new VoteRequestHandler();
     }
 
     private int candidateId() {
-        return server.id() + 1;
+        return serverContext.id() + 1;
     }
 
     private int differentCandidateId() {
-        return server.id() + 2;
+        return serverContext.id() + 2;
     }
 
     @Test
@@ -95,7 +95,7 @@ public class VoteRequestHandlerTest {
 
     private void onVoteRequest(final Role currentRole, final int previouslyVotedFor) throws Exception {
         //given
-        final int term = server.currentTerm();
+        final int term = serverContext.currentTerm();
         final int candidateId = candidateId();
         final int lastLogTerm = term;
         final long lastLogIndex = 1234;
@@ -106,11 +106,11 @@ public class VoteRequestHandlerTest {
                 .candidateId(candidateId)
                 .lastLogTerm(lastLogTerm)
                 .lastLogIndex(lastLogIndex);
-        server.state().volatileState().changeRoleTo(currentRole);
-        when(server.connections().serverSender(candidateId)).thenReturn(sender);
-        when(server.state().persistentState().votedFor()).thenReturn(previouslyVotedFor);
-        when(server.state().persistentState().lastLogTerm()).thenReturn(lastLogTerm);
-        when(server.state().persistentState().lastLogIndex()).thenReturn(lastLogIndex);
+        serverContext.state().volatileState().changeRoleTo(currentRole);
+        when(serverContext.connections().serverSender(candidateId)).thenReturn(sender);
+        when(serverContext.state().persistentState().votedFor()).thenReturn(previouslyVotedFor);
+        when(serverContext.state().persistentState().lastLogTerm()).thenReturn(lastLogTerm);
+        when(serverContext.state().persistentState().lastLogIndex()).thenReturn(lastLogIndex);
 
         //when + then
         onVoteRequest(term, voteRequest, granted);
@@ -119,7 +119,7 @@ public class VoteRequestHandlerTest {
     @Test
     public void onVoteRequest_validCandidate_newerLastLogTerm() throws Exception {
         //given
-        final int term = server.currentTerm();
+        final int term = serverContext.currentTerm();
         final int candidateId = candidateId();
         final int lastLogTerm = term;
         final long lastLogIndex = 1234;
@@ -130,11 +130,11 @@ public class VoteRequestHandlerTest {
                 .candidateId(candidateId)
                 .lastLogTerm(newerLastLogTerm)
                 .lastLogIndex(lastLogIndex);
-        server.state().volatileState().changeRoleTo(Role.FOLLOWER);
-        when(server.connections().serverSender(candidateId)).thenReturn(sender);
-        when(server.state().persistentState().votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
-        when(server.state().persistentState().lastLogTerm()).thenReturn(lastLogTerm);
-        when(server.state().persistentState().lastLogIndex()).thenReturn(lastLogIndex);
+        serverContext.state().volatileState().changeRoleTo(Role.FOLLOWER);
+        when(serverContext.connections().serverSender(candidateId)).thenReturn(sender);
+        when(serverContext.state().persistentState().votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
+        when(serverContext.state().persistentState().lastLogTerm()).thenReturn(lastLogTerm);
+        when(serverContext.state().persistentState().lastLogIndex()).thenReturn(lastLogIndex);
 
         //when + then
         onVoteRequest(term, voteRequest, GRANTED);
@@ -143,7 +143,7 @@ public class VoteRequestHandlerTest {
     @Test
     public void onVoteRequest_validCandidate_newerLastLogIndex() throws Exception {
         //given
-        final int term = server.currentTerm();
+        final int term = serverContext.currentTerm();
         final int candidateId = candidateId();
         final int lastLogTerm = term;
         final long lastLogIndex = 1234;
@@ -154,11 +154,11 @@ public class VoteRequestHandlerTest {
                 .candidateId(candidateId)
                 .lastLogTerm(lastLogTerm)
                 .lastLogIndex(newerLastLogIndex);
-        server.state().volatileState().changeRoleTo(Role.FOLLOWER);
-        when(server.connections().serverSender(candidateId)).thenReturn(sender);
-        when(server.state().persistentState().votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
-        when(server.state().persistentState().lastLogTerm()).thenReturn(lastLogTerm);
-        when(server.state().persistentState().lastLogIndex()).thenReturn(lastLogIndex);
+        serverContext.state().volatileState().changeRoleTo(Role.FOLLOWER);
+        when(serverContext.connections().serverSender(candidateId)).thenReturn(sender);
+        when(serverContext.state().persistentState().votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
+        when(serverContext.state().persistentState().lastLogTerm()).thenReturn(lastLogTerm);
+        when(serverContext.state().persistentState().lastLogIndex()).thenReturn(lastLogIndex);
 
         //when + then
         onVoteRequest(term, voteRequest, GRANTED);
@@ -167,9 +167,9 @@ public class VoteRequestHandlerTest {
     @Test
     public void onVoteRequest_wrongTerm() throws Exception {
         //given
-        final int term = server.currentTerm();
+        final int term = serverContext.currentTerm();
         final int badTerm = term - 1;
-        final int serverId = server.id();
+        final int serverId = serverContext.id();
         final int lastLogTerm = term;
         final long lastLogIndex = 1234;
         final VoteRequest voteRequest = DirectMessageFactory.createForWriting()
@@ -178,10 +178,10 @@ public class VoteRequestHandlerTest {
                 .candidateId(serverId)
                 .lastLogTerm(lastLogTerm)
                 .lastLogIndex(lastLogIndex);
-        when(server.connections().serverSender(serverId)).thenReturn(sender);
-        when(server.state().persistentState().votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
-        when(server.state().persistentState().lastLogTerm()).thenReturn(lastLogTerm);
-        when(server.state().persistentState().lastLogIndex()).thenReturn(lastLogIndex);
+        when(serverContext.connections().serverSender(serverId)).thenReturn(sender);
+        when(serverContext.state().persistentState().votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
+        when(serverContext.state().persistentState().lastLogTerm()).thenReturn(lastLogTerm);
+        when(serverContext.state().persistentState().lastLogIndex()).thenReturn(lastLogIndex);
 
         //when + then
         onVoteRequest(term, voteRequest, REJECTED);
@@ -190,8 +190,8 @@ public class VoteRequestHandlerTest {
     @Test
     public void onVoteRequest_invalidCandidate_badLastLogTerm() throws Exception {
         //given
-        final int term = server.currentTerm();
-        final int serverId = server.id();
+        final int term = serverContext.currentTerm();
+        final int serverId = serverContext.id();
         final int lastLogTerm = term;
         final long lastLogIndex = 1234;
         final int badLastLogTerm = lastLogTerm - 1;
@@ -201,10 +201,10 @@ public class VoteRequestHandlerTest {
                 .candidateId(serverId)
                 .lastLogTerm(badLastLogTerm)
                 .lastLogIndex(lastLogIndex);
-        when(server.connections().serverSender(serverId)).thenReturn(sender);
-        when(server.state().persistentState().votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
-        when(server.state().persistentState().lastLogTerm()).thenReturn(lastLogTerm);
-        when(server.state().persistentState().lastLogIndex()).thenReturn(lastLogIndex);
+        when(serverContext.connections().serverSender(serverId)).thenReturn(sender);
+        when(serverContext.state().persistentState().votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
+        when(serverContext.state().persistentState().lastLogTerm()).thenReturn(lastLogTerm);
+        when(serverContext.state().persistentState().lastLogIndex()).thenReturn(lastLogIndex);
 
         //when + then
         onVoteRequest(term, voteRequest, REJECTED);
@@ -213,8 +213,8 @@ public class VoteRequestHandlerTest {
     @Test
     public void onVoteRequest_invalidCandidate_badLastLogIndex() throws Exception {
         //given
-        final int term = server.currentTerm();
-        final int serverId = server.id();
+        final int term = serverContext.currentTerm();
+        final int serverId = serverContext.id();
         final int lastLogTerm = term;
         final long lastLogIndex = 1234;
         final long badLastLogIndex = lastLogIndex - 1;
@@ -224,10 +224,10 @@ public class VoteRequestHandlerTest {
                 .candidateId(serverId)
                 .lastLogTerm(lastLogTerm)
                 .lastLogIndex(badLastLogIndex);
-        when(server.connections().serverSender(serverId)).thenReturn(sender);
-        when(server.state().persistentState().votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
-        when(server.state().persistentState().lastLogTerm()).thenReturn(lastLogTerm);
-        when(server.state().persistentState().lastLogIndex()).thenReturn(lastLogIndex);
+        when(serverContext.connections().serverSender(serverId)).thenReturn(sender);
+        when(serverContext.state().persistentState().votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
+        when(serverContext.state().persistentState().lastLogTerm()).thenReturn(lastLogTerm);
+        when(serverContext.state().persistentState().lastLogIndex()).thenReturn(lastLogIndex);
 
         //when + then
         onVoteRequest(term, voteRequest, REJECTED);
@@ -238,7 +238,7 @@ public class VoteRequestHandlerTest {
                                final boolean expectGranted) {
 
         //when
-        handler.onVoteRequest(server, voteRequest);
+        handler.onVoteRequest(serverContext, voteRequest);
 
         //then
         final ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);

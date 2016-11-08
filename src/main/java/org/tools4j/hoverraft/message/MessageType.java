@@ -26,7 +26,7 @@ package org.tools4j.hoverraft.message;
 import org.agrona.DirectBuffer;
 import org.tools4j.hoverraft.message.direct.DirectMessage;
 import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
-import org.tools4j.hoverraft.server.Server;
+import org.tools4j.hoverraft.server.ServerContext;
 
 public enum MessageType {
     VOTE_REQUEST {
@@ -104,14 +104,14 @@ public enum MessageType {
 
     abstract public DirectMessage create(DirectMessageFactory factory);
 
-    public static DirectMessage createOrNull(final Server server,
+    public static DirectMessage createOrNull(final ServerContext serverContext,
                                              final DirectBuffer buffer,
                                              final int offset,
                                              final int length) {
         if (length >= 4) {
             final int type = buffer.getInt(offset);
             if (0 <= type & type <= VALUES.length) {
-                final DirectMessage message = valueByOrdinal(type).create(server.messageFactory());
+                final DirectMessage message = valueByOrdinal(type).create(serverContext.messageFactory());
                 message.wrap(buffer, offset + 4);
                 return message;
             }

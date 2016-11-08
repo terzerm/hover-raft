@@ -31,37 +31,37 @@ import org.tools4j.hoverraft.state.ServerState;
 public final class HigherTermHandler implements MessageHandler {
 
     @Override
-    public void onVoteRequest(final Server server, final VoteRequest voteRequest) {
-        onTerm(server, voteRequest.term());
+    public void onVoteRequest(final ServerContext serverContext, final VoteRequest voteRequest) {
+        onTerm(serverContext, voteRequest.term());
     }
 
     @Override
-    public void onVoteResponse(final Server server, final VoteResponse voteResponse) {
-        onTerm(server, voteResponse.term());
+    public void onVoteResponse(final ServerContext serverContext, final VoteResponse voteResponse) {
+        onTerm(serverContext, voteResponse.term());
     }
 
     @Override
-    public void onAppendRequest(final Server server, final AppendRequest appendRequest) {
-        onTerm(server, appendRequest.term());
+    public void onAppendRequest(final ServerContext serverContext, final AppendRequest appendRequest) {
+        onTerm(serverContext, appendRequest.term());
     }
 
     @Override
-    public void onAppendResponse(final Server server, final AppendResponse appendResponse) {
-        onTerm(server, appendResponse.term());
+    public void onAppendResponse(final ServerContext serverContext, final AppendResponse appendResponse) {
+        onTerm(serverContext, appendResponse.term());
     }
 
     @Override
-    public void onTimeoutNow(final Server server, final TimeoutNow timeoutRequest) {
-        onTerm(server, timeoutRequest.term());
+    public void onTimeoutNow(final ServerContext serverContext, final TimeoutNow timeoutRequest) {
+        onTerm(serverContext, timeoutRequest.term());
     }
 
     @Override
-    public void onCommandMessage(Server server, CommandMessage commandMessage) {
-        onTerm(server, commandMessage.term());
+    public void onCommandMessage(ServerContext serverContext, CommandMessage commandMessage) {
+        onTerm(serverContext, commandMessage.term());
     }
 
-    private void onTerm(final Server server, final int term) {
-        final ServerState state = server.state();
+    private void onTerm(final ServerContext serverContext, final int term) {
+        final ServerState state = serverContext.state();
         final PersistentState pstate = state.persistentState();
         if (term > pstate.currentTerm()) {
             pstate.clearVotedForAndSetCurrentTerm(term);
