@@ -39,8 +39,7 @@ public enum Role {
         this.serverActivity = serverActivity;
     }
 
-    public Consumer<Message> toMessageHandler(final ServerContext serverContext) {
-        return m -> m.accept(serverContext, serverActivity.messageHandler());
-    };
-
+    public ServerActivity serverActivity() {
+        return serverActivity;
+    }
 }

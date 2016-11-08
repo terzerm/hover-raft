@@ -49,11 +49,7 @@ public class ChronicleReceiver implements Receiver<DirectMessage> {
     }
 
     @Override
-    public Poller poller(final Consumer<? super DirectMessage> messageMandler) {
-        return limit -> poll(messageMandler, limit);
-    }
-
-    private int poll(final Consumer<? super DirectMessage> messageMandler, final int limit) {
+    public int poll(final Consumer<? super DirectMessage> messageMandler, final int limit) {
         int messagesRead = 0;
         while (messagesRead < limit && tailer.nextIndex()) {
             final int len = tailer.readInt();

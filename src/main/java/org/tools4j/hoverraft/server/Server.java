@@ -29,18 +29,15 @@ import org.tools4j.hoverraft.machine.StateMachine;
 import org.tools4j.hoverraft.message.CommandMessage;
 import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
-import org.tools4j.hoverraft.message.direct.MessageBroker;
 import org.tools4j.hoverraft.state.ElectionTimer;
 import org.tools4j.hoverraft.state.Role;
 import org.tools4j.hoverraft.state.ServerState;
 import org.tools4j.hoverraft.state.VolatileState;
 import org.tools4j.hoverraft.transport.Connections;
 import org.tools4j.hoverraft.transport.MessageLog;
-import org.tools4j.hoverraft.transport.Receiver;
 import org.tools4j.hoverraft.transport.ResendStrategy;
 import org.tools4j.hoverraft.util.Clock;
 
-import java.util.EnumMap;
 import java.util.Objects;
 
 public final class Server implements ServerContext {
@@ -51,9 +48,8 @@ public final class Server implements ServerContext {
     private final MessageLog<CommandMessage> messageLog;
     private final StateMachine stateMachine;
     private final Connections<Message> connections;
-    private final MessageBroker messageBroker;
     private final DirectMessageFactory messageFactory;
-    private final EnumMap<Role, Receiver.Poller> rolePollers;
+    private final RoundRobinMessagePoller roundRobinMessagePoller;
 
     public Server(final int serverId,
                   final ConsensusConfig consensusConfig,
@@ -69,8 +65,7 @@ public final class Server implements ServerContext {
         this.stateMachine = Objects.requireNonNull(stateMachine);
         this.connections = Objects.requireNonNull(connections);
         this.messageFactory = Objects.requireNonNull(messageFactory);
-        this.messageBroker = new MessageBroker(this);
-        this.rolePollers = initRolePollers();
+        this.roundRobinMessagePoller = new RoundRobinMessagePoller(this);
     }
 
     public ServerConfig serverConfig() {
@@ -96,6 +91,7 @@ public final class Server implements ServerContext {
     public void perform() {
         checkElectionTimeout();
         pollNextServerMessage();
+        performRoleSpecificActivities();
         invokeStateMachineWithCommittedLogEntry();
     }
 
@@ -110,6 +106,14 @@ public final class Server implements ServerContext {
         }
     }
 
+    private void pollNextServerMessage() {
+        roundRobinMessagePoller.pollNextMessage();
+    }
+
+    private void performRoleSpecificActivities() {
+        role().serverActivity().perform(this);
+    }
+
     private void invokeStateMachineWithCommittedLogEntry() {
         final VolatileState vstate = serverState.volatileState();
         long lastApplied = vstate.lastApplied();
@@ -122,19 +126,8 @@ public final class Server implements ServerContext {
         }
     }
 
-    private void pollNextServerMessage() {
-        rolePollers.get(serverState.volatileState().role()).poll(1);
-    }
-
     public ResendStrategy resendStrategy() {
         return ResendStrategy.NOOP;//FIXME use better resend strategy
     }
 
-    private EnumMap<Role, Receiver.Poller> initRolePollers() {
-        final EnumMap<Role, Receiver.Poller> map = new EnumMap<>(Role.class);
-        for (final Role role : Role.values()) {
-            map.put(role, messageBroker.roundRobinPoller(role.toMessageHandler(this)));
-        }
-        return map;
-    }
 }

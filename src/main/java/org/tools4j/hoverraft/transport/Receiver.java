@@ -29,22 +29,12 @@ import java.util.function.Consumer;
 
 public interface Receiver<M extends Message> {
     /**
-     * Returns a poller handling polled messages with the given {@code messageHandler}.
+     * Polls messages in non-blocking mode. Messages are passed to the specified
+     * message handler.
      *
      * @param messageMandler the handler invoked for each message
-     * @return the poller used to start polling messages
+     * @param limit maximum number of messages to receive
+     * @return number of messages received, zero to at most {@code limit} messages
      */
-    Poller poller(Consumer<? super M> messageMandler);
-
-    interface Poller {
-        /**
-         * Polls messages in non-blocking mode. Messages are passed to the message handler
-         * that was used to create this poller.
-         *
-         * @param limit maximum number of messages to receive in response a single poll
-         *              invocation
-         * @return number of messages received, zero to at most {@code limit} messages
-         */
-        int poll(int limit);
-    }
+    int poll(Consumer<? super M> messageMandler, int limit);
 }

@@ -27,6 +27,7 @@ import org.tools4j.hoverraft.config.ConsensusConfig;
 import org.tools4j.hoverraft.config.ServerConfig;
 import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
+import org.tools4j.hoverraft.state.Role;
 import org.tools4j.hoverraft.state.ServerState;
 import org.tools4j.hoverraft.transport.Connections;
 import org.tools4j.hoverraft.transport.ResendStrategy;
@@ -51,6 +52,10 @@ public interface ServerContext {
 
     default int id() {
         return serverConfig().id();
+    }
+
+    default Role role() {
+        return state().volatileState().role();
     }
 
 }

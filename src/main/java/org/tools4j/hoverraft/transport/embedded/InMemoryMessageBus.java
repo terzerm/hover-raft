@@ -25,58 +25,36 @@ package org.tools4j.hoverraft.transport.embedded;
 
 import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.transport.Receiver;
-import org.tools4j.hoverraft.transport.RejectReason;
 import org.tools4j.hoverraft.transport.Sender;
 
-import java.util.Collection;
 import java.util.Deque;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 
 /**
  * In-process message bus for simple messages.
  */
-public class InMemoryMessageBus<M extends Message> implements Sender<M>, Receiver<M> {
+public class InMemoryMessageBus<M extends Message> implements Sender<M>,Receiver<M> {
 
-    private final Collection<BufferingPoller> pollers = new ConcurrentLinkedQueue<>();
+    private final Deque<M> queue = new ConcurrentLinkedDeque<M>();
 
     @Override
     public long offer(final M message) {
-        int count = 0;
-        for (final BufferingPoller poller : pollers) {
-            if (poller.buffer.offer(message)) {
-                count++;
-            }
-        }
-        return count > 0 ? 0 : RejectReason.NOT_CONNECTED;
+        return queue.offerLast(message) ? 1 : 0;
     }
 
     @Override
-    public Poller poller(final Consumer<? super M> messageMandler) {
-        final BufferingPoller poller = new BufferingPoller(messageMandler);
-        pollers.add(poller);
-        return poller;
-    }
-
-    private final class BufferingPoller implements Poller {
-        private final Consumer<? super M> messageHandler;
-        private final Deque<M> buffer = new ConcurrentLinkedDeque<>();
-
-        public BufferingPoller(final Consumer<? super M> messageHandler) {
-            this.messageHandler = Objects.requireNonNull(messageHandler);
-        }
-        @Override
-        public int poll(final int limit) {
-            for (int i = 0; i < limit; i++) {
-                final M msg = buffer.pollFirst();
-                if (msg == null) {
-                    return i;
-                }
-                messageHandler.accept(msg);
+    public int poll(final Consumer<? super M> messageMandler, final int limit) {
+        int cnt = 0;
+        while (cnt < limit) {
+            M msg = queue.pollFirst();
+            if (msg == null) {
+                return cnt;
             }
-            return limit;
+            messageMandler.accept(msg);
+            cnt++;
         }
+        return cnt;
     }
+
 }

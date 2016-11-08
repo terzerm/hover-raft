@@ -49,7 +49,7 @@ public class DefaultConnections<M extends Message> implements Connections<M> {
         final Receiver<M>[] arr = (Receiver<M>[])new Receiver<?>[receivers.size()];
         for (int i = 0; i < arr.length; i++) {
             final int index = i;
-            arr[index] = (c) -> receivers.get(index).poller(c);
+            arr[index] = (c, l) -> receivers.get(index).poll(c, l);
         }
         return arr;
     }

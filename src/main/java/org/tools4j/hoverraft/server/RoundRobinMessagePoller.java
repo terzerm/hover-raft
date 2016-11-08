@@ -21,34 +21,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.message.direct;
+package org.tools4j.hoverraft.server;
 
 import org.tools4j.hoverraft.config.ConsensusConfig;
 import org.tools4j.hoverraft.config.ServerConfig;
 import org.tools4j.hoverraft.message.Message;
-import org.tools4j.hoverraft.message.MessageHandler;
-import org.tools4j.hoverraft.server.ServerContext;
-import org.tools4j.hoverraft.transport.Pollers;
 import org.tools4j.hoverraft.transport.Receiver;
+import org.tools4j.hoverraft.transport.Receivers;
 
 import java.util.Objects;
 import java.util.function.Consumer;
 
-/**
- * Polls a message from each serverContext and dispatches it to the appropriate method of a
- * {@link MessageHandler}.
- */
-public final class MessageBroker {
+public class RoundRobinMessagePoller {
 
     private final ServerContext serverContext;
-    private final Receiver<?>[] serverReceivers;
+    private final Receiver<Message> roundRobinReceiver;
+    private final Consumer<Message> messageHandler;
 
-    public MessageBroker(final ServerContext serverContext) {
+    public RoundRobinMessagePoller(final ServerContext serverContext) {
         this.serverContext = Objects.requireNonNull(serverContext);
-        this.serverReceivers = serverSubscriptions(serverContext);
+        this.roundRobinReceiver = roundRobinReceiver(serverContext);
+        this.messageHandler = this::handleMessage;
     }
 
-    private static Receiver<?>[] serverSubscriptions(final ServerContext serverContext) {
+    public void pollNextMessage() {
+        roundRobinReceiver.poll(messageHandler, 1);
+    }
+
+    private void handleMessage(final Message message) {
+        final ServerActivity serverActivity = serverContext.role().serverActivity();
+        message.accept(serverContext, serverActivity.messageHandler());
+    }
+
+    private static Receiver<Message> roundRobinReceiver(final ServerContext serverContext) {
         final ConsensusConfig consensusConfig = serverContext.consensusConfig();
         final int servers = consensusConfig.serverCount();
         final Receiver<?>[] receivers= new Receiver<?>[servers - 1];
@@ -63,11 +68,7 @@ public final class MessageBroker {
         if (index < servers - 1) {
             throw new IllegalStateException("invalid serverContext ID serverConfig: expected " + servers + " unique IDs but found " + (index + 1));
         }
-        return receivers;
-    }
-
-    public Receiver.Poller roundRobinPoller(final Consumer<Message> messageHandler) {
-        return Pollers.roundRobinPoller(messageHandler, serverReceivers);
+        return Receivers.roundRobinReceiver(receivers);
     }
 
 }

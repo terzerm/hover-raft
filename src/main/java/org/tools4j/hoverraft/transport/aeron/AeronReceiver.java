@@ -25,7 +25,6 @@ package org.tools4j.hoverraft.transport.aeron;
 
 import io.aeron.Subscription;
 import io.aeron.logbuffer.FragmentHandler;
-import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.message.direct.DirectMessage;
 import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
 import org.tools4j.hoverraft.transport.Receiver;
@@ -44,11 +43,11 @@ public class AeronReceiver implements Receiver<DirectMessage> {
     }
 
     @Override
-    public Poller poller(final Consumer<? super DirectMessage> messageMandler) {
+    public int poll(final Consumer<? super DirectMessage> messageMandler, final int limit) {
         final FragmentHandler fragmentHandler = (buf, off, len, hdr) -> {
             final DirectMessage message = directMessageFactory.wrapForReading(buf, off);
             messageMandler.accept(message);
         };
-        return (limit) -> subscription.poll(fragmentHandler, limit);
+        return subscription.poll(fragmentHandler, limit);
     }
 }
