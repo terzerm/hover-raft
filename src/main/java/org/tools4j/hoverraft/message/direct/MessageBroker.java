@@ -23,14 +23,16 @@
  */
 package org.tools4j.hoverraft.message.direct;
 
-import io.aeron.Subscription;
-import io.aeron.logbuffer.FragmentHandler;
 import org.tools4j.hoverraft.config.ConsensusConfig;
 import org.tools4j.hoverraft.config.ServerConfig;
+import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.message.MessageHandler;
 import org.tools4j.hoverraft.server.ServerContext;
+import org.tools4j.hoverraft.transport.Pollers;
+import org.tools4j.hoverraft.transport.Receiver;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * Polls a message from each serverContext and dispatches it to the appropriate method of a
@@ -39,45 +41,33 @@ import java.util.Objects;
 public final class MessageBroker {
 
     private final ServerContext serverContext;
-    private final Subscription[] serverSubscriptions;
-
-    private int index;
+    private final Receiver<?>[] serverReceivers;
 
     public MessageBroker(final ServerContext serverContext) {
         this.serverContext = Objects.requireNonNull(serverContext);
-        this.serverSubscriptions = serverSubscriptions();
+        this.serverReceivers = serverSubscriptions(serverContext);
     }
 
-    private Subscription[] serverSubscriptions() {
+    private static Receiver<?>[] serverSubscriptions(final ServerContext serverContext) {
         final ConsensusConfig consensusConfig = serverContext.consensusConfig();
         final int servers = consensusConfig.serverCount();
-        final Subscription[] subscriptions = new Subscription[servers - 1];
+        final Receiver<?>[] receivers= new Receiver<?>[servers - 1];
         int index = 0;
         for (int i = 0; i < servers - 1; i++) {
             final ServerConfig serverConfig = consensusConfig.serverConfig(i);
             if (serverConfig.id() != serverContext.serverConfig().id()) {
-                subscriptions[i] = null;//FIXME: serverContext.connections().serverReceiver(serverConfig.id());
+                receivers[i] = serverContext.connections().serverReceiver(serverConfig.id());
                 index++;
             }
         }
         if (index < servers - 1) {
             throw new IllegalStateException("invalid serverContext ID serverConfig: expected " + servers + " unique IDs but found " + (index + 1));
         }
-        return subscriptions;
+        return receivers;
     }
 
-    public int pollNextMessage(final FragmentHandler fragmentHandler) {
-        final int len = serverSubscriptions.length;
-        int count = 0;
-        for (int i = 0; i < len; i++) {
-            final Subscription subscription = serverSubscriptions[index];
-            count += subscription.poll(fragmentHandler, 1);
-            index++;
-            if (index >= len) {
-                index = 0;
-            }
-        }
-        return count;
+    public Receiver.Poller roundRobinPoller(final Consumer<Message> messageHandler) {
+        return Pollers.roundRobinPoller(messageHandler, serverReceivers);
     }
 
 }

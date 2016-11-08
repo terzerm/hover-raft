@@ -23,7 +23,6 @@
  */
 package org.tools4j.hoverraft.server;
 
-import io.aeron.logbuffer.FragmentHandler;
 import org.tools4j.hoverraft.config.ConsensusConfig;
 import org.tools4j.hoverraft.config.ServerConfig;
 import org.tools4j.hoverraft.machine.StateMachine;
@@ -37,6 +36,7 @@ import org.tools4j.hoverraft.state.ServerState;
 import org.tools4j.hoverraft.state.VolatileState;
 import org.tools4j.hoverraft.transport.Connections;
 import org.tools4j.hoverraft.transport.MessageLog;
+import org.tools4j.hoverraft.transport.Receiver;
 import org.tools4j.hoverraft.transport.ResendStrategy;
 import org.tools4j.hoverraft.util.Clock;
 
@@ -53,7 +53,7 @@ public final class Server implements ServerContext {
     private final Connections<Message> connections;
     private final MessageBroker messageBroker;
     private final DirectMessageFactory messageFactory;
-    private final EnumMap<Role, FragmentHandler> roleFragmentHandler;
+    private final EnumMap<Role, Receiver.Poller> rolePollers;
 
     public Server(final int serverId,
                   final ConsensusConfig consensusConfig,
@@ -70,7 +70,7 @@ public final class Server implements ServerContext {
         this.connections = Objects.requireNonNull(connections);
         this.messageFactory = Objects.requireNonNull(messageFactory);
         this.messageBroker = new MessageBroker(this);
-        this.roleFragmentHandler = initRoleFragmentHandlers();
+        this.rolePollers = initRolePollers();
     }
 
     public ServerConfig serverConfig() {
@@ -95,12 +95,8 @@ public final class Server implements ServerContext {
 
     public void perform() {
         checkElectionTimeout();
-        performRoleSpecificActivity();
+        pollNextServerMessage();
         invokeStateMachineWithCommittedLogEntry();
-    }
-
-    public void pollNextMessages(final FragmentHandler fragmentHandler) {
-        messageBroker.pollNextMessage(fragmentHandler);
     }
 
     private void checkElectionTimeout() {
@@ -126,19 +122,18 @@ public final class Server implements ServerContext {
         }
     }
 
-    private void performRoleSpecificActivity() {
-        final FragmentHandler fh = roleFragmentHandler.get(serverState.volatileState().role());
-        messageBroker.pollNextMessage(fh);
+    private void pollNextServerMessage() {
+        rolePollers.get(serverState.volatileState().role()).poll(1);
     }
 
     public ResendStrategy resendStrategy() {
         return ResendStrategy.NOOP;//FIXME use better resend strategy
     }
 
-    private EnumMap<Role, FragmentHandler> initRoleFragmentHandlers() {
-        final EnumMap<Role, FragmentHandler> map = new EnumMap<>(Role.class);
+    private EnumMap<Role, Receiver.Poller> initRolePollers() {
+        final EnumMap<Role, Receiver.Poller> map = new EnumMap<>(Role.class);
         for (final Role role : Role.values()) {
-            map.put(role, role.toFragmentHandler(this));
+            map.put(role, messageBroker.roundRobinPoller(role.toMessageHandler(this)));
         }
         return map;
     }

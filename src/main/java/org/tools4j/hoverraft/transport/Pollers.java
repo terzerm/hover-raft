@@ -25,10 +25,41 @@ package org.tools4j.hoverraft.transport;
 
 import org.tools4j.hoverraft.message.Message;
 
+import java.util.function.Consumer;
+
 public final class Pollers {
 
     public static <M extends Message> Receiver.Poller pollToMessageLog(final Receiver<M> receiver, final MessageLog<? super M> messageLog) {
         return receiver.poller(m -> messageLog.append(m));
+    }
+
+    public static <M extends Message> Receiver.Poller roundRobinPoller(final Consumer<M> messageHandler, final Receiver<? extends M>... receivers) {
+        final Receiver.Poller[] pollers = new Receiver.Poller[receivers.length];
+        for (int i = 0; i < receivers.length; i++) {
+            pollers[i] = receivers[i].poller(messageHandler);
+        }
+        return roundRobinPoller(pollers);
+    }
+
+    public static Receiver.Poller roundRobinPoller(final Receiver.Poller... pollers) {
+        return new Receiver.Poller() {
+            private int index = -1;
+
+            @Override
+            public int poll(final int limit) {
+                final Receiver.Poller[] p = pollers;
+                final int len = p.length;
+                int cnt = 0;
+                for (int i = 0; i < len && cnt < limit; i++) {
+                    index++;
+                    if (index >= len) {
+                        index -= len;
+                    }
+                    cnt += p[index].poll(limit - cnt);
+                }
+                return cnt;
+            }
+        };
     }
 
 }
