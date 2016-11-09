@@ -29,14 +29,12 @@ import org.tools4j.hoverraft.machine.StateMachine;
 import org.tools4j.hoverraft.message.CommandMessage;
 import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
-import org.tools4j.hoverraft.state.Timer;
-import org.tools4j.hoverraft.state.Role;
-import org.tools4j.hoverraft.state.ServerState;
+import org.tools4j.hoverraft.state.HoverRaftMachine;
+import org.tools4j.hoverraft.state.PersistentState;
 import org.tools4j.hoverraft.state.VolatileState;
 import org.tools4j.hoverraft.transport.Connections;
 import org.tools4j.hoverraft.transport.MessageLog;
 import org.tools4j.hoverraft.transport.ResendStrategy;
-import org.tools4j.hoverraft.util.Clock;
 
 import java.util.Objects;
 
@@ -44,7 +42,7 @@ public final class Server implements ServerContext {
 
     private final ServerConfig serverConfig;
     private final ConsensusConfig consensusConfig;
-    private final ServerState serverState;
+    private final HoverRaftMachine hoverRaftMachine;
     private final MessageLog<CommandMessage> messageLog;
     private final StateMachine stateMachine;
     private final Connections<Message> connections;
@@ -54,14 +52,15 @@ public final class Server implements ServerContext {
 
     public Server(final int serverId,
                   final ConsensusConfig consensusConfig,
-                  final ServerState serverState,
+                  final PersistentState persistentState,
+                  final VolatileState volatileState,
                   final MessageLog<CommandMessage> messageLog,
                   final StateMachine stateMachine,
                   final Connections<Message> connections,
                   final DirectMessageFactory messageFactory) {
         this.serverConfig = Objects.requireNonNull(consensusConfig.serverConfigByIdOrNull(serverId), "No server serverConfig found for ID " + serverId);
         this.consensusConfig = Objects.requireNonNull(consensusConfig);
-        this.serverState = Objects.requireNonNull(serverState);
+        this.hoverRaftMachine = new HoverRaftMachine(persistentState, volatileState);
         this.messageLog = Objects.requireNonNull(messageLog);
         this.stateMachine = Objects.requireNonNull(stateMachine);
         this.connections = Objects.requireNonNull(connections);
@@ -78,10 +77,6 @@ public final class Server implements ServerContext {
         return consensusConfig;
     }
 
-    public ServerState state() {
-        return serverState;
-    }
-
     public Connections<Message> connections() {
         return connections;
     }
@@ -95,43 +90,19 @@ public final class Server implements ServerContext {
         return messageFactory;
     }
 
-    public void perform() {
-        checkElectionTimeout();
-        serverMessagePoller.pollNextMessage();
-        sourceMessagePoller.pollNextMessage();
-        performRoleSpecificActivities();
-        invokeStateMachineWithCommittedLogEntry();
+    @Override
+    public StateMachine stateMachine() {
+        return stateMachine;
     }
 
-    private void checkElectionTimeout() {
-        final ServerState state = serverState;
-        final VolatileState vstate = state.volatileState();
-        final Timer timer = vstate.electionState().electionTimer();
-        if (timer.hasTimeoutElapsed(Clock.DEFAULT)) {
-            state.persistentState().clearVotedForAndIncCurrentTerm();
-            vstate.changeRoleTo(Role.CANDIDATE);
-            timer.restart(Clock.DEFAULT);
-        }
+    public void perform() {
+        serverMessagePoller.pollNextMessage();
+        sourceMessagePoller.pollNextMessage();
+        hoverRaftMachine.perform(this);
     }
 
     private void handleMessage(final Message message) {
-        message.accept(this, role().serverActivity().messageHandler());
-    }
-
-    private void performRoleSpecificActivities() {
-        role().serverActivity().perform(this);
-    }
-
-    private void invokeStateMachineWithCommittedLogEntry() {
-        final VolatileState vstate = serverState.volatileState();
-        long lastApplied = vstate.lastApplied();
-        while (vstate.commitIndex() > lastApplied) {
-            lastApplied++;
-            messageLog.readIndex(lastApplied);
-            final CommandMessage commandMsg = messageLog.read();
-            stateMachine.onMessage(commandMsg);
-            vstate.lastApplied(lastApplied);
-        }
+        hoverRaftMachine.onMessage(this, message);
     }
 
     public ResendStrategy resendStrategy() {

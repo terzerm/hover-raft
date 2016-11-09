@@ -30,7 +30,6 @@ import org.tools4j.hoverraft.machine.StateMachine;
 import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
 import org.tools4j.hoverraft.state.PersistentState;
-import org.tools4j.hoverraft.state.ServerState;
 import org.tools4j.hoverraft.state.VolatileState;
 import org.tools4j.hoverraft.transport.Connections;
 import org.tools4j.hoverraft.transport.MessageLog;
@@ -64,7 +63,7 @@ public class Mockery {
                                         final DirectMessageFactory messageFactory) {
         final ConsensusConfig consensusConfig = consensusConfig(servers, sources);
         return new Server(SERVER_ID,
-                consensusConfig(servers, sources), serverState(consensusConfig),
+                consensusConfig(servers, sources), persistentState(), volatileState(consensusConfig),
                 messageLog(), stateMachine(), connections(servers, sources), messageFactory);
     }
 
@@ -96,11 +95,6 @@ public class Mockery {
         return connects;
     }
 
-    public static ServerState serverState(final ConsensusConfig consensusConfig) {
-        final PersistentState persistentState = persistentState();
-        return new ServerState(persistentState, new VolatileState(SERVER_ID, consensusConfig));
-    }
-
     public static PersistentState persistentState() {
         final PersistentState persistentState = mock(PersistentState.class);
         when(persistentState.currentTerm()).thenReturn(1);
@@ -109,4 +103,8 @@ public class Mockery {
         when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
         return persistentState;
     }
+    public static VolatileState volatileState(final ConsensusConfig consensusConfig) {
+        return new VolatileState(SERVER_ID, consensusConfig);
+    }
+
 }

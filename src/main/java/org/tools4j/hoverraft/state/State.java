@@ -21,31 +21,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.server;
+package org.tools4j.hoverraft.state;
 
-import org.tools4j.hoverraft.message.MessageHandler;
-import org.tools4j.hoverraft.message.TimeoutNow;
+import org.tools4j.hoverraft.message.Message;
+import org.tools4j.hoverraft.server.ServerContext;
 
-public class FollowerActivity implements ServerActivity {
+public interface State {
+    Role role();
+    Role onMessage(ServerContext serverContext, Message message);
 
-    private final MessageHandler messageHandler = new HigherTermHandler()
-            .thenHandleVoteRequest(new VoteRequestHandler()::onVoteRequest)
-            .thenHandleAppendRequest(new AppendRequestHandler()::onAppendRequest)
-            .thenHandleTimeoutNow(this::onTimeoutNow);
-
-    @Override
-    public MessageHandler messageHandler() {
-        return messageHandler;
-    }
-
-    @Override
-    public void perform(final ServerContext serverContext) {
-        //no op, we are just responding to requests and perform all standard serverContext ops
-    }
-
-    private void onTimeoutNow(final ServerContext serverContext, final TimeoutNow timeoutNow) {
-        if (timeoutNow.term() == serverContext.currentTerm() && timeoutNow.candidateId() == serverContext.id()) {
-            serverContext.state().volatileState().electionState().electionTimer().timeoutNow();
-        }
-    }
+    @Deprecated //TODO remove and merge this with onMessage(..)
+    void perform(ServerContext serverContext);
 }

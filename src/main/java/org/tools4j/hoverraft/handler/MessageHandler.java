@@ -21,8 +21,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.message;
+package org.tools4j.hoverraft.handler;
 
+import org.tools4j.hoverraft.message.*;
 import org.tools4j.hoverraft.server.ServerContext;
 
 import java.util.function.BiConsumer;

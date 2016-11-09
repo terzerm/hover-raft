@@ -21,11 +21,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.server;
+package org.tools4j.hoverraft.state;
 
-import org.tools4j.hoverraft.message.MessageHandler;
+public final class TrackedFollowerState {
 
-public interface ServerActivity {
-    MessageHandler messageHandler();
-    void perform(ServerContext serverContext);
+    private final int serverId;
+
+    private long nextIndex;
+    private long matchIndex;
+
+    public TrackedFollowerState(final int serverId) {
+        this.serverId = serverId;
+    }
+
+    public int serverId() {
+        return serverId;
+    }
+
+    public long nextIndex() {
+        return nextIndex;
+    }
+
+    public long matchIndex() {
+        return matchIndex;
+    }
 }

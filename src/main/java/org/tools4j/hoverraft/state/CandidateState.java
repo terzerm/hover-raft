@@ -28,20 +28,20 @@ import org.tools4j.hoverraft.handler.MessageHandler;
 import org.tools4j.hoverraft.handler.VoteRequestHandler;
 import org.tools4j.hoverraft.message.AppendRequest;
 import org.tools4j.hoverraft.message.Message;
-import org.tools4j.hoverraft.message.TimeoutNow;
+import org.tools4j.hoverraft.message.VoteResponse;
 import org.tools4j.hoverraft.server.ServerContext;
 import org.tools4j.hoverraft.util.Clock;
 
-public class FollowerState extends AbstractState {
+public final class CandidateState extends AbstractState {
 
     private final MessageHandler messageHandler;
 
-    public FollowerState(final PersistentState persistentState, final VolatileState volatileState) {
-        super(Role.FOLLOWER, persistentState, volatileState);
+    public CandidateState(final PersistentState persistentState, final VolatileState volatileState) {
+        super(Role.CANDIDATE, persistentState, volatileState);
         this.messageHandler = new HigherTermHandler(persistentState, volatileState)
                 .thenHandleVoteRequest(new VoteRequestHandler(persistentState, volatileState)::onVoteRequest)
                 .thenHandleAppendRequest(this::onAppendRequest)
-                .thenHandleTimeoutNow(this::onTimeoutNow);
+                .thenHandleVoteResponse(this::onVoteResponse);
     }
 
     @Override
@@ -51,8 +51,16 @@ public class FollowerState extends AbstractState {
     }
 
     @Override
-    public void perform(ServerContext serverContext) {
-        //nothing to do
+    public void perform(final ServerContext serverContext) {
+        if (persistentState().votedFor() < 0) {
+            voteForMyself(serverContext);
+        }
+    }
+
+    private void onVoteResponse(final ServerContext serverContext, final VoteResponse voteResponse) {
+        if (voteResponse.term() == currentTerm() && voteResponse.voteGranted()) {
+            incVoteCount(serverContext);
+        }
     }
 
     private void onAppendRequest(final ServerContext serverContext, final AppendRequest appendRequest) {
@@ -61,7 +69,8 @@ public class FollowerState extends AbstractState {
         final int currentTerm = currentTerm();
         final boolean successful;
         if (currentTerm == term) /* should never be larger */ {
-            volatileState().electionState().electionTimer().reset(Clock.DEFAULT);
+            volatileState().changeRoleTo(Role.FOLLOWER);
+            volatileState().electionState().electionTimer().restart(Clock.DEFAULT);
             successful = appendToLog(serverContext, appendRequest);
         } else {
             successful = false;
@@ -78,9 +87,32 @@ public class FollowerState extends AbstractState {
         return true;
     }
 
-    private void onTimeoutNow(final ServerContext serverContext, final TimeoutNow timeoutNow) {
-        if (timeoutNow.term() == currentTerm() && timeoutNow.candidateId() == serverContext.id()) {
-            volatileState().electionState().electionTimer().timeoutNow();
+    private void voteForMyself(final ServerContext serverContext) {
+        final VolatileState vstate = volatileState();
+        final PersistentState pstate = persistentState();
+        final ElectionState estate = vstate.electionState();
+        final int self = serverContext.serverConfig().id();
+        pstate.votedFor(self);
+        estate.initVoteCount();
+        requestVoteFromAllServers(serverContext, self);
+    }
+
+    private void requestVoteFromAllServers(final ServerContext serverContext, final int self) {
+        serverContext.messageFactory().voteRequest()
+                .term(currentTerm())
+                .candidateId(self)
+                .sendTo(serverContext.connections().serverMulticastSender(),
+                        serverContext.resendStrategy());
+    }
+
+    private void incVoteCount(final ServerContext serverContext) {
+        final VolatileState vstate = volatileState();
+        vstate.electionState().incVoteCount();
+        final int servers = serverContext.consensusConfig().serverCount();
+        final int majority = (servers + 1) / 2;
+        if (vstate.electionState().voteCount() >= majority) {
+            vstate.changeRoleTo(Role.LEADER);
         }
     }
+
 }

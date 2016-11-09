@@ -23,23 +23,21 @@
  */
 package org.tools4j.hoverraft.state;
 
-import org.tools4j.hoverraft.message.Message;
-import org.tools4j.hoverraft.server.*;
-
-import java.util.function.Consumer;
+import java.util.Objects;
+import java.util.function.BiFunction;
 
 public enum Role {
-    CANDIDATE(new CandidateActivity()),
-    LEADER(new LeaderActivity()),
-    FOLLOWER(new FollowerActivity());
+    CANDIDATE(CandidateState::new),
+    LEADER(LeaderState::new),
+    FOLLOWER(FollowerState::new);
 
-    private final ServerActivity serverActivity;
+    private final BiFunction<PersistentState, VolatileState, State> stateFactory;
 
-    Role(final ServerActivity serverActivity) {
-        this.serverActivity = serverActivity;
+    Role(final BiFunction<PersistentState, VolatileState, State> stateFactory) {
+        this.stateFactory = Objects.requireNonNull(stateFactory);
     }
 
-    public ServerActivity serverActivity() {
-        return serverActivity;
+    public State createState(final PersistentState persistentState, final VolatileState volatileState) {
+        return stateFactory.apply(persistentState, volatileState);
     }
 }

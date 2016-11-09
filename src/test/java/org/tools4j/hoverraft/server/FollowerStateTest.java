@@ -33,7 +33,10 @@ import org.tools4j.hoverraft.message.AppendRequest;
 import org.tools4j.hoverraft.message.AppendResponse;
 import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
+import org.tools4j.hoverraft.state.FollowerState;
+import org.tools4j.hoverraft.state.PersistentState;
 import org.tools4j.hoverraft.state.Role;
+import org.tools4j.hoverraft.state.VolatileState;
 import org.tools4j.hoverraft.transport.Sender;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,12 +44,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class AppendRequestHandlerTest {
+public class FollowerStateTest {
 
     //under test
-    private AppendRequestHandler handler;
+    private FollowerState followerState;
 
     private ServerContext serverContext;
+    private PersistentState persistentState;
+    private VolatileState volatileState;
 
     @Mock
     private Sender<Message> sender;
@@ -54,34 +59,27 @@ public class AppendRequestHandlerTest {
     @Before
     public void init() {
         serverContext = Mockery.simple(1);
+        persistentState= Mockery.persistentState();
+        volatileState = Mockery.volatileState(serverContext.consensusConfig());
 
-        handler = new AppendRequestHandler();
+        followerState = new FollowerState(persistentState, volatileState);
     }
 
     @Test
-    public void onAppendRequest_roleCandidate() throws Exception {
-        onAppendRequest(Role.CANDIDATE);
-    }
-
-    @Test
-    public void onAppendRequest_roleFollower() throws Exception {
-        onAppendRequest(Role.FOLLOWER);
-    }
-
-    private void onAppendRequest(final Role currentRole) throws Exception {
+    public void onAppendRequest() throws Exception {
         //given
-        final int term = serverContext.currentTerm();
+        final int term = persistentState.currentTerm();
         final int serverId = serverContext.id();
         final int leaderId = serverId + 1;
         final AppendRequest appendRequest = DirectMessageFactory.createForWriting()
                 .appendRequest()
                 .term(term)
                 .leaderId(leaderId);
-        serverContext.state().volatileState().changeRoleTo(currentRole);
+        volatileState.changeRoleTo(Role.FOLLOWER);
         when(serverContext.connections().serverSender(leaderId)).thenReturn(sender);
 
         //when
-        handler.onAppendRequest(serverContext, appendRequest);
+        followerState.onMessage(serverContext, appendRequest);
 
         //then
         final ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
@@ -90,13 +88,13 @@ public class AppendRequestHandlerTest {
         final AppendResponse response = (AppendResponse)captor.getValue();
         assertThat(response.successful()).isTrue();
         assertThat(response.term()).isEqualTo(term);
-        assertThat(serverContext.state().volatileState().role()).isEqualTo(Role.FOLLOWER);
+        assertThat(volatileState.role()).isEqualTo(Role.FOLLOWER);
     }
 
     @Test
     public void onAppendRequest_wrongTerm() throws Exception {
         //given
-        final int term = serverContext.currentTerm();
+        final int term = persistentState.currentTerm();
         final int badTerm = term - 1;
         final int serverId = serverContext.id();
         final int leaderId = serverId + 1;
@@ -107,7 +105,7 @@ public class AppendRequestHandlerTest {
         when(serverContext.connections().serverSender(leaderId)).thenReturn(sender);
 
         //when
-        handler.onAppendRequest(serverContext, appendRequest);
+        followerState.onMessage(serverContext, appendRequest);
 
         //then
         final ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);

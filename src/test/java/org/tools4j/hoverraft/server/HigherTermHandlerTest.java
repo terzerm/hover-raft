@@ -28,8 +28,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.tools4j.hoverraft.handler.HigherTermHandler;
+import org.tools4j.hoverraft.handler.MessageHandler;
 import org.tools4j.hoverraft.message.*;
 import org.tools4j.hoverraft.state.PersistentState;
+import org.tools4j.hoverraft.state.VolatileState;
 
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.*;
@@ -41,6 +44,8 @@ public class HigherTermHandlerTest {
     private MessageHandler handler;
 
     private ServerContext serverContext;
+    private PersistentState persistentState;
+    private VolatileState volatileState;
 
     @Mock
     private VoteRequest voteRequest;
@@ -58,15 +63,16 @@ public class HigherTermHandlerTest {
     @Before
     public void init() {
         serverContext = Mockery.direct(1);
+        persistentState = Mockery.persistentState();
+        volatileState = Mockery.volatileState(serverContext.consensusConfig());
 
         //under test
-        handler = new HigherTermHandler();
+        handler = new HigherTermHandler(persistentState, volatileState);
     }
 
     @Test
     public void onVoteRequest() throws Exception {
         final int term = 43;
-        final PersistentState persistentState = serverContext.state().persistentState();
         when(persistentState.currentTerm()).thenReturn(term);
 
         //message term < current term
@@ -88,7 +94,6 @@ public class HigherTermHandlerTest {
     @Test
     public void onVoteResponse() throws Exception {
         final int term = 3;
-        final PersistentState persistentState = serverContext.state().persistentState();
         when(persistentState.currentTerm()).thenReturn(term);
 
         //message term < current term
@@ -110,7 +115,6 @@ public class HigherTermHandlerTest {
     @Test
     public void onAppendRequest() throws Exception {
         final int term = 33;
-        final PersistentState persistentState = serverContext.state().persistentState();
         when(persistentState.currentTerm()).thenReturn(term);
 
         //message term < current term
@@ -132,7 +136,6 @@ public class HigherTermHandlerTest {
     @Test
     public void onAppendResponse() throws Exception {
         final int term = 101;
-        final PersistentState persistentState = serverContext.state().persistentState();
         when(persistentState.currentTerm()).thenReturn(term);
 
         //message term < current term
@@ -154,7 +157,6 @@ public class HigherTermHandlerTest {
     @Test
     public void onTimeoutNow() throws Exception {
         final int term = 43;
-        final PersistentState persistentState = serverContext.state().persistentState();
         when(persistentState.currentTerm()).thenReturn(term);
 
         //message term < current term
@@ -176,7 +178,6 @@ public class HigherTermHandlerTest {
     @Test
     public void onCommandMessage() throws Exception {
         final int term = 42;
-        final PersistentState persistentState = serverContext.state().persistentState();
         when(persistentState.currentTerm()).thenReturn(term);
 
         //message term < current term

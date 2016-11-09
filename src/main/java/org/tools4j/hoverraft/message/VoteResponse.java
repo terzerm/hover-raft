@@ -23,6 +23,7 @@
  */
 package org.tools4j.hoverraft.message;
 
+import org.tools4j.hoverraft.handler.MessageHandler;
 import org.tools4j.hoverraft.server.ServerContext;
 
 public interface VoteResponse extends Message {

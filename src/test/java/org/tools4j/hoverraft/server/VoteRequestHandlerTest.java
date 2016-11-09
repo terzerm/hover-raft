@@ -29,10 +29,14 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.tools4j.hoverraft.message.*;
+import org.tools4j.hoverraft.handler.VoteRequestHandler;
+import org.tools4j.hoverraft.message.Message;
+import org.tools4j.hoverraft.message.VoteRequest;
+import org.tools4j.hoverraft.message.VoteResponse;
 import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
 import org.tools4j.hoverraft.state.PersistentState;
 import org.tools4j.hoverraft.state.Role;
+import org.tools4j.hoverraft.state.VolatileState;
 import org.tools4j.hoverraft.transport.Sender;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -49,6 +53,8 @@ public class VoteRequestHandlerTest {
     private VoteRequestHandler handler;
 
     private ServerContext serverContext;
+    private PersistentState persistentState;
+    private VolatileState volatileState;
 
     @Mock
     private Sender<Message> sender;
@@ -56,8 +62,10 @@ public class VoteRequestHandlerTest {
     @Before
     public void init() {
         serverContext = Mockery.simple(1);
+        persistentState = Mockery.persistentState();
+        volatileState = Mockery.volatileState(serverContext.consensusConfig());
 
-        handler = new VoteRequestHandler();
+        handler = new VoteRequestHandler(persistentState, volatileState);
     }
 
     private int candidateId() {
@@ -95,7 +103,7 @@ public class VoteRequestHandlerTest {
 
     private void onVoteRequest(final Role currentRole, final int previouslyVotedFor) throws Exception {
         //given
-        final int term = serverContext.currentTerm();
+        final int term = persistentState.currentTerm();
         final int candidateId = candidateId();
         final int lastLogTerm = term;
         final long lastLogIndex = 1234;
@@ -106,11 +114,11 @@ public class VoteRequestHandlerTest {
                 .candidateId(candidateId)
                 .lastLogTerm(lastLogTerm)
                 .lastLogIndex(lastLogIndex);
-        serverContext.state().volatileState().changeRoleTo(currentRole);
+        volatileState.changeRoleTo(currentRole);
         when(serverContext.connections().serverSender(candidateId)).thenReturn(sender);
-        when(serverContext.state().persistentState().votedFor()).thenReturn(previouslyVotedFor);
-        when(serverContext.state().persistentState().lastLogTerm()).thenReturn(lastLogTerm);
-        when(serverContext.state().persistentState().lastLogIndex()).thenReturn(lastLogIndex);
+        when(persistentState.votedFor()).thenReturn(previouslyVotedFor);
+        when(persistentState.lastLogTerm()).thenReturn(lastLogTerm);
+        when(persistentState.lastLogIndex()).thenReturn(lastLogIndex);
 
         //when + then
         onVoteRequest(term, voteRequest, granted);
@@ -119,7 +127,7 @@ public class VoteRequestHandlerTest {
     @Test
     public void onVoteRequest_validCandidate_newerLastLogTerm() throws Exception {
         //given
-        final int term = serverContext.currentTerm();
+        final int term = persistentState.currentTerm();
         final int candidateId = candidateId();
         final int lastLogTerm = term;
         final long lastLogIndex = 1234;
@@ -130,11 +138,11 @@ public class VoteRequestHandlerTest {
                 .candidateId(candidateId)
                 .lastLogTerm(newerLastLogTerm)
                 .lastLogIndex(lastLogIndex);
-        serverContext.state().volatileState().changeRoleTo(Role.FOLLOWER);
+        volatileState.changeRoleTo(Role.FOLLOWER);
         when(serverContext.connections().serverSender(candidateId)).thenReturn(sender);
-        when(serverContext.state().persistentState().votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
-        when(serverContext.state().persistentState().lastLogTerm()).thenReturn(lastLogTerm);
-        when(serverContext.state().persistentState().lastLogIndex()).thenReturn(lastLogIndex);
+        when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
+        when(persistentState.lastLogTerm()).thenReturn(lastLogTerm);
+        when(persistentState.lastLogIndex()).thenReturn(lastLogIndex);
 
         //when + then
         onVoteRequest(term, voteRequest, GRANTED);
@@ -143,7 +151,7 @@ public class VoteRequestHandlerTest {
     @Test
     public void onVoteRequest_validCandidate_newerLastLogIndex() throws Exception {
         //given
-        final int term = serverContext.currentTerm();
+        final int term = persistentState.currentTerm();
         final int candidateId = candidateId();
         final int lastLogTerm = term;
         final long lastLogIndex = 1234;
@@ -154,11 +162,11 @@ public class VoteRequestHandlerTest {
                 .candidateId(candidateId)
                 .lastLogTerm(lastLogTerm)
                 .lastLogIndex(newerLastLogIndex);
-        serverContext.state().volatileState().changeRoleTo(Role.FOLLOWER);
+        volatileState.changeRoleTo(Role.FOLLOWER);
         when(serverContext.connections().serverSender(candidateId)).thenReturn(sender);
-        when(serverContext.state().persistentState().votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
-        when(serverContext.state().persistentState().lastLogTerm()).thenReturn(lastLogTerm);
-        when(serverContext.state().persistentState().lastLogIndex()).thenReturn(lastLogIndex);
+        when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
+        when(persistentState.lastLogTerm()).thenReturn(lastLogTerm);
+        when(persistentState.lastLogIndex()).thenReturn(lastLogIndex);
 
         //when + then
         onVoteRequest(term, voteRequest, GRANTED);
@@ -167,7 +175,7 @@ public class VoteRequestHandlerTest {
     @Test
     public void onVoteRequest_wrongTerm() throws Exception {
         //given
-        final int term = serverContext.currentTerm();
+        final int term = persistentState.currentTerm();
         final int badTerm = term - 1;
         final int serverId = serverContext.id();
         final int lastLogTerm = term;
@@ -179,9 +187,9 @@ public class VoteRequestHandlerTest {
                 .lastLogTerm(lastLogTerm)
                 .lastLogIndex(lastLogIndex);
         when(serverContext.connections().serverSender(serverId)).thenReturn(sender);
-        when(serverContext.state().persistentState().votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
-        when(serverContext.state().persistentState().lastLogTerm()).thenReturn(lastLogTerm);
-        when(serverContext.state().persistentState().lastLogIndex()).thenReturn(lastLogIndex);
+        when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
+        when(persistentState.lastLogTerm()).thenReturn(lastLogTerm);
+        when(persistentState.lastLogIndex()).thenReturn(lastLogIndex);
 
         //when + then
         onVoteRequest(term, voteRequest, REJECTED);
@@ -190,7 +198,7 @@ public class VoteRequestHandlerTest {
     @Test
     public void onVoteRequest_invalidCandidate_badLastLogTerm() throws Exception {
         //given
-        final int term = serverContext.currentTerm();
+        final int term = persistentState.currentTerm();
         final int serverId = serverContext.id();
         final int lastLogTerm = term;
         final long lastLogIndex = 1234;
@@ -202,9 +210,9 @@ public class VoteRequestHandlerTest {
                 .lastLogTerm(badLastLogTerm)
                 .lastLogIndex(lastLogIndex);
         when(serverContext.connections().serverSender(serverId)).thenReturn(sender);
-        when(serverContext.state().persistentState().votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
-        when(serverContext.state().persistentState().lastLogTerm()).thenReturn(lastLogTerm);
-        when(serverContext.state().persistentState().lastLogIndex()).thenReturn(lastLogIndex);
+        when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
+        when(persistentState.lastLogTerm()).thenReturn(lastLogTerm);
+        when(persistentState.lastLogIndex()).thenReturn(lastLogIndex);
 
         //when + then
         onVoteRequest(term, voteRequest, REJECTED);
@@ -213,7 +221,7 @@ public class VoteRequestHandlerTest {
     @Test
     public void onVoteRequest_invalidCandidate_badLastLogIndex() throws Exception {
         //given
-        final int term = serverContext.currentTerm();
+        final int term = persistentState.currentTerm();
         final int serverId = serverContext.id();
         final int lastLogTerm = term;
         final long lastLogIndex = 1234;
@@ -225,9 +233,9 @@ public class VoteRequestHandlerTest {
                 .lastLogTerm(lastLogTerm)
                 .lastLogIndex(badLastLogIndex);
         when(serverContext.connections().serverSender(serverId)).thenReturn(sender);
-        when(serverContext.state().persistentState().votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
-        when(serverContext.state().persistentState().lastLogTerm()).thenReturn(lastLogTerm);
-        when(serverContext.state().persistentState().lastLogIndex()).thenReturn(lastLogIndex);
+        when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
+        when(persistentState.lastLogTerm()).thenReturn(lastLogTerm);
+        when(persistentState.lastLogIndex()).thenReturn(lastLogIndex);
 
         //when + then
         onVoteRequest(term, voteRequest, REJECTED);

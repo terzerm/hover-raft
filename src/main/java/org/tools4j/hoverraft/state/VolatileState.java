@@ -28,21 +28,24 @@ import org.tools4j.hoverraft.config.ConsensusConfig;
 public final class VolatileState {
 
     private final ElectionState electionState;
-    private final FollowerState[] followerStates;
+    private final TrackedFollowerState[] trackedFollowerStates;
 
+    @Deprecated //REMOVE this is now storted as State in HoverRaftMachine
     private Role role = Role.FOLLOWER;
     private long commitIndex;
     private long lastApplied;
 
     public VolatileState(final int serverId, final ConsensusConfig consensusConfig) {
         this.electionState = new ElectionState(consensusConfig);
-        this.followerStates = initFollowerStates(serverId, consensusConfig);
+        this.trackedFollowerStates = initFollowerStates(serverId, consensusConfig);
     }
 
+    @Deprecated //REMOVE this is now storted as State in HoverRaftMachine
     public Role role() {
         return role;
     }
 
+    @Deprecated //REMOVE this is now storted as State in HoverRaftMachine
     public void changeRoleTo(Role role) {
         this.role = role;
     }
@@ -61,19 +64,19 @@ public final class VolatileState {
     }
 
     public int followerCount() {
-        return followerStates.length;
+        return trackedFollowerStates.length;
     }
 
     public ElectionState electionState() {
         return electionState;
     }
 
-    public FollowerState followerState(int index) {
-        return followerStates[index];
+    public TrackedFollowerState followerState(int index) {
+        return trackedFollowerStates[index];
     }
 
-    public FollowerState followerStateById(int id) {
-        for (final FollowerState fs : followerStates) {
+    public TrackedFollowerState followerStateById(int id) {
+        for (final TrackedFollowerState fs : trackedFollowerStates) {
             if (fs.serverId() == id) {
                 return fs;
             }
@@ -81,13 +84,13 @@ public final class VolatileState {
         throw new IllegalArgumentException("no follower state found for id " + id);
     }
 
-    private static FollowerState[] initFollowerStates(final int serverId, final ConsensusConfig consensusConfig) {
-        final FollowerState[] states = new FollowerState[consensusConfig.serverCount() - 1];
+    private static TrackedFollowerState[] initFollowerStates(final int serverId, final ConsensusConfig consensusConfig) {
+        final TrackedFollowerState[] states = new TrackedFollowerState[consensusConfig.serverCount() - 1];
         int index = 0;
         for (int i = 0; i < consensusConfig.serverCount(); i++) {
             final int id = consensusConfig.serverConfig(i).id();
             if (id != serverId) {
-                states[index] = new FollowerState(id);
+                states[index] = new TrackedFollowerState(id);
                 index++;
             }
         }

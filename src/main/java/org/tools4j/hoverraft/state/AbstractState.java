@@ -23,32 +23,34 @@
  */
 package org.tools4j.hoverraft.state;
 
-import org.tools4j.hoverraft.config.ConsensusConfig;
-import org.tools4j.hoverraft.config.ServerConfig;
-
 import java.util.Objects;
 
-public final class ServerState {
+abstract public class AbstractState implements State {
 
+    private final Role role;
     private final PersistentState persistentState;
     private final VolatileState volatileState;
 
-    public ServerState(final ServerConfig serverConfig,
-                       final ConsensusConfig consensusConfig,
-                       final PersistentState persistentState) {
-        this(persistentState, new VolatileState(serverConfig.id(), consensusConfig));
-    }
-
-    public ServerState(final PersistentState persistentState, final VolatileState volatileState) {
+    public AbstractState(final Role role, final PersistentState persistentState, final VolatileState volatileState) {
+        this.role = Objects.requireNonNull(role);
         this.persistentState = Objects.requireNonNull(persistentState);
         this.volatileState = Objects.requireNonNull(volatileState);
     }
 
-    public PersistentState persistentState() {
+    @Override
+    public Role role() {
+        return role;
+    }
+
+    public int currentTerm() {
+        return persistentState.currentTerm();
+    }
+
+    protected PersistentState persistentState() {
         return persistentState;
     }
 
-    public VolatileState volatileState() {
+    protected VolatileState volatileState() {
         return volatileState;
     }
 }

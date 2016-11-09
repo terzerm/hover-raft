@@ -25,11 +25,10 @@ package org.tools4j.hoverraft.server;
 
 import org.tools4j.hoverraft.config.ConsensusConfig;
 import org.tools4j.hoverraft.config.ServerConfig;
+import org.tools4j.hoverraft.machine.StateMachine;
 import org.tools4j.hoverraft.message.CommandMessage;
 import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
-import org.tools4j.hoverraft.state.Role;
-import org.tools4j.hoverraft.state.ServerState;
 import org.tools4j.hoverraft.transport.Connections;
 import org.tools4j.hoverraft.transport.MessageLog;
 import org.tools4j.hoverraft.transport.ResendStrategy;
@@ -40,26 +39,17 @@ public interface ServerContext {
 
     ConsensusConfig consensusConfig();
 
-    ServerState state();
-
     Connections<Message> connections();
 
     MessageLog<CommandMessage> messageLog();
 
     DirectMessageFactory messageFactory();
 
-    ResendStrategy resendStrategy();
+    StateMachine stateMachine();
 
-    default int currentTerm() {
-        return state().persistentState().currentTerm();
-    }
+    ResendStrategy resendStrategy();
 
     default int id() {
         return serverConfig().id();
     }
-
-    default Role role() {
-        return state().volatileState().role();
-    }
-
 }

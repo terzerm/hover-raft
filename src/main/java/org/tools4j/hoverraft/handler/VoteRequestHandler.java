@@ -21,44 +21,52 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.server;
+package org.tools4j.hoverraft.handler;
 
 import org.tools4j.hoverraft.message.VoteRequest;
+import org.tools4j.hoverraft.server.ServerContext;
 import org.tools4j.hoverraft.state.PersistentState;
 import org.tools4j.hoverraft.state.Role;
-import org.tools4j.hoverraft.state.ServerState;
+import org.tools4j.hoverraft.state.VolatileState;
+
+import java.util.Objects;
 
 public final class VoteRequestHandler {
+
+    private final PersistentState persistentState;
+    private final VolatileState volatileState;
+
+    public VoteRequestHandler(final PersistentState persistentState, final VolatileState volatileState) {
+        this.persistentState = Objects.requireNonNull(persistentState);
+        this.volatileState = Objects.requireNonNull(volatileState);
+    }
 
     public void onVoteRequest(final ServerContext serverContext, final VoteRequest voteRequest) {
         final int term = voteRequest.term();
         final int candidateId = voteRequest.candidateId();
         final boolean granted;
-        if (serverContext.currentTerm() == term && isValidCandidate(serverContext, voteRequest)) {
-            final ServerState state = serverContext.state();
-            final PersistentState pstate = state.persistentState();
-            if (pstate.votedFor() < 0) {
-                pstate.votedFor(candidateId);
-                state.volatileState().changeRoleTo(Role.FOLLOWER);
+        if (persistentState.currentTerm() == term && isValidCandidate(serverContext, voteRequest)) {
+            if (persistentState.votedFor() < 0) {
+                persistentState.votedFor(candidateId);
+                volatileState.changeRoleTo(Role.FOLLOWER);
                 granted = true;
             } else {
-                granted = pstate.votedFor() == candidateId;
+                granted = persistentState.votedFor() == candidateId;
             }
         } else {
             granted = false;
         }
         serverContext.messageFactory().voteResponse()
-                .term(serverContext.currentTerm())
+                .term(persistentState.currentTerm())
                 .voteGranted(granted)
                 .sendTo(serverContext.connections().serverSender(candidateId),
                         serverContext.resendStrategy());
     }
 
-    private static boolean isValidCandidate(final ServerContext serverContext, final VoteRequest voteRequest) {
+    private boolean isValidCandidate(final ServerContext serverContext, final VoteRequest voteRequest) {
         final int lastLogTerm = voteRequest.lastLogTerm();
         final long lastLogIndex = voteRequest.lastLogIndex();
-        final PersistentState pstate = serverContext.state().persistentState();
-        return pstate.lastLogTerm() < lastLogTerm ||
-                (pstate.lastLogTerm() == lastLogTerm && pstate.lastLogIndex() <= lastLogIndex);
+        return persistentState.lastLogTerm() < lastLogTerm ||
+                (persistentState.lastLogTerm() == lastLogTerm && persistentState.lastLogIndex() <= lastLogIndex);
     }
 }

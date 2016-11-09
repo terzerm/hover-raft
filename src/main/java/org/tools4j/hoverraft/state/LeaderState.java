@@ -21,23 +21,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.server;
+package org.tools4j.hoverraft.state;
 
+import org.tools4j.hoverraft.handler.HigherTermHandler;
+import org.tools4j.hoverraft.handler.MessageHandler;
+import org.tools4j.hoverraft.handler.VoteRequestHandler;
 import org.tools4j.hoverraft.message.AppendResponse;
 import org.tools4j.hoverraft.message.CommandMessage;
-import org.tools4j.hoverraft.message.MessageHandler;
+import org.tools4j.hoverraft.message.Message;
+import org.tools4j.hoverraft.server.ServerContext;
 
-public class LeaderActivity implements ServerActivity {
+public class LeaderState extends AbstractState {
 
-    private final MessageHandler messageHandler = new HigherTermHandler()
-            .thenHandleVoteRequest(new VoteRequestHandler()::onVoteRequest)
-            .thenHandleAppendRequest(new AppendRequestHandler()::onAppendRequest)
-            .thenHandleAppendResponse(this::handleAppendResponse)
-            .thenHandleCommandMessage(this::handleCommandMessage);
+    private final MessageHandler messageHandler;
+
+    public LeaderState(final PersistentState persistentState, final VolatileState volatileState) {
+        super(Role.LEADER, persistentState, volatileState);
+        this.messageHandler = new HigherTermHandler(persistentState, volatileState)
+                .thenHandleVoteRequest(new VoteRequestHandler(persistentState, volatileState)::onVoteRequest)
+                .thenHandleAppendResponse(this::handleAppendResponse)
+                .thenHandleCommandMessage(this::handleCommandMessage);
+    }
 
     @Override
-    public MessageHandler messageHandler() {
-        return messageHandler;
+    public Role onMessage(final ServerContext serverContext, final Message message) {
+        message.accept(serverContext, messageHandler);
+        return volatileState().role();
     }
 
     @Override

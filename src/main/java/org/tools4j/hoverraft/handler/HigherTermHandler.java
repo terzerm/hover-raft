@@ -21,14 +21,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.server;
+package org.tools4j.hoverraft.handler;
 
 import org.tools4j.hoverraft.message.*;
+import org.tools4j.hoverraft.server.ServerContext;
 import org.tools4j.hoverraft.state.PersistentState;
 import org.tools4j.hoverraft.state.Role;
-import org.tools4j.hoverraft.state.ServerState;
+import org.tools4j.hoverraft.state.VolatileState;
+
+import java.util.Objects;
 
 public final class HigherTermHandler implements MessageHandler {
+
+    private final PersistentState persistentState;
+    private final VolatileState volatileState;
+
+    public HigherTermHandler(final PersistentState persistentState, final VolatileState volatileState) {
+        this.persistentState = Objects.requireNonNull(persistentState);
+        this.volatileState = Objects.requireNonNull(volatileState);
+    }
 
     @Override
     public void onVoteRequest(final ServerContext serverContext, final VoteRequest voteRequest) {
@@ -61,11 +72,9 @@ public final class HigherTermHandler implements MessageHandler {
     }
 
     private void onTerm(final ServerContext serverContext, final int term) {
-        final ServerState state = serverContext.state();
-        final PersistentState pstate = state.persistentState();
-        if (term > pstate.currentTerm()) {
-            pstate.clearVotedForAndSetCurrentTerm(term);
-            state.volatileState().changeRoleTo(Role.FOLLOWER);
+        if (term > persistentState.currentTerm()) {
+            persistentState.clearVotedForAndSetCurrentTerm(term);
+            volatileState.changeRoleTo(Role.FOLLOWER);
         }
     }
 
