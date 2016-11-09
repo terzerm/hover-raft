@@ -24,6 +24,7 @@
 package org.tools4j.hoverraft.server;
 
 import org.tools4j.hoverraft.message.AppendResponse;
+import org.tools4j.hoverraft.message.CommandMessage;
 import org.tools4j.hoverraft.message.MessageHandler;
 
 public class LeaderActivity implements ServerActivity {
@@ -31,18 +32,22 @@ public class LeaderActivity implements ServerActivity {
     private final MessageHandler messageHandler = new HigherTermHandler()
             .thenHandleVoteRequest(new VoteRequestHandler()::onVoteRequest)
             .thenHandleAppendRequest(new AppendRequestHandler()::onAppendRequest)
-            .thenHandleAppendResponse(this::handleAppendResponse);
+            .thenHandleAppendResponse(this::handleAppendResponse)
+            .thenHandleCommandMessage(this::handleCommandMessage);
 
     @Override
     public MessageHandler messageHandler() {
         return messageHandler;
     }
 
-
     @Override
     public void perform(final ServerContext serverContext) {
         updateCommitIndex(serverContext);
         sendAppendRequest(serverContext);
+    }
+
+    private void handleCommandMessage(final ServerContext serverContext, final CommandMessage commandMessage) {
+        serverContext.messageLog().append(commandMessage);
     }
 
     private void updateCommitIndex(final ServerContext serverContext) {

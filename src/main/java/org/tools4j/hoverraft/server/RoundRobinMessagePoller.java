@@ -24,7 +24,7 @@
 package org.tools4j.hoverraft.server;
 
 import org.tools4j.hoverraft.config.ConsensusConfig;
-import org.tools4j.hoverraft.config.ServerConfig;
+import org.tools4j.hoverraft.message.CommandMessage;
 import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.transport.Receiver;
 import org.tools4j.hoverraft.transport.Receivers;
@@ -32,43 +32,52 @@ import org.tools4j.hoverraft.transport.Receivers;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-public class RoundRobinMessagePoller {
+public class RoundRobinMessagePoller<M extends Message> {
 
-    private final ServerContext serverContext;
-    private final Receiver<Message> roundRobinReceiver;
-    private final Consumer<Message> messageHandler;
+    private final Receiver<M> roundRobinReceiver;
+    private final Consumer<? super M> messageHandler;
 
-    public RoundRobinMessagePoller(final ServerContext serverContext) {
-        this.serverContext = Objects.requireNonNull(serverContext);
-        this.roundRobinReceiver = roundRobinReceiver(serverContext);
-        this.messageHandler = this::handleMessage;
+    private RoundRobinMessagePoller(final Receiver<M> roundRobinReceiver,
+                                    final Consumer<? super M> messageHandler) {
+        this.roundRobinReceiver = Objects.requireNonNull(roundRobinReceiver);
+        this.messageHandler = Objects.requireNonNull(messageHandler);
+    }
+
+    public static RoundRobinMessagePoller<Message> forServerMessages(final ServerContext serverContext,
+                                                                     final Consumer<? super Message> messageHandler) {
+        final ConsensusConfig config = serverContext.consensusConfig();
+        final Receiver<?>[] receivers = new Receiver<?>[config.serverCount() - 1];
+        int index = 0;
+        for (int i = 0; i < config.serverCount(); i++) {
+            final int id = config.serverConfig(i).id();
+            if (!Objects.equals(serverContext.id(), id)) {
+                if (index < config.serverCount()) {
+                    receivers[index] = serverContext.connections().serverReceiver(id);
+                    index++;
+                } else {
+                    throw new IllegalArgumentException("Bad config: Server ID '" +  serverContext.id() + "' not found in list of servers");
+                }
+            }
+        }
+        if (index < config.serverCount() - 1) {
+            throw new IllegalArgumentException("Bad config: Server ID '" +  serverContext.id() + "' occurs more than once in list of servers");
+        }
+        return new RoundRobinMessagePoller<>(Receivers.roundRobinReceiver(receivers), messageHandler);
+    }
+
+    public static RoundRobinMessagePoller<CommandMessage> forSourceMessages(final ServerContext serverContext,
+                                                                            final Consumer<? super CommandMessage> messageHandler) {
+        final ConsensusConfig config = serverContext.consensusConfig();
+        final Receiver<CommandMessage>[] receivers = (Receiver<CommandMessage>[])new Receiver<?>[config.sourceCount()];
+        for (int i = 0; i < config.sourceCount(); i++) {
+            final int id = config.sourceConfig(i).id();
+            receivers[i] = serverContext.connections().sourceReceiver(id);
+        }
+        return new RoundRobinMessagePoller<>(Receivers.roundRobinReceiver(receivers), messageHandler);
     }
 
     public void pollNextMessage() {
         roundRobinReceiver.poll(messageHandler, 1);
-    }
-
-    private void handleMessage(final Message message) {
-        final ServerActivity serverActivity = serverContext.role().serverActivity();
-        message.accept(serverContext, serverActivity.messageHandler());
-    }
-
-    private static Receiver<Message> roundRobinReceiver(final ServerContext serverContext) {
-        final ConsensusConfig consensusConfig = serverContext.consensusConfig();
-        final int servers = consensusConfig.serverCount();
-        final Receiver<?>[] receivers= new Receiver<?>[servers - 1];
-        int index = 0;
-        for (int i = 0; i < servers - 1; i++) {
-            final ServerConfig serverConfig = consensusConfig.serverConfig(i);
-            if (serverConfig.id() != serverContext.serverConfig().id()) {
-                receivers[i] = serverContext.connections().serverReceiver(serverConfig.id());
-                index++;
-            }
-        }
-        if (index < servers - 1) {
-            throw new IllegalStateException("invalid serverContext ID serverConfig: expected " + servers + " unique IDs but found " + (index + 1));
-        }
-        return Receivers.roundRobinReceiver(receivers);
     }
 
 }

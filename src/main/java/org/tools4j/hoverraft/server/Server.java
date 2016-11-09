@@ -29,7 +29,7 @@ import org.tools4j.hoverraft.machine.StateMachine;
 import org.tools4j.hoverraft.message.CommandMessage;
 import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
-import org.tools4j.hoverraft.state.ElectionTimer;
+import org.tools4j.hoverraft.state.Timer;
 import org.tools4j.hoverraft.state.Role;
 import org.tools4j.hoverraft.state.ServerState;
 import org.tools4j.hoverraft.state.VolatileState;
@@ -49,7 +49,8 @@ public final class Server implements ServerContext {
     private final StateMachine stateMachine;
     private final Connections<Message> connections;
     private final DirectMessageFactory messageFactory;
-    private final RoundRobinMessagePoller roundRobinMessagePoller;
+    private final RoundRobinMessagePoller<Message> serverMessagePoller;
+    private final RoundRobinMessagePoller<CommandMessage> sourceMessagePoller;
 
     public Server(final int serverId,
                   final ConsensusConfig consensusConfig,
@@ -65,7 +66,8 @@ public final class Server implements ServerContext {
         this.stateMachine = Objects.requireNonNull(stateMachine);
         this.connections = Objects.requireNonNull(connections);
         this.messageFactory = Objects.requireNonNull(messageFactory);
-        this.roundRobinMessagePoller = new RoundRobinMessagePoller(this);
+        this.serverMessagePoller = RoundRobinMessagePoller.forServerMessages(this, this::handleMessage);
+        this.sourceMessagePoller = RoundRobinMessagePoller.forSourceMessages(this, this::handleMessage);
     }
 
     public ServerConfig serverConfig() {
@@ -84,13 +86,19 @@ public final class Server implements ServerContext {
         return connections;
     }
 
+    @Override
+    public MessageLog<CommandMessage> messageLog() {
+        return messageLog;
+    }
+
     public DirectMessageFactory messageFactory() {
         return messageFactory;
     }
 
     public void perform() {
         checkElectionTimeout();
-        pollNextServerMessage();
+        serverMessagePoller.pollNextMessage();
+        sourceMessagePoller.pollNextMessage();
         performRoleSpecificActivities();
         invokeStateMachineWithCommittedLogEntry();
     }
@@ -98,7 +106,7 @@ public final class Server implements ServerContext {
     private void checkElectionTimeout() {
         final ServerState state = serverState;
         final VolatileState vstate = state.volatileState();
-        final ElectionTimer timer = vstate.electionState().electionTimer();
+        final Timer timer = vstate.electionState().electionTimer();
         if (timer.hasTimeoutElapsed(Clock.DEFAULT)) {
             state.persistentState().clearVotedForAndIncCurrentTerm();
             vstate.changeRoleTo(Role.CANDIDATE);
@@ -106,8 +114,8 @@ public final class Server implements ServerContext {
         }
     }
 
-    private void pollNextServerMessage() {
-        roundRobinMessagePoller.pollNextMessage();
+    private void handleMessage(final Message message) {
+        message.accept(this, role().serverActivity().messageHandler());
     }
 
     private void performRoleSpecificActivities() {

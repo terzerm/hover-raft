@@ -27,15 +27,15 @@ import org.tools4j.hoverraft.config.ConsensusConfig;
 
 public final class ElectionState {
 
-    private final ElectionTimer electionTimer;
+    private final Timer timer;
     private int voteCount;
 
     public ElectionState(final ConsensusConfig consensusConfig) {
-        this.electionTimer = new ElectionTimer(consensusConfig);
+        this.timer = new Timer(consensusConfig);
     }
 
-    public ElectionTimer electionTimer() {
-        return electionTimer;
+    public Timer electionTimer() {
+        return timer;
     }
 
     public int voteCount() {

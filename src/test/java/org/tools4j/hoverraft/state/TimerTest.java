@@ -32,17 +32,17 @@ import org.tools4j.hoverraft.util.Clock;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class ElectionTimerTest {
+public class TimerTest {
 
     private static final long MIN_TIMEOUT = 10;
     private static final long MAX_TIMEOUT = 20;
 
-    private ElectionTimer electionTimer;
+    private Timer timer;
 
     @Before
     public void init() {
-        electionTimer = new ElectionTimer(MIN_TIMEOUT, MAX_TIMEOUT);
-        electionTimer.restart(Clock.fixed(0));
+        timer = new Timer(MIN_TIMEOUT, MAX_TIMEOUT);
+        timer.restart(Clock.fixed(0));
         assertThatTimeoutIsBetweenMinAndMax(0);
     }
 
@@ -53,7 +53,7 @@ public class ElectionTimerTest {
         long previousTimeout = Long.MIN_VALUE;
         long startTime = 1;
         while (true) {
-            electionTimer.restart(Clock.fixed(startTime));
+            timer.restart(Clock.fixed(startTime));
             assertThatTimeoutIsBetweenMinAndMax(startTime);
             final long currentTimeout = findTimeout(startTime);
             if (previousTimeout != Long.MIN_VALUE && previousTimeout != currentTimeout) {
@@ -70,7 +70,7 @@ public class ElectionTimerTest {
         long previousTimeout = Long.MIN_VALUE;
         long startTime = 1;
         for (int i = 0; i < 20; i++) {
-            electionTimer.reset(Clock.fixed(startTime));
+            timer.reset(Clock.fixed(startTime));
             assertThatTimeoutIsBetweenMinAndMax(startTime);
             final long currentTimeout = findTimeout(startTime);
             if (previousTimeout != Long.MIN_VALUE) {
@@ -83,17 +83,17 @@ public class ElectionTimerTest {
 
     @Test
     public void timeoutNow() throws Exception {
-        electionTimer.timeoutNow();
+        timer.timeoutNow();
         Assertions
-                .assertThat(electionTimer.hasTimeoutElapsed(Clock.fixed(0)))
+                .assertThat(timer.hasTimeoutElapsed(Clock.fixed(0)))
                 .isTrue();
-        electionTimer.restart(Clock.fixed(100));
+        timer.restart(Clock.fixed(100));
         Assertions
-                .assertThat(electionTimer.hasTimeoutElapsed(Clock.fixed(100)))
+                .assertThat(timer.hasTimeoutElapsed(Clock.fixed(100)))
                 .isFalse();
-        electionTimer.timeoutNow();
+        timer.timeoutNow();
         Assertions
-                .assertThat(electionTimer.hasTimeoutElapsed(Clock.fixed(100)))
+                .assertThat(timer.hasTimeoutElapsed(Clock.fixed(100)))
                 .isTrue();
     }
 
@@ -103,40 +103,40 @@ public class ElectionTimerTest {
         final ConsensusConfig consensusConfig = mock(ConsensusConfig.class);
         when(consensusConfig.minElectionTimeoutMillis()).thenReturn(MIN_TIMEOUT);
         when(consensusConfig.maxElectionTimeoutMillis()).thenReturn(MAX_TIMEOUT);
-        electionTimer = new ElectionTimer(consensusConfig);
+        timer = new Timer(consensusConfig);
 
         //when + then
         Assertions
-                .assertThat(electionTimer.minElectionTimeoutMillis())
+                .assertThat(timer.minTimeoutMillis())
                 .isEqualTo(MIN_TIMEOUT);
         Assertions
-                .assertThat(electionTimer.maxElectionTimeoutMillis())
+                .assertThat(timer.maxTimeoutMillis())
                 .isEqualTo(MAX_TIMEOUT);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructWithTimeoutValuesWrongOrder() {
-        new ElectionTimer(MAX_TIMEOUT, MIN_TIMEOUT);
+        new Timer(MAX_TIMEOUT, MIN_TIMEOUT);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructWithTimeoutValuesTooLarge() {
-        new ElectionTimer(MIN_TIMEOUT, MIN_TIMEOUT + Integer.MAX_VALUE + 1);
+        new Timer(MIN_TIMEOUT, MIN_TIMEOUT + Integer.MAX_VALUE + 1);
     }
 
     private void assertThatTimeoutIsBetweenMinAndMax(final long startTime) {
         Assertions
-                .assertThat(electionTimer.hasTimeoutElapsed(Clock.fixed(startTime + MIN_TIMEOUT - 1)))
+                .assertThat(timer.hasTimeoutElapsed(Clock.fixed(startTime + MIN_TIMEOUT - 1)))
                 .isFalse();
         Assertions
-                .assertThat(electionTimer.hasTimeoutElapsed(Clock.fixed(startTime + MAX_TIMEOUT)))
+                .assertThat(timer.hasTimeoutElapsed(Clock.fixed(startTime + MAX_TIMEOUT)))
                 .isTrue();
     }
 
     private long findTimeout(final long startTime) {
         long currentTimeout = -1;
         for (long i = MIN_TIMEOUT; i <= MAX_TIMEOUT; i++) {
-            if (electionTimer.hasTimeoutElapsed(Clock.fixed(startTime + i))) {
+            if (timer.hasTimeoutElapsed(Clock.fixed(startTime + i))) {
                 return i;
             }
         }

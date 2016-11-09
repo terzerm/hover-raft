@@ -28,44 +28,44 @@ import org.tools4j.hoverraft.util.Clock;
 
 import java.util.Random;
 
-public final class ElectionTimer {
+public final class Timer {
 
     private final Random rnd = new Random();
-    private final long minElectionTimeoutMillis;
-    private final long maxElectionTimeoutMillis;
+    private final long minTimeoutMillis;
+    private final long maxTimeoutMillis;
 
     private long timerStartMillis;
     private long timeoutMillis;
 
-    public ElectionTimer(final ConsensusConfig consensusConfig) {
+    public Timer(final ConsensusConfig consensusConfig) {
         this(consensusConfig.minElectionTimeoutMillis(), consensusConfig.maxElectionTimeoutMillis());
     }
 
-    public ElectionTimer(final long minElectionTimeoutMillis, final long maxElectionTimeoutMillis) {
-        if (minElectionTimeoutMillis > maxElectionTimeoutMillis) {
-            throw new IllegalArgumentException("minElectionTimeoutMillis must not be greater than maxElectionTimeoutMillis: " + minElectionTimeoutMillis + " > " + maxElectionTimeoutMillis);
+    public Timer(final long minTimeoutMillis, final long maxTimeoutMillis) {
+        if (minTimeoutMillis > maxTimeoutMillis) {
+            throw new IllegalArgumentException("minTimeoutMillis must not be greater than maxTimeoutMillis: " + minTimeoutMillis + " > " + maxTimeoutMillis);
         }
-        if (maxElectionTimeoutMillis - minElectionTimeoutMillis > Integer.MAX_VALUE) {
-            throw new IllegalArgumentException("Difference between minElectionTimeoutMillis and maxElectionTimeoutMillis exceeds integer range: " + maxElectionTimeoutMillis + " - " + maxElectionTimeoutMillis + " > " + Integer.MAX_VALUE);
+        if (maxTimeoutMillis - minTimeoutMillis > Integer.MAX_VALUE) {
+            throw new IllegalArgumentException("Difference between minTimeoutMillis and maxTimeoutMillis exceeds integer range: " + maxTimeoutMillis + " - " + maxTimeoutMillis + " > " + Integer.MAX_VALUE);
         }
-        this.minElectionTimeoutMillis = minElectionTimeoutMillis;
-        this.maxElectionTimeoutMillis = maxElectionTimeoutMillis;
+        this.minTimeoutMillis = minTimeoutMillis;
+        this.maxTimeoutMillis = maxTimeoutMillis;
     }
 
-    public long minElectionTimeoutMillis() {
-        return minElectionTimeoutMillis;
+    public long minTimeoutMillis() {
+        return minTimeoutMillis;
     }
 
-    public long maxElectionTimeoutMillis() {
-        return maxElectionTimeoutMillis;
+    public long maxTimeoutMillis() {
+        return maxTimeoutMillis;
     }
 
     /**
-     * Starts a new random timeout.
+     * Starts a new timeout. The timeout is random between minTimeout and maxTimeout.
      * @param clock the clock used to get the current time
      */
     public void restart(final Clock clock) {
-        timeoutMillis = randomTimeoutMillis();
+        timeoutMillis = newTimeoutMillis();
         reset(clock);
     }
 
@@ -94,9 +94,9 @@ public final class ElectionTimer {
         return clock.currentTimeMillis() - timerStartMillis >= timeoutMillis;
     }
 
-    private long randomTimeoutMillis() {
-        final int diff = (int)(maxElectionTimeoutMillis - minElectionTimeoutMillis);
-        long timeout = minElectionTimeoutMillis;
+    private long newTimeoutMillis() {
+        final int diff = (int)(maxTimeoutMillis - minTimeoutMillis);
+        long timeout = minTimeoutMillis;
         if (diff > 0) {
             timeout += rnd.nextInt(diff);
         }
