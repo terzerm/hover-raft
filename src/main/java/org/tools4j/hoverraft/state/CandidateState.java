@@ -121,7 +121,6 @@ public final class CandidateState extends AbstractState {
     }
 
     private void voteForMyself(final ServerContext serverContext) {
-        final VolatileState vstate = volatileState();
         final PersistentState pstate = persistentState();
         final int self = serverContext.serverConfig().id();
         pstate.votedFor(self);

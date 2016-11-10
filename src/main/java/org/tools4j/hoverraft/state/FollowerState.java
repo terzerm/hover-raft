@@ -87,7 +87,6 @@ public class FollowerState extends AbstractState {
 
     private Transition onTimeoutNow(final ServerContext serverContext, final TimeoutNow timeoutNow) {
         if (timeoutNow.term() == currentTerm() && timeoutNow.candidateId() == serverContext.id()) {
-            serverContext.timer().timeoutNow();
             return Transition.TO_CANDIDATE;
         }
         return Transition.STEADY;

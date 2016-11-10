@@ -39,6 +39,7 @@ public class ConfigBuilder {
 
     private long minTimeoutMillis = 150;
     private long maxTimeoutMillis = 300;
+    private long heartbeatMillis = 20;
     private String ipcMulticastChannel = null;
     private ThreadingMode threadingMode = ThreadingMode.SHARED;
     private final List<ServerConfig> serverConfigs = new ArrayList<>();
@@ -51,6 +52,11 @@ public class ConfigBuilder {
 
     public ConfigBuilder maxElectionTimeoutMillis(final long maxTimeoutMillis) {
         this.maxTimeoutMillis = maxTimeoutMillis;
+        return this;
+    }
+
+    public ConfigBuilder heartbeatMillis(final long heartbeatMillis) {
+        this.heartbeatMillis = heartbeatMillis;
         return this;
     }
 
@@ -92,7 +98,7 @@ public class ConfigBuilder {
 
     public ConsensusConfig build() {
         return new DefaultConsensusConfig(
-                minTimeoutMillis, maxTimeoutMillis,
+                minTimeoutMillis, maxTimeoutMillis, heartbeatMillis,
                 Optional.ofNullable(ipcMulticastChannel), threadingMode,
                 new ArrayList<>(serverConfigs), new ArrayList<>(sourceConfigs));
     }

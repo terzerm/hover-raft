@@ -28,6 +28,7 @@ import java.util.Optional;
 public interface ConsensusConfig {
     long minElectionTimeoutMillis();
     long maxElectionTimeoutMillis();
+    long heartbeatTimeoutMillis();
     Optional<String> ipcMulticastChannel();
     int serverCount();
     ServerConfig serverConfig(int index);

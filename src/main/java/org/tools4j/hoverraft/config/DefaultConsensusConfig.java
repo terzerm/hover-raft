@@ -34,6 +34,7 @@ public final class DefaultConsensusConfig implements ConsensusConfig {
 
     private final long minElectionTimeoutMillis;
     private final long maxElectionTimeoutMillis;
+    private final long heartbeatMillis;
     private final Optional<String> ipcMulticastChannel;
     private final ThreadingMode threadingMode;
     private final List<ServerConfig> serverConfigs;
@@ -41,10 +42,14 @@ public final class DefaultConsensusConfig implements ConsensusConfig {
 
     public DefaultConsensusConfig(final long minElectionTimeoutMillis,
                                   final long maxElectionTimeoutMillis,
+                                  final long heartbeatMillis,
                                   final Optional<String> ipcMulticastChannel,
                                   final ThreadingMode threadingMode,
                                   final List<ServerConfig> serverConfigs,
                                   final List<SourceConfig> sourceConfigs) {
+        if (heartbeatMillis >= minElectionTimeoutMillis) {
+            throw new IllegalArgumentException("heartbeatMillis must be greater than minElectionTimeoutMillis: " + heartbeatMillis + " <= " + heartbeatMillis);
+        }
         if (minElectionTimeoutMillis > maxElectionTimeoutMillis) {
             throw new IllegalArgumentException("minElectionTimeoutMillis must not be greater than maxElectionTimeoutMillis: " + minElectionTimeoutMillis + " > " + maxElectionTimeoutMillis);
         }
@@ -53,6 +58,7 @@ public final class DefaultConsensusConfig implements ConsensusConfig {
         }
         this.minElectionTimeoutMillis = minElectionTimeoutMillis;
         this.maxElectionTimeoutMillis = maxElectionTimeoutMillis;
+        this.heartbeatMillis = heartbeatMillis;
         this.ipcMulticastChannel = Objects.requireNonNull(ipcMulticastChannel, "ipcMulticastChannel cannot be null");
         this.threadingMode = Objects.requireNonNull(threadingMode, "threadingMode cannot be null");
         this.serverConfigs = Objects.requireNonNull(serverConfigs, "serverConfigs cannot be null");
@@ -67,6 +73,11 @@ public final class DefaultConsensusConfig implements ConsensusConfig {
     @Override
     public long maxElectionTimeoutMillis() {
         return maxElectionTimeoutMillis;
+    }
+
+    @Override
+    public long heartbeatTimeoutMillis() {
+        return heartbeatMillis;
     }
 
     @Override
@@ -108,6 +119,7 @@ public final class DefaultConsensusConfig implements ConsensusConfig {
 
         if (minElectionTimeoutMillis != that.minElectionTimeoutMillis) return false;
         if (maxElectionTimeoutMillis != that.maxElectionTimeoutMillis) return false;
+        if (heartbeatMillis != that.heartbeatMillis) return false;
         if (!ipcMulticastChannel.equals(that.ipcMulticastChannel)) return false;
         if (threadingMode != that.threadingMode) return false;
         if (!serverConfigs.equals(that.serverConfigs)) return false;
@@ -119,6 +131,7 @@ public final class DefaultConsensusConfig implements ConsensusConfig {
     public int hashCode() {
         int result = (int) (minElectionTimeoutMillis ^ (minElectionTimeoutMillis >>> 32));
         result = 31 * result + (int) (maxElectionTimeoutMillis ^ (maxElectionTimeoutMillis >>> 32));
+        result = 31 * result + (int) (heartbeatMillis ^ (heartbeatMillis >>> 32));
         result = 31 * result + ipcMulticastChannel.hashCode();
         result = 31 * result + threadingMode.hashCode();
         result = 31 * result + serverConfigs.hashCode();
@@ -131,6 +144,7 @@ public final class DefaultConsensusConfig implements ConsensusConfig {
         return "DefaultConsensusConfig{" +
                 "minElectionTimeoutMillis=" + minElectionTimeoutMillis +
                 ", maxElectionTimeoutMillis=" + maxElectionTimeoutMillis +
+                ", heartbeatMillis=" + heartbeatMillis +
                 ", ipcMulticastChannel=" + ipcMulticastChannel +
                 ", threadingMode=" + threadingMode +
                 ", serverConfigs=" + serverConfigs +

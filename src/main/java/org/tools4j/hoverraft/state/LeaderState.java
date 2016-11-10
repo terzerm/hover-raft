@@ -40,6 +40,11 @@ public class LeaderState extends AbstractState {
     protected EventHandler eventHandler() {
         return new EventHandler() {
             @Override
+            public Transition onTransition(ServerContext serverContext, Transition transition) {
+                return LeaderState.this.onTransition(serverContext, transition);
+            }
+
+            @Override
             public Transition onVoteRequest(final ServerContext serverContext, final VoteRequest voteRequest) {
                 return LeaderState.this.onVoteRequest(serverContext, voteRequest);
             }
@@ -59,6 +64,12 @@ public class LeaderState extends AbstractState {
                 return LeaderState.this.onTimerEvent(serverContext, timerEvent);
             }
         };
+    }
+
+    private Transition onTransition(final ServerContext serverContext, final Transition transition) {
+        final long heartbeatMillis = serverContext.consensusConfig().heartbeatTimeoutMillis();
+        serverContext.timer().restart(heartbeatMillis, heartbeatMillis);
+        return Transition.STEADY;
     }
 
     private Transition onCommandMessage(final ServerContext serverContext, final CommandMessage commandMessage) {
@@ -84,6 +95,7 @@ public class LeaderState extends AbstractState {
 
     private void sendAppendRequest(final ServerContext serverContext) {
         //FIXME impl
+        serverContext.timer().reset();
     }
 
 }
