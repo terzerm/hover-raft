@@ -23,8 +23,9 @@
  */
 package org.tools4j.hoverraft.message;
 
-import org.tools4j.hoverraft.handler.MessageHandler;
+import org.tools4j.hoverraft.event.EventHandler;
 import org.tools4j.hoverraft.server.ServerContext;
+import org.tools4j.hoverraft.state.Transition;
 
 public interface AppendResponse extends Message {
 
@@ -36,7 +37,8 @@ public interface AppendResponse extends Message {
 
     AppendResponse successful(boolean successful);
 
-    default void accept(final ServerContext serverContext, final MessageHandler messageHandler) {
-        messageHandler.onAppendResponse(serverContext, this);
+    @Override
+    default Transition accept(final ServerContext serverContext, final EventHandler eventHandler) {
+        return eventHandler.onAppendResponse(serverContext, this);
     }
 }

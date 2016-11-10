@@ -30,9 +30,9 @@ import java.util.function.Consumer;
 public interface Receiver<M extends Message> {
     /**
      * Polls messages in non-blocking mode. Messages are passed to the specified
-     * message handler.
+     * message event.
      *
-     * @param messageMandler the handler invoked for each message
+     * @param messageMandler the event invoked for each message
      * @param limit maximum number of messages to receive
      * @return number of messages received, zero to at most {@code limit} messages
      */

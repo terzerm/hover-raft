@@ -21,32 +21,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.message;
+package org.tools4j.hoverraft.event;
 
-import org.tools4j.hoverraft.event.EventHandler;
 import org.tools4j.hoverraft.server.ServerContext;
 import org.tools4j.hoverraft.state.Transition;
 
-public interface VoteRequest extends Message {
-
-    int term();
-
-    VoteRequest term(int term);
-
-    int candidateId();
-
-    VoteRequest candidateId(int candidateId);
-
-    int lastLogTerm();
-
-    VoteRequest lastLogTerm(int lastLogTerm);
-
-    long lastLogIndex();
-
-    VoteRequest lastLogIndex(long lastLogIndex);
-
-    @Override
-    default Transition accept(final ServerContext serverContext, final EventHandler eventHandler) {
-        return eventHandler.onVoteRequest(serverContext, this);
-    }
+/**
+ * Interface implemented by messages and other events.
+ */
+public interface Event {
+    Transition accept(ServerContext serverContext, EventHandler eventHandler);
 }

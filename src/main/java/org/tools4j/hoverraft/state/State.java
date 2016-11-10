@@ -23,13 +23,10 @@
  */
 package org.tools4j.hoverraft.state;
 
-import org.tools4j.hoverraft.message.Message;
+import org.tools4j.hoverraft.event.Event;
 import org.tools4j.hoverraft.server.ServerContext;
 
 public interface State {
     Role role();
-    Role onMessage(ServerContext serverContext, Message message);
-
-    @Deprecated //TODO remove and merge this with onMessage(..)
-    void perform(ServerContext serverContext);
+    Transition onEvent(ServerContext serverContext, Event event);
 }

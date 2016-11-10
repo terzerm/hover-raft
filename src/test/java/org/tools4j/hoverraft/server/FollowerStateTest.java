@@ -33,10 +33,7 @@ import org.tools4j.hoverraft.message.AppendRequest;
 import org.tools4j.hoverraft.message.AppendResponse;
 import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
-import org.tools4j.hoverraft.state.FollowerState;
-import org.tools4j.hoverraft.state.PersistentState;
-import org.tools4j.hoverraft.state.Role;
-import org.tools4j.hoverraft.state.VolatileState;
+import org.tools4j.hoverraft.state.*;
 import org.tools4j.hoverraft.transport.Sender;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -75,11 +72,10 @@ public class FollowerStateTest {
                 .appendRequest()
                 .term(term)
                 .leaderId(leaderId);
-        volatileState.changeRoleTo(Role.FOLLOWER);
         when(serverContext.connections().serverSender(leaderId)).thenReturn(sender);
 
         //when
-        followerState.onMessage(serverContext, appendRequest);
+        final Transition transition = followerState.onEvent(serverContext, appendRequest);
 
         //then
         final ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
@@ -88,7 +84,7 @@ public class FollowerStateTest {
         final AppendResponse response = (AppendResponse)captor.getValue();
         assertThat(response.successful()).isTrue();
         assertThat(response.term()).isEqualTo(term);
-        assertThat(volatileState.role()).isEqualTo(Role.FOLLOWER);
+        assertThat(transition).isEqualTo(Transition.STEADY);
     }
 
     @Test
@@ -105,7 +101,7 @@ public class FollowerStateTest {
         when(serverContext.connections().serverSender(leaderId)).thenReturn(sender);
 
         //when
-        followerState.onMessage(serverContext, appendRequest);
+        final Transition transition = followerState.onEvent(serverContext, appendRequest);
 
         //then
         final ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
@@ -114,5 +110,6 @@ public class FollowerStateTest {
         final AppendResponse response = (AppendResponse)captor.getValue();
         assertThat(response.successful()).isFalse();
         assertThat(response.term()).isEqualTo(term);
+        assertThat(transition).isEqualTo(Transition.STEADY);
     }
 }

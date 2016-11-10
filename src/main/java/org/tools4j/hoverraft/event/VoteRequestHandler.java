@@ -21,46 +21,47 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.handler;
+package org.tools4j.hoverraft.event;
 
 import org.tools4j.hoverraft.message.VoteRequest;
 import org.tools4j.hoverraft.server.ServerContext;
 import org.tools4j.hoverraft.state.PersistentState;
-import org.tools4j.hoverraft.state.Role;
-import org.tools4j.hoverraft.state.VolatileState;
+import org.tools4j.hoverraft.state.Transition;
 
 import java.util.Objects;
 
 public final class VoteRequestHandler {
 
     private final PersistentState persistentState;
-    private final VolatileState volatileState;
 
-    public VoteRequestHandler(final PersistentState persistentState, final VolatileState volatileState) {
+    public VoteRequestHandler(final PersistentState persistentState) {
         this.persistentState = Objects.requireNonNull(persistentState);
-        this.volatileState = Objects.requireNonNull(volatileState);
     }
 
-    public void onVoteRequest(final ServerContext serverContext, final VoteRequest voteRequest) {
+    public Transition onVoteRequest(final ServerContext serverContext, final VoteRequest voteRequest) {
         final int term = voteRequest.term();
         final int candidateId = voteRequest.candidateId();
+        final Transition transition;
         final boolean granted;
         if (persistentState.currentTerm() == term && isValidCandidate(serverContext, voteRequest)) {
             if (persistentState.votedFor() < 0) {
                 persistentState.votedFor(candidateId);
-                volatileState.changeRoleTo(Role.FOLLOWER);
+                transition = Transition.TO_FOLLOWER;
                 granted = true;
             } else {
                 granted = persistentState.votedFor() == candidateId;
+                transition = Transition.STEADY;
             }
         } else {
             granted = false;
+            transition = Transition.STEADY;
         }
         serverContext.messageFactory().voteResponse()
                 .term(persistentState.currentTerm())
                 .voteGranted(granted)
                 .sendTo(serverContext.connections().serverSender(candidateId),
                         serverContext.resendStrategy());
+        return transition;
     }
 
     private boolean isValidCandidate(final ServerContext serverContext, final VoteRequest voteRequest) {

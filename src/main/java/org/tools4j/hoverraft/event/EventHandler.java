@@ -21,32 +21,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.message;
+package org.tools4j.hoverraft.event;
 
-import org.tools4j.hoverraft.event.EventHandler;
+import org.tools4j.hoverraft.message.*;
 import org.tools4j.hoverraft.server.ServerContext;
 import org.tools4j.hoverraft.state.Transition;
+import org.tools4j.hoverraft.timer.TimerEvent;
 
-public interface VoteRequest extends Message {
-
-    int term();
-
-    VoteRequest term(int term);
-
-    int candidateId();
-
-    VoteRequest candidateId(int candidateId);
-
-    int lastLogTerm();
-
-    VoteRequest lastLogTerm(int lastLogTerm);
-
-    long lastLogIndex();
-
-    VoteRequest lastLogIndex(long lastLogIndex);
-
-    @Override
-    default Transition accept(final ServerContext serverContext, final EventHandler eventHandler) {
-        return eventHandler.onVoteRequest(serverContext, this);
-    }
+/**
+ * Event handler for all event types. Acts as visitor called back in
+ * {@link Event#accept(ServerContext, EventHandler)}.
+ */
+public interface EventHandler {
+    default Transition onTransition(ServerContext serverContext, Transition transition) {return Transition.STEADY;}
+    default Transition onVoteRequest(ServerContext serverContext, VoteRequest voteRequest) {return Transition.STEADY;}
+    default Transition onVoteResponse(ServerContext serverContext, VoteResponse voteResponse) {return Transition.STEADY;}
+    default Transition onAppendRequest(ServerContext serverContext, AppendRequest appendRequest) {return Transition.STEADY;}
+    default Transition onAppendResponse(ServerContext serverContext, AppendResponse appendResponse) {return Transition.STEADY;}
+    default Transition onTimeoutNow(ServerContext serverContext, TimeoutNow timeoutNow) {return Transition.STEADY;}
+    default Transition onCommandMessage(ServerContext serverContext, CommandMessage commandMessage) {return Transition.STEADY;};
+    default Transition onTimerEvent(ServerContext serverContext, TimerEvent timerEvent) {return Transition.STEADY;};
 }

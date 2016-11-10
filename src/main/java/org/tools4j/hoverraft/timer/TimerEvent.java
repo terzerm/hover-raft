@@ -21,33 +21,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.state;
+package org.tools4j.hoverraft.timer;
 
-import org.tools4j.hoverraft.config.ConsensusConfig;
+import org.tools4j.hoverraft.event.Event;
+import org.tools4j.hoverraft.event.EventHandler;
+import org.tools4j.hoverraft.server.ServerContext;
+import org.tools4j.hoverraft.state.Transition;
 
-public final class ElectionState {
+/**
+ * Events triggered by a timeout.
+ */
+public enum TimerEvent implements Event {
+    TIMEOUT;
 
-    private final Timer timer;
-    private int voteCount;
-
-    public ElectionState(final ConsensusConfig consensusConfig) {
-        this.timer = new Timer(consensusConfig);
-    }
-
-    public Timer electionTimer() {
-        return timer;
-    }
-
-    public int voteCount() {
-        return voteCount;
-    }
-
-    public int incVoteCount() {
-        return ++voteCount;
-    }
-
-    /** initialise vote count to 1 for own vote*/
-    public void initVoteCount() {
-        voteCount = 1;
+    @Override
+    public final Transition accept(final ServerContext serverContext, final EventHandler eventHandler) {
+        return eventHandler.onTimerEvent(serverContext, this);
     }
 }

@@ -21,61 +21,59 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.handler;
+package org.tools4j.hoverraft.event;
 
 import org.tools4j.hoverraft.message.*;
 import org.tools4j.hoverraft.server.ServerContext;
 import org.tools4j.hoverraft.state.PersistentState;
-import org.tools4j.hoverraft.state.Role;
-import org.tools4j.hoverraft.state.VolatileState;
+import org.tools4j.hoverraft.state.Transition;
 
 import java.util.Objects;
 
-public final class HigherTermHandler implements MessageHandler {
+public final class HigherTermHandler implements EventHandler {
 
     private final PersistentState persistentState;
-    private final VolatileState volatileState;
 
-    public HigherTermHandler(final PersistentState persistentState, final VolatileState volatileState) {
+    public HigherTermHandler(final PersistentState persistentState) {
         this.persistentState = Objects.requireNonNull(persistentState);
-        this.volatileState = Objects.requireNonNull(volatileState);
     }
 
     @Override
-    public void onVoteRequest(final ServerContext serverContext, final VoteRequest voteRequest) {
-        onTerm(serverContext, voteRequest.term());
+    public Transition onVoteRequest(final ServerContext serverContext, final VoteRequest voteRequest) {
+        return onTerm(voteRequest.term());
     }
 
     @Override
-    public void onVoteResponse(final ServerContext serverContext, final VoteResponse voteResponse) {
-        onTerm(serverContext, voteResponse.term());
+    public Transition onVoteResponse(final ServerContext serverContext, final VoteResponse voteResponse) {
+        return onTerm(voteResponse.term());
     }
 
     @Override
-    public void onAppendRequest(final ServerContext serverContext, final AppendRequest appendRequest) {
-        onTerm(serverContext, appendRequest.term());
+    public Transition onAppendRequest(final ServerContext serverContext, final AppendRequest appendRequest) {
+        return onTerm(appendRequest.term());
     }
 
     @Override
-    public void onAppendResponse(final ServerContext serverContext, final AppendResponse appendResponse) {
-        onTerm(serverContext, appendResponse.term());
+    public Transition onAppendResponse(final ServerContext serverContext, final AppendResponse appendResponse) {
+        return onTerm(appendResponse.term());
     }
 
     @Override
-    public void onTimeoutNow(final ServerContext serverContext, final TimeoutNow timeoutRequest) {
-        onTerm(serverContext, timeoutRequest.term());
+    public Transition onTimeoutNow(final ServerContext serverContext, final TimeoutNow timeoutRequest) {
+        return onTerm(timeoutRequest.term());
     }
 
     @Override
-    public void onCommandMessage(ServerContext serverContext, CommandMessage commandMessage) {
-        onTerm(serverContext, commandMessage.term());
+    public Transition onCommandMessage(ServerContext serverContext, CommandMessage commandMessage) {
+        return onTerm(commandMessage.term());
     }
 
-    private void onTerm(final ServerContext serverContext, final int term) {
+    private Transition onTerm(final int term) {
         if (term > persistentState.currentTerm()) {
             persistentState.clearVotedForAndSetCurrentTerm(term);
-            volatileState.changeRoleTo(Role.FOLLOWER);
+            return Transition.TO_FOLLOWER;
         }
+        return Transition.STEADY;
     }
 
 }

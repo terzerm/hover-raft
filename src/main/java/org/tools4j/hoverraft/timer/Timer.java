@@ -21,60 +21,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.state;
+package org.tools4j.hoverraft.timer;
 
-import org.tools4j.hoverraft.config.ConsensusConfig;
-import org.tools4j.hoverraft.util.Clock;
-
+import java.util.Objects;
 import java.util.Random;
 
 public final class Timer {
 
     private final Random rnd = new Random();
-    private final long minTimeoutMillis;
-    private final long maxTimeoutMillis;
+    private final Clock clock;
 
     private long timerStartMillis;
     private long timeoutMillis;
 
-    public Timer(final ConsensusConfig consensusConfig) {
-        this(consensusConfig.minElectionTimeoutMillis(), consensusConfig.maxElectionTimeoutMillis());
+    public Timer() {
+        this(Clock.DEFAULT);
     }
 
-    public Timer(final long minTimeoutMillis, final long maxTimeoutMillis) {
-        if (minTimeoutMillis > maxTimeoutMillis) {
-            throw new IllegalArgumentException("minTimeoutMillis must not be greater than maxTimeoutMillis: " + minTimeoutMillis + " > " + maxTimeoutMillis);
-        }
-        if (maxTimeoutMillis - minTimeoutMillis > Integer.MAX_VALUE) {
-            throw new IllegalArgumentException("Difference between minTimeoutMillis and maxTimeoutMillis exceeds integer range: " + maxTimeoutMillis + " - " + maxTimeoutMillis + " > " + Integer.MAX_VALUE);
-        }
-        this.minTimeoutMillis = minTimeoutMillis;
-        this.maxTimeoutMillis = maxTimeoutMillis;
-    }
-
-    public long minTimeoutMillis() {
-        return minTimeoutMillis;
-    }
-
-    public long maxTimeoutMillis() {
-        return maxTimeoutMillis;
+    public Timer(final Clock clock) {
+        this.clock = Objects.requireNonNull(clock);
     }
 
     /**
      * Starts a new timeout. The timeout is random between minTimeout and maxTimeout.
-     * @param clock the clock used to get the current time
+     * @param minTimeoutMillis the minimum timeout in milliseconds
+     * @param maxTimeoutMillis the maximum timeout in milliseconds
      */
-    public void restart(final Clock clock) {
-        timeoutMillis = newTimeoutMillis();
-        reset(clock);
+    public void restart(final long minTimeoutMillis, final long maxTimeoutMillis) {
+        timeoutMillis = newTimeoutMillis(minTimeoutMillis, maxTimeoutMillis);
+        reset();
     }
 
     /**
      * Resets the current timeout to the start without calculating a new
      * random timout.
-     * @param clock the clock used to get the current time
      */
-    public void reset(final Clock clock) {
+    public void reset() {
         timerStartMillis = clock.currentTimeMillis();
     }
 
@@ -87,14 +69,13 @@ public final class Timer {
 
     /**
      * Returns true if the timeout has elapsed if compared with the current time.
-     * @param clock the clock used to get the current time
      * @return true if timeout has elapsed
      */
-    public boolean hasTimeoutElapsed(final Clock clock) {
+    public boolean hasTimeoutElapsed() {
         return clock.currentTimeMillis() - timerStartMillis >= timeoutMillis;
     }
 
-    private long newTimeoutMillis() {
+    private long newTimeoutMillis(final long minTimeoutMillis, final long maxTimeoutMillis) {
         final int diff = (int)(maxTimeoutMillis - minTimeoutMillis);
         long timeout = minTimeoutMillis;
         if (diff > 0) {

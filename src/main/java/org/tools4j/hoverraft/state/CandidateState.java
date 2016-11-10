@@ -23,63 +23,96 @@
  */
 package org.tools4j.hoverraft.state;
 
-import org.tools4j.hoverraft.handler.HigherTermHandler;
-import org.tools4j.hoverraft.handler.MessageHandler;
-import org.tools4j.hoverraft.handler.VoteRequestHandler;
+import org.tools4j.hoverraft.config.ConsensusConfig;
+import org.tools4j.hoverraft.event.EventHandler;
 import org.tools4j.hoverraft.message.AppendRequest;
-import org.tools4j.hoverraft.message.Message;
+import org.tools4j.hoverraft.message.VoteRequest;
 import org.tools4j.hoverraft.message.VoteResponse;
 import org.tools4j.hoverraft.server.ServerContext;
-import org.tools4j.hoverraft.util.Clock;
+import org.tools4j.hoverraft.timer.TimerEvent;
 
 public final class CandidateState extends AbstractState {
 
-    private final MessageHandler messageHandler;
+    private int voteCount;
 
     public CandidateState(final PersistentState persistentState, final VolatileState volatileState) {
         super(Role.CANDIDATE, persistentState, volatileState);
-        this.messageHandler = new HigherTermHandler(persistentState, volatileState)
-                .thenHandleVoteRequest(new VoteRequestHandler(persistentState, volatileState)::onVoteRequest)
-                .thenHandleAppendRequest(this::onAppendRequest)
-                .thenHandleVoteResponse(this::onVoteResponse);
     }
 
     @Override
-    public Role onMessage(final ServerContext serverContext, final Message message) {
-        message.accept(serverContext, messageHandler);
-        return volatileState().role();
+    protected EventHandler eventHandler() {
+        return new EventHandler() {
+            @Override
+            public Transition onTransition(final ServerContext serverContext, final Transition transition) {
+                return CandidateState.this.onTransition(serverContext, transition);
+            }
+
+            @Override
+            public Transition onVoteRequest(final ServerContext serverContext, final VoteRequest voteRequest) {
+                return CandidateState.this.onVoteRequest(serverContext, voteRequest);
+            }
+
+            @Override
+            public Transition onVoteResponse(final ServerContext serverContext, final VoteResponse voteResponse) {
+                return CandidateState.this.onVoteResponse(serverContext, voteResponse);
+            }
+
+            @Override
+            public Transition onAppendRequest(final ServerContext serverContext, final AppendRequest appendRequest) {
+                return CandidateState.this.onAppendRequest(serverContext, appendRequest);
+            }
+
+            @Override
+            public Transition onTimerEvent(final ServerContext serverContext, final TimerEvent timerEvent) {
+                return CandidateState.this.onTimerEvent(serverContext, timerEvent);
+            }
+        };
     }
 
-    @Override
-    public void perform(final ServerContext serverContext) {
-        if (persistentState().votedFor() < 0) {
-            voteForMyself(serverContext);
-        }
+    private Transition onTransition(final ServerContext serverContext, final Transition transition) {
+        startNewElection(serverContext);
+        return Transition.STEADY;
     }
 
-    private void onVoteResponse(final ServerContext serverContext, final VoteResponse voteResponse) {
+    private Transition onVoteResponse(final ServerContext serverContext, final VoteResponse voteResponse) {
         if (voteResponse.term() == currentTerm() && voteResponse.voteGranted()) {
-            incVoteCount(serverContext);
+            return incVoteCount(serverContext);
         }
+        return Transition.STEADY;
     }
 
-    private void onAppendRequest(final ServerContext serverContext, final AppendRequest appendRequest) {
+    private Transition onAppendRequest(final ServerContext serverContext, final AppendRequest appendRequest) {
         final int term = appendRequest.term();
         final int leaderId = appendRequest.leaderId();
         final int currentTerm = currentTerm();
+        final Transition transition;
         final boolean successful;
         if (currentTerm == term) /* should never be larger */ {
-            volatileState().changeRoleTo(Role.FOLLOWER);
-            volatileState().electionState().electionTimer().restart(Clock.DEFAULT);
+            serverContext.timer().reset();
             successful = appendToLog(serverContext, appendRequest);
+            transition = Transition.TO_FOLLOWER;
         } else {
             successful = false;
+            transition = Transition.STEADY;
         }
         serverContext.messageFactory().appendResponse()
                 .term(currentTerm)
                 .successful(successful)
                 .sendTo(serverContext.connections().serverSender(leaderId),
                         serverContext.resendStrategy());
+        return transition;
+    }
+
+    private Transition onTimerEvent(final ServerContext serverContext, final TimerEvent timerEvent) {
+        startNewElection(serverContext);
+        return Transition.STEADY;
+    }
+
+    private void startNewElection(final ServerContext serverContext) {
+        final ConsensusConfig config = serverContext.consensusConfig();
+        persistentState().clearVotedForAndIncCurrentTerm();
+        serverContext.timer().restart(config.minElectionTimeoutMillis(), config.maxElectionTimeoutMillis());
+        voteForMyself(serverContext);
     }
 
     private boolean appendToLog(final ServerContext serverContext, final AppendRequest appendRequest) {
@@ -90,10 +123,9 @@ public final class CandidateState extends AbstractState {
     private void voteForMyself(final ServerContext serverContext) {
         final VolatileState vstate = volatileState();
         final PersistentState pstate = persistentState();
-        final ElectionState estate = vstate.electionState();
         final int self = serverContext.serverConfig().id();
         pstate.votedFor(self);
-        estate.initVoteCount();
+        voteCount = 1;
         requestVoteFromAllServers(serverContext, self);
     }
 
@@ -105,14 +137,14 @@ public final class CandidateState extends AbstractState {
                         serverContext.resendStrategy());
     }
 
-    private void incVoteCount(final ServerContext serverContext) {
-        final VolatileState vstate = volatileState();
-        vstate.electionState().incVoteCount();
+    private Transition incVoteCount(final ServerContext serverContext) {
+        voteCount++;
         final int servers = serverContext.consensusConfig().serverCount();
         final int majority = (servers + 1) / 2;
-        if (vstate.electionState().voteCount() >= majority) {
-            vstate.changeRoleTo(Role.LEADER);
+        if (voteCount >= majority) {
+            return Transition.TO_LEADER;
         }
+        return Transition.STEADY;
     }
 
 }

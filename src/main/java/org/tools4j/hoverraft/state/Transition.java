@@ -21,32 +21,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.message;
+package org.tools4j.hoverraft.state;
 
+import org.tools4j.hoverraft.event.Event;
 import org.tools4j.hoverraft.event.EventHandler;
 import org.tools4j.hoverraft.server.ServerContext;
-import org.tools4j.hoverraft.state.Transition;
 
-public interface VoteRequest extends Message {
+/**
+ * Transition from current state, either STEADY (no change) or into a new {@link Role}.
+ */
+public enum Transition implements Event {
+    STEADY(null),
+    TO_FOLLOWER(Role.FOLLOWER),
+    TO_CANDIDATE(Role.CANDIDATE),
+    TO_LEADER(Role.LEADER);
 
-    int term();
+    private final Role targetRole;
 
-    VoteRequest term(int term);
+    Transition(final Role targetRole) {
+        this.targetRole = targetRole;//nullable
+    }
 
-    int candidateId();
-
-    VoteRequest candidateId(int candidateId);
-
-    int lastLogTerm();
-
-    VoteRequest lastLogTerm(int lastLogTerm);
-
-    long lastLogIndex();
-
-    VoteRequest lastLogIndex(long lastLogIndex);
+    public final Role targetRole(final Role currentRole) {
+        return this == STEADY ? currentRole : targetRole;
+    }
 
     @Override
-    default Transition accept(final ServerContext serverContext, final EventHandler eventHandler) {
-        return eventHandler.onVoteRequest(serverContext, this);
+    public Transition accept(final ServerContext serverContext, final EventHandler eventHandler) {
+        return eventHandler.onTransition(serverContext, this);
+    }
+
+    public static Transition startWith(final ServerContext serverContext, final Event event, final EventHandler eventHandler) {
+        return event.accept(serverContext, eventHandler);
+    }
+    public final Transition ifSteadyThen(final ServerContext serverContext, final Event event, final EventHandler eventHandler) {
+        if (this == STEADY) {
+            return event.accept(serverContext, eventHandler);
+        }
+        return this;
     }
 }

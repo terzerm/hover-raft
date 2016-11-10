@@ -29,14 +29,13 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.tools4j.hoverraft.handler.VoteRequestHandler;
+import org.tools4j.hoverraft.event.VoteRequestHandler;
 import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.message.VoteRequest;
 import org.tools4j.hoverraft.message.VoteResponse;
 import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
 import org.tools4j.hoverraft.state.PersistentState;
 import org.tools4j.hoverraft.state.Role;
-import org.tools4j.hoverraft.state.VolatileState;
 import org.tools4j.hoverraft.transport.Sender;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,7 +53,6 @@ public class VoteRequestHandlerTest {
 
     private ServerContext serverContext;
     private PersistentState persistentState;
-    private VolatileState volatileState;
 
     @Mock
     private Sender<Message> sender;
@@ -63,9 +61,8 @@ public class VoteRequestHandlerTest {
     public void init() {
         serverContext = Mockery.simple(1);
         persistentState = Mockery.persistentState();
-        volatileState = Mockery.volatileState(serverContext.consensusConfig());
 
-        handler = new VoteRequestHandler(persistentState, volatileState);
+        handler = new VoteRequestHandler(persistentState);
     }
 
     private int candidateId() {
@@ -114,7 +111,6 @@ public class VoteRequestHandlerTest {
                 .candidateId(candidateId)
                 .lastLogTerm(lastLogTerm)
                 .lastLogIndex(lastLogIndex);
-        volatileState.changeRoleTo(currentRole);
         when(serverContext.connections().serverSender(candidateId)).thenReturn(sender);
         when(persistentState.votedFor()).thenReturn(previouslyVotedFor);
         when(persistentState.lastLogTerm()).thenReturn(lastLogTerm);
@@ -138,7 +134,6 @@ public class VoteRequestHandlerTest {
                 .candidateId(candidateId)
                 .lastLogTerm(newerLastLogTerm)
                 .lastLogIndex(lastLogIndex);
-        volatileState.changeRoleTo(Role.FOLLOWER);
         when(serverContext.connections().serverSender(candidateId)).thenReturn(sender);
         when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
         when(persistentState.lastLogTerm()).thenReturn(lastLogTerm);
@@ -162,7 +157,6 @@ public class VoteRequestHandlerTest {
                 .candidateId(candidateId)
                 .lastLogTerm(lastLogTerm)
                 .lastLogIndex(newerLastLogIndex);
-        volatileState.changeRoleTo(Role.FOLLOWER);
         when(serverContext.connections().serverSender(candidateId)).thenReturn(sender);
         when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
         when(persistentState.lastLogTerm()).thenReturn(lastLogTerm);

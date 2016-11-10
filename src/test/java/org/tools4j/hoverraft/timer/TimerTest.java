@@ -21,28 +21,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.state;
+package org.tools4j.hoverraft.timer;
 
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
-import org.tools4j.hoverraft.config.ConsensusConfig;
-import org.tools4j.hoverraft.util.Clock;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class TimerTest {
 
     private static final long MIN_TIMEOUT = 10;
     private static final long MAX_TIMEOUT = 20;
 
+    @Mock
+    private Clock clock;
+
     private Timer timer;
 
     @Before
     public void init() {
-        timer = new Timer(MIN_TIMEOUT, MAX_TIMEOUT);
-        timer.restart(Clock.fixed(0));
+        when(clock.currentTimeMillis()).thenReturn(0L);
+        timer = new Timer(clock);
+        timer.restart(MIN_TIMEOUT, MAX_TIMEOUT);
         assertThatTimeoutIsBetweenMinAndMax(0);
     }
 
@@ -51,9 +56,10 @@ public class TimerTest {
         //we check that restart sets a new random timeout
         //i.e. we try until the reset timeout was different from previous
         long previousTimeout = Long.MIN_VALUE;
-        long startTime = 1;
+        final long startTime = 1l;
         while (true) {
-            timer.restart(Clock.fixed(startTime));
+            when(clock.currentTimeMillis()).thenReturn(1L);
+            timer.restart(MIN_TIMEOUT, MAX_TIMEOUT);
             assertThatTimeoutIsBetweenMinAndMax(startTime);
             final long currentTimeout = findTimeout(startTime);
             if (previousTimeout != Long.MIN_VALUE && previousTimeout != currentTimeout) {
@@ -70,7 +76,8 @@ public class TimerTest {
         long previousTimeout = Long.MIN_VALUE;
         long startTime = 1;
         for (int i = 0; i < 20; i++) {
-            timer.reset(Clock.fixed(startTime));
+            when(clock.currentTimeMillis()).thenReturn(startTime);
+            timer.reset();
             assertThatTimeoutIsBetweenMinAndMax(startTime);
             final long currentTimeout = findTimeout(startTime);
             if (previousTimeout != Long.MIN_VALUE) {
@@ -85,58 +92,34 @@ public class TimerTest {
     public void timeoutNow() throws Exception {
         timer.timeoutNow();
         Assertions
-                .assertThat(timer.hasTimeoutElapsed(Clock.fixed(0)))
+                .assertThat(timer.hasTimeoutElapsed())
                 .isTrue();
-        timer.restart(Clock.fixed(100));
+        when(clock.currentTimeMillis()).thenReturn(100L);
+        timer.restart(MIN_TIMEOUT, MAX_TIMEOUT);
         Assertions
-                .assertThat(timer.hasTimeoutElapsed(Clock.fixed(100)))
+                .assertThat(timer.hasTimeoutElapsed())
                 .isFalse();
         timer.timeoutNow();
         Assertions
-                .assertThat(timer.hasTimeoutElapsed(Clock.fixed(100)))
+                .assertThat(timer.hasTimeoutElapsed())
                 .isTrue();
     }
 
-    @Test
-    public void constructWithConsensusConfig() {
-        //given
-        final ConsensusConfig consensusConfig = mock(ConsensusConfig.class);
-        when(consensusConfig.minElectionTimeoutMillis()).thenReturn(MIN_TIMEOUT);
-        when(consensusConfig.maxElectionTimeoutMillis()).thenReturn(MAX_TIMEOUT);
-        timer = new Timer(consensusConfig);
-
-        //when + then
-        Assertions
-                .assertThat(timer.minTimeoutMillis())
-                .isEqualTo(MIN_TIMEOUT);
-        Assertions
-                .assertThat(timer.maxTimeoutMillis())
-                .isEqualTo(MAX_TIMEOUT);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void constructWithTimeoutValuesWrongOrder() {
-        new Timer(MAX_TIMEOUT, MIN_TIMEOUT);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void constructWithTimeoutValuesTooLarge() {
-        new Timer(MIN_TIMEOUT, MIN_TIMEOUT + Integer.MAX_VALUE + 1);
-    }
-
     private void assertThatTimeoutIsBetweenMinAndMax(final long startTime) {
+        when(clock.currentTimeMillis()).thenReturn(startTime + MIN_TIMEOUT - 1);
         Assertions
-                .assertThat(timer.hasTimeoutElapsed(Clock.fixed(startTime + MIN_TIMEOUT - 1)))
+                .assertThat(timer.hasTimeoutElapsed())
                 .isFalse();
+        when(clock.currentTimeMillis()).thenReturn(startTime + MAX_TIMEOUT);
         Assertions
-                .assertThat(timer.hasTimeoutElapsed(Clock.fixed(startTime + MAX_TIMEOUT)))
+                .assertThat(timer.hasTimeoutElapsed())
                 .isTrue();
     }
 
     private long findTimeout(final long startTime) {
-        long currentTimeout = -1;
         for (long i = MIN_TIMEOUT; i <= MAX_TIMEOUT; i++) {
-            if (timer.hasTimeoutElapsed(Clock.fixed(startTime + i))) {
+            when(clock.currentTimeMillis()).thenReturn(startTime + i);
+            if (timer.hasTimeoutElapsed()) {
                 return i;
             }
         }

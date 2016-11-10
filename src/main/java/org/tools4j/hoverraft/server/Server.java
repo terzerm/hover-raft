@@ -32,6 +32,8 @@ import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
 import org.tools4j.hoverraft.state.HoverRaftMachine;
 import org.tools4j.hoverraft.state.PersistentState;
 import org.tools4j.hoverraft.state.VolatileState;
+import org.tools4j.hoverraft.timer.Timer;
+import org.tools4j.hoverraft.timer.TimerEvent;
 import org.tools4j.hoverraft.transport.Connections;
 import org.tools4j.hoverraft.transport.MessageLog;
 import org.tools4j.hoverraft.transport.ResendStrategy;
@@ -49,6 +51,7 @@ public final class Server implements ServerContext {
     private final DirectMessageFactory messageFactory;
     private final RoundRobinMessagePoller<Message> serverMessagePoller;
     private final RoundRobinMessagePoller<CommandMessage> sourceMessagePoller;
+    private final Timer timer;
 
     public Server(final int serverId,
                   final ConsensusConfig consensusConfig,
@@ -67,6 +70,7 @@ public final class Server implements ServerContext {
         this.messageFactory = Objects.requireNonNull(messageFactory);
         this.serverMessagePoller = RoundRobinMessagePoller.forServerMessages(this, this::handleMessage);
         this.sourceMessagePoller = RoundRobinMessagePoller.forSourceMessages(this, this::handleMessage);
+        this.timer = new Timer();
     }
 
     public ServerConfig serverConfig() {
@@ -96,13 +100,24 @@ public final class Server implements ServerContext {
     }
 
     public void perform() {
+        checkTimeoutElapsed();
         serverMessagePoller.pollNextMessage();
         sourceMessagePoller.pollNextMessage();
-        hoverRaftMachine.perform(this);
     }
 
     private void handleMessage(final Message message) {
-        hoverRaftMachine.onMessage(this, message);
+        hoverRaftMachine.onEvent(this, message);
+    }
+
+    private void checkTimeoutElapsed() {
+        if (timer.hasTimeoutElapsed()) {
+            hoverRaftMachine.onEvent(this, TimerEvent.TIMEOUT);
+        }
+    }
+
+    @Override
+    public Timer timer() {
+        return timer;
     }
 
     public ResendStrategy resendStrategy() {

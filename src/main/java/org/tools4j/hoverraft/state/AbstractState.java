@@ -23,6 +23,16 @@
  */
 package org.tools4j.hoverraft.state;
 
+import org.tools4j.hoverraft.event.Event;
+import org.tools4j.hoverraft.event.EventHandler;
+import org.tools4j.hoverraft.event.HigherTermHandler;
+import org.tools4j.hoverraft.event.VoteRequestHandler;
+import org.tools4j.hoverraft.machine.StateMachine;
+import org.tools4j.hoverraft.message.CommandMessage;
+import org.tools4j.hoverraft.message.VoteRequest;
+import org.tools4j.hoverraft.server.ServerContext;
+import org.tools4j.hoverraft.transport.MessageLog;
+
 import java.util.Objects;
 
 abstract public class AbstractState implements State {
@@ -30,16 +40,29 @@ abstract public class AbstractState implements State {
     private final Role role;
     private final PersistentState persistentState;
     private final VolatileState volatileState;
+    private final HigherTermHandler higherTermHandler;
+    private final VoteRequestHandler voteRequestHandler;
 
     public AbstractState(final Role role, final PersistentState persistentState, final VolatileState volatileState) {
         this.role = Objects.requireNonNull(role);
         this.persistentState = Objects.requireNonNull(persistentState);
         this.volatileState = Objects.requireNonNull(volatileState);
+        this.higherTermHandler = new HigherTermHandler(persistentState);
+        this.voteRequestHandler= new VoteRequestHandler(persistentState);
+    }
+
+    abstract protected EventHandler eventHandler();
+
+    @Override
+    public final Role role() {
+        return role;
     }
 
     @Override
-    public Role role() {
-        return role;
+    public final Transition onEvent(final ServerContext serverContext, final Event event) {
+        return Transition
+                .startWith(serverContext, event, higherTermHandler)
+                .ifSteadyThen(serverContext, event, eventHandler());
     }
 
     public int currentTerm() {
@@ -52,5 +75,22 @@ abstract public class AbstractState implements State {
 
     protected VolatileState volatileState() {
         return volatileState;
+    }
+
+    protected Transition onVoteRequest(final ServerContext serverContext, final VoteRequest voteRequest) {
+        return voteRequestHandler.onVoteRequest(serverContext, voteRequest);
+    }
+
+    protected void invokeStateMachineWithCommittedLogEntries(final ServerContext serverContext) {
+        final MessageLog<CommandMessage> messageLog = serverContext.messageLog();
+        final StateMachine stateMachine = serverContext.stateMachine();
+        long lastApplied = volatileState.lastApplied();
+        while (volatileState.commitIndex() > lastApplied) {
+            lastApplied++;
+            messageLog.readIndex(lastApplied);
+            final CommandMessage commandMsg = messageLog.read();
+            stateMachine.onMessage(commandMsg);
+            volatileState.lastApplied(lastApplied);
+        }
     }
 }

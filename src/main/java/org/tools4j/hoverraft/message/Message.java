@@ -23,19 +23,17 @@
  */
 package org.tools4j.hoverraft.message;
 
-import org.tools4j.hoverraft.handler.MessageHandler;
-import org.tools4j.hoverraft.server.ServerContext;
+import org.tools4j.hoverraft.event.Event;
 import org.tools4j.hoverraft.transport.ResendStrategy;
 import org.tools4j.hoverraft.transport.Sender;
 
 /**
  * Base interface for all messages.
  */
-public interface Message {
+public interface Message extends Event {
 
     MessageType type();
 
     void sendTo(Sender<? super Message> sender, ResendStrategy resendStrategy);
 
-    void accept(ServerContext serverContext, MessageHandler messageHandler);
 }

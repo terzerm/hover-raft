@@ -28,11 +28,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.tools4j.hoverraft.handler.HigherTermHandler;
-import org.tools4j.hoverraft.handler.MessageHandler;
+import org.tools4j.hoverraft.event.EventHandler;
+import org.tools4j.hoverraft.event.HigherTermHandler;
 import org.tools4j.hoverraft.message.*;
 import org.tools4j.hoverraft.state.PersistentState;
-import org.tools4j.hoverraft.state.VolatileState;
 
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.*;
@@ -41,11 +40,10 @@ import static org.mockito.Mockito.*;
 public class HigherTermHandlerTest {
 
     //under test
-    private MessageHandler handler;
+    private EventHandler handler;
 
     private ServerContext serverContext;
     private PersistentState persistentState;
-    private VolatileState volatileState;
 
     @Mock
     private VoteRequest voteRequest;
@@ -64,10 +62,9 @@ public class HigherTermHandlerTest {
     public void init() {
         serverContext = Mockery.direct(1);
         persistentState = Mockery.persistentState();
-        volatileState = Mockery.volatileState(serverContext.consensusConfig());
 
         //under test
-        handler = new HigherTermHandler(persistentState, volatileState);
+        handler = new HigherTermHandler(persistentState);
     }
 
     @Test

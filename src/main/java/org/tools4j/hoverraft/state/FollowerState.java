@@ -23,45 +23,52 @@
  */
 package org.tools4j.hoverraft.state;
 
-import org.tools4j.hoverraft.handler.HigherTermHandler;
-import org.tools4j.hoverraft.handler.MessageHandler;
-import org.tools4j.hoverraft.handler.VoteRequestHandler;
+import org.tools4j.hoverraft.event.EventHandler;
 import org.tools4j.hoverraft.message.AppendRequest;
-import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.message.TimeoutNow;
+import org.tools4j.hoverraft.message.VoteRequest;
 import org.tools4j.hoverraft.server.ServerContext;
-import org.tools4j.hoverraft.util.Clock;
+import org.tools4j.hoverraft.timer.TimerEvent;
 
 public class FollowerState extends AbstractState {
 
-    private final MessageHandler messageHandler;
-
     public FollowerState(final PersistentState persistentState, final VolatileState volatileState) {
         super(Role.FOLLOWER, persistentState, volatileState);
-        this.messageHandler = new HigherTermHandler(persistentState, volatileState)
-                .thenHandleVoteRequest(new VoteRequestHandler(persistentState, volatileState)::onVoteRequest)
-                .thenHandleAppendRequest(this::onAppendRequest)
-                .thenHandleTimeoutNow(this::onTimeoutNow);
     }
 
     @Override
-    public Role onMessage(final ServerContext serverContext, final Message message) {
-        message.accept(serverContext, messageHandler);
-        return volatileState().role();
+    protected EventHandler eventHandler() {
+        return new EventHandler() {
+            @Override
+            public Transition onVoteRequest(final ServerContext serverContext, final VoteRequest voteRequest) {
+                return onVoteRequest(serverContext, voteRequest);
+            }
+
+            @Override
+            public Transition onAppendRequest(final ServerContext serverContext, final AppendRequest appendRequest) {
+                return FollowerState.this.onAppendRequest(serverContext, appendRequest);
+            }
+
+            @Override
+            public Transition onTimerEvent(final ServerContext serverContext, final TimerEvent timerEvent) {
+                return FollowerState.this.onTimerEvent(serverContext, timerEvent);
+            }
+
+            @Override
+            public Transition onTimeoutNow(final ServerContext serverContext, final TimeoutNow timeoutNow) {
+                return FollowerState.this.onTimeoutNow(serverContext, timeoutNow);
+            }
+
+        };
     }
 
-    @Override
-    public void perform(ServerContext serverContext) {
-        //nothing to do
-    }
-
-    private void onAppendRequest(final ServerContext serverContext, final AppendRequest appendRequest) {
+    private Transition onAppendRequest(final ServerContext serverContext, final AppendRequest appendRequest) {
         final int term = appendRequest.term();
         final int leaderId = appendRequest.leaderId();
         final int currentTerm = currentTerm();
         final boolean successful;
         if (currentTerm == term) /* should never be larger */ {
-            volatileState().electionState().electionTimer().reset(Clock.DEFAULT);
+            serverContext.timer().reset();
             successful = appendToLog(serverContext, appendRequest);
         } else {
             successful = false;
@@ -71,6 +78,19 @@ public class FollowerState extends AbstractState {
                 .successful(successful)
                 .sendTo(serverContext.connections().serverSender(leaderId),
                         serverContext.resendStrategy());
+        return Transition.STEADY;
+    }
+
+    private Transition onTimerEvent(final ServerContext serverContext, final TimerEvent timerEvent) {
+        return Transition.TO_CANDIDATE;
+    }
+
+    private Transition onTimeoutNow(final ServerContext serverContext, final TimeoutNow timeoutNow) {
+        if (timeoutNow.term() == currentTerm() && timeoutNow.candidateId() == serverContext.id()) {
+            serverContext.timer().timeoutNow();
+            return Transition.TO_CANDIDATE;
+        }
+        return Transition.STEADY;
     }
 
     private boolean appendToLog(final ServerContext serverContext, final AppendRequest appendRequest) {
@@ -78,9 +98,4 @@ public class FollowerState extends AbstractState {
         return true;
     }
 
-    private void onTimeoutNow(final ServerContext serverContext, final TimeoutNow timeoutNow) {
-        if (timeoutNow.term() == currentTerm() && timeoutNow.candidateId() == serverContext.id()) {
-            volatileState().electionState().electionTimer().timeoutNow();
-        }
-    }
 }

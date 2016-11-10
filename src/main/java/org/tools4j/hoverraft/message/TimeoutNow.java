@@ -23,8 +23,9 @@
  */
 package org.tools4j.hoverraft.message;
 
-import org.tools4j.hoverraft.handler.MessageHandler;
+import org.tools4j.hoverraft.event.EventHandler;
 import org.tools4j.hoverraft.server.ServerContext;
+import org.tools4j.hoverraft.state.Transition;
 
 /**
  * Timeout request to initiate leadership transfer.
@@ -39,7 +40,8 @@ public interface TimeoutNow extends Message {
 
     TimeoutNow candidateId(int candidateId);
 
-    default void accept(final ServerContext serverContext, final MessageHandler messageHandler) {
-        messageHandler.onTimeoutNow(serverContext, this);
+    @Override
+    default Transition accept(final ServerContext serverContext, final EventHandler eventHandler) {
+        return eventHandler.onTimeoutNow(serverContext, this);
     }
 }

@@ -27,7 +27,6 @@ import org.tools4j.hoverraft.config.ConsensusConfig;
 
 public final class VolatileState {
 
-    private final ElectionState electionState;
     private final TrackedFollowerState[] trackedFollowerStates;
 
     @Deprecated //REMOVE this is now storted as State in HoverRaftMachine
@@ -36,22 +35,16 @@ public final class VolatileState {
     private long lastApplied;
 
     public VolatileState(final int serverId, final ConsensusConfig consensusConfig) {
-        this.electionState = new ElectionState(consensusConfig);
         this.trackedFollowerStates = initFollowerStates(serverId, consensusConfig);
-    }
-
-    @Deprecated //REMOVE this is now storted as State in HoverRaftMachine
-    public Role role() {
-        return role;
-    }
-
-    @Deprecated //REMOVE this is now storted as State in HoverRaftMachine
-    public void changeRoleTo(Role role) {
-        this.role = role;
     }
 
     public long commitIndex() {
         return commitIndex;
+    }
+
+    public VolatileState commitIndex(final long commitIndex) {
+        this.commitIndex = commitIndex;
+        return this;
     }
 
     public long lastApplied() {
@@ -65,10 +58,6 @@ public final class VolatileState {
 
     public int followerCount() {
         return trackedFollowerStates.length;
-    }
-
-    public ElectionState electionState() {
-        return electionState;
     }
 
     public TrackedFollowerState followerState(int index) {

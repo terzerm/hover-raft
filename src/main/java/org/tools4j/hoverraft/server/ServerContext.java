@@ -29,6 +29,7 @@ import org.tools4j.hoverraft.machine.StateMachine;
 import org.tools4j.hoverraft.message.CommandMessage;
 import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
+import org.tools4j.hoverraft.timer.Timer;
 import org.tools4j.hoverraft.transport.Connections;
 import org.tools4j.hoverraft.transport.MessageLog;
 import org.tools4j.hoverraft.transport.ResendStrategy;
@@ -46,6 +47,8 @@ public interface ServerContext {
     DirectMessageFactory messageFactory();
 
     StateMachine stateMachine();
+
+    Timer timer();
 
     ResendStrategy resendStrategy();
 

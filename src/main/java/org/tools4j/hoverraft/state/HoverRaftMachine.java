@@ -23,12 +23,8 @@
  */
 package org.tools4j.hoverraft.state;
 
-import org.tools4j.hoverraft.machine.StateMachine;
-import org.tools4j.hoverraft.message.CommandMessage;
-import org.tools4j.hoverraft.message.Message;
+import org.tools4j.hoverraft.event.Event;
 import org.tools4j.hoverraft.server.ServerContext;
-import org.tools4j.hoverraft.transport.MessageLog;
-import org.tools4j.hoverraft.util.Clock;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -69,42 +65,20 @@ public class HoverRaftMachine {
         return stateMap.get(role);
     }
 
-    public void onMessage(final ServerContext serverContext, final Message message) {
-        final Role targetRole = currentState.onMessage(serverContext, message);
-        if (targetRole != currentState.role()) {
+    public void onEvent(final ServerContext serverContext, final Event event) {
+        final Transition transition = currentState.onEvent(serverContext, event);
+        performTransition(serverContext, transition, event);
+    }
+
+    private void performTransition(final ServerContext serverContext, final Transition transition, final Event event) {
+        final Role currentRole = currentState.role();
+        final Role targetRole = transition.targetRole(currentRole);
+        if (targetRole != currentRole) {
             currentState = transitionTo(targetRole);
-        }
-    }
-
-    @Deprecated //FIXME remove this and merge with onMessage(..)
-    public void perform(final ServerContext serverContext) {
-        checkElectionTimeout();
-        currentState.perform(serverContext);
-        invokeStateMachineWithCommittedLogEntry(serverContext);
-        if (volatileState.role() != currentState.role()) {
-            currentState = transitionTo(volatileState.role());
-        }
-    }
-
-    private void checkElectionTimeout() {
-        final Timer timer = volatileState.electionState().electionTimer();
-        if (timer.hasTimeoutElapsed(Clock.DEFAULT)) {
-            persistentState.clearVotedForAndIncCurrentTerm();
-            volatileState.changeRoleTo(Role.CANDIDATE);
-            timer.restart(Clock.DEFAULT);
-        }
-    }
-
-    private void invokeStateMachineWithCommittedLogEntry(final ServerContext serverContext) {
-        final MessageLog<CommandMessage> messageLog = serverContext.messageLog();
-        final StateMachine stateMachine = serverContext.stateMachine();
-        long lastApplied = volatileState.lastApplied();
-        while (volatileState.commitIndex() > lastApplied) {
-            lastApplied++;
-            messageLog.readIndex(lastApplied);
-            final CommandMessage commandMsg = messageLog.read();
-            stateMachine.onMessage(commandMsg);
-            volatileState.lastApplied(lastApplied);
+            //play transition change as an event
+            onEvent(serverContext, transition);
+            //now replay the original event to the new state
+            onEvent(serverContext, event);
         }
     }
 

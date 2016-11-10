@@ -23,40 +23,59 @@
  */
 package org.tools4j.hoverraft.state;
 
-import org.tools4j.hoverraft.handler.HigherTermHandler;
-import org.tools4j.hoverraft.handler.MessageHandler;
-import org.tools4j.hoverraft.handler.VoteRequestHandler;
+import org.tools4j.hoverraft.event.EventHandler;
 import org.tools4j.hoverraft.message.AppendResponse;
 import org.tools4j.hoverraft.message.CommandMessage;
-import org.tools4j.hoverraft.message.Message;
+import org.tools4j.hoverraft.message.VoteRequest;
 import org.tools4j.hoverraft.server.ServerContext;
+import org.tools4j.hoverraft.timer.TimerEvent;
 
 public class LeaderState extends AbstractState {
 
-    private final MessageHandler messageHandler;
-
     public LeaderState(final PersistentState persistentState, final VolatileState volatileState) {
         super(Role.LEADER, persistentState, volatileState);
-        this.messageHandler = new HigherTermHandler(persistentState, volatileState)
-                .thenHandleVoteRequest(new VoteRequestHandler(persistentState, volatileState)::onVoteRequest)
-                .thenHandleAppendResponse(this::handleAppendResponse)
-                .thenHandleCommandMessage(this::handleCommandMessage);
     }
 
     @Override
-    public Role onMessage(final ServerContext serverContext, final Message message) {
-        message.accept(serverContext, messageHandler);
-        return volatileState().role();
+    protected EventHandler eventHandler() {
+        return new EventHandler() {
+            @Override
+            public Transition onVoteRequest(final ServerContext serverContext, final VoteRequest voteRequest) {
+                return LeaderState.this.onVoteRequest(serverContext, voteRequest);
+            }
+
+            @Override
+            public Transition onAppendResponse(final ServerContext serverContext, final AppendResponse appendResponse) {
+                return LeaderState.this.onAppendResponse(serverContext, appendResponse);
+            }
+
+            @Override
+            public Transition onCommandMessage(final ServerContext serverContext, final CommandMessage commandMessage) {
+                return LeaderState.this.onCommandMessage(serverContext, commandMessage);
+            }
+
+            @Override
+            public Transition onTimerEvent(final ServerContext serverContext, final TimerEvent timerEvent) {
+                return LeaderState.this.onTimerEvent(serverContext, timerEvent);
+            }
+        };
     }
 
-    @Override
-    public void perform(final ServerContext serverContext) {
-        updateCommitIndex(serverContext);
-        sendAppendRequest(serverContext);
-    }
-
-    private void handleCommandMessage(final ServerContext serverContext, final CommandMessage commandMessage) {
+    private Transition onCommandMessage(final ServerContext serverContext, final CommandMessage commandMessage) {
         serverContext.messageLog().append(commandMessage);
+        sendAppendRequest(serverContext);//FIXME send command message in request
+        return Transition.STEADY;
+    }
+
+    private Transition onAppendResponse(final ServerContext serverContext, final AppendResponse appendResponse) {
+        //FIXME impl
+        updateCommitIndex(serverContext);
+        return Transition.STEADY;
+    }
+
+    private Transition onTimerEvent(final ServerContext serverContext, final TimerEvent timerEvent) {
+        sendAppendRequest(serverContext);
+        return Transition.STEADY;
     }
 
     private void updateCommitIndex(final ServerContext serverContext) {
@@ -67,7 +86,4 @@ public class LeaderState extends AbstractState {
         //FIXME impl
     }
 
-    private void handleAppendResponse(final ServerContext serverContext, final AppendResponse appendResponse) {
-        //FIXME impl
-    }
 }
