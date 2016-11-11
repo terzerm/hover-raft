@@ -43,8 +43,8 @@ public final class VoteRequestHandler {
         final int candidateId = voteRequest.candidateId();
         final Transition transition;
         final boolean granted;
-        if (persistentState.currentTerm() == term && isValidCandidate(serverContext, voteRequest)) {
-            if (persistentState.votedFor() < 0) {
+        if (persistentState.currentTerm() <= term && candidateLogIsAtLeastUptodate(voteRequest)) {
+            if (persistentState.votedFor() == PersistentState.NOT_VOTED_YET) {
                 persistentState.votedFor(candidateId);
                 transition = Transition.TO_FOLLOWER;
                 granted = true;
@@ -64,10 +64,10 @@ public final class VoteRequestHandler {
         return transition;
     }
 
-    private boolean isValidCandidate(final ServerContext serverContext, final VoteRequest voteRequest) {
-        final int lastLogTerm = voteRequest.lastLogTerm();
-        final long lastLogIndex = voteRequest.lastLogIndex();
-        return persistentState.lastLogTerm() < lastLogTerm ||
-                (persistentState.lastLogTerm() == lastLogTerm && persistentState.lastLogIndex() <= lastLogIndex);
+    private boolean candidateLogIsAtLeastUptodate(final VoteRequest voteRequest) {
+        final int candidateLastLogTerm = voteRequest.lastLogTerm();
+        final long candidateLastLogIndex = voteRequest.lastLogIndex();
+        return persistentState.lastLogTerm() < candidateLastLogTerm ||
+                (persistentState.lastLogTerm() == candidateLastLogTerm && persistentState.lastLogIndex() <= candidateLastLogIndex);
     }
 }
