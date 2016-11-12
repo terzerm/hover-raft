@@ -88,8 +88,16 @@ public final class DirectPersistentState implements PersistentState {
     }
 
     public int lastLogTerm() {
-        commandLog.readIndex(lastLogIndex());
+        return termAtLogIndex(lastLogIndex());
+    }
+
+    public int termAtLogIndex(final long index) {
+        commandLog.readIndex(index);
         return commandLog.read().term();
+    }
+
+    public long truncateLog(long inclusiveIndex) {
+        return commandLog.truncate(inclusiveIndex);
     }
 
     public long lastLogIndex() {

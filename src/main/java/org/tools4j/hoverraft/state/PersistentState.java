@@ -40,4 +40,8 @@ public interface PersistentState {
     int lastLogTerm();
 
     long lastLogIndex();
+
+    int termAtLogIndex(long index);
+
+    long truncateLog(long inclusiveIndex);
 }

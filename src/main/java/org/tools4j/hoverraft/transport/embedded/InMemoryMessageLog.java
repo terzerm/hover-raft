@@ -81,4 +81,10 @@ public class InMemoryMessageLog<M extends Message> implements MessageLog<M> {
     public synchronized void append(final M message) {
         messages.add(Objects.requireNonNull(message));
     }
+
+    @Override
+    public long truncate(long inclusiveIndex) {
+        //FIXme implement it
+        return 0;
+    }
 }

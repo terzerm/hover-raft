@@ -140,4 +140,10 @@ public final class ChronicleMessageLog implements MessageLog<DirectCommandMessag
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    public long truncate(long inclusiveIndex) {
+        //FIXme implement it
+        return 0;
+    }
 }
