@@ -42,7 +42,7 @@ abstract public class DirectCommand implements Command {
     abstract protected int offset();
 
     public int byteLength() {
-        return readBuffer().getInt(offset());
+        return readBuffer().getInt(offset() + BYTE_LENGTH_OFF);
     }
 
     private Command byteLength(final int length) {

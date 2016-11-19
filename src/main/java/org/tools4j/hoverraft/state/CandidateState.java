@@ -82,29 +82,16 @@ public final class CandidateState extends AbstractState {
     }
 
 
-    //should probably be shared with a follower
-    private Transition onAppendRequest(final ServerContext serverContext, final AppendRequest appendRequest) {
-        final int term = appendRequest.term();
-        final int leaderId = appendRequest.leaderId();
+    protected Transition onAppendRequest(final ServerContext serverContext, final AppendRequest appendRequest) {
+        final int appendRequestTerm = appendRequest.term();
         final int currentTerm = currentTerm();
-        final Transition transition;
-        final boolean successful;
-        if (currentTerm <= term) /* should never be larger */ {
-            //If AppendEntries RPC received from new leader: convert to
-            //follower
+
+        if (appendRequestTerm >= currentTerm) {
             serverContext.timer().reset();
-            successful = appendToLog(serverContext, appendRequest);
-            transition = Transition.TO_FOLLOWER;
-        } else { //currentTerm > term based on paper
-            successful = false;
-            transition = Transition.STEADY;
+            return Transition.TO_FOLLOWER;
+        } else {
+            return super.onAppendRequest(serverContext, appendRequest);
         }
-        serverContext.messageFactory().appendResponse()
-                .term(currentTerm)
-                .successful(successful)
-                .sendTo(serverContext.connections().serverSender(leaderId),
-                        serverContext.resendStrategy());
-        return transition;
     }
 
     private Transition onTimerEvent(final ServerContext serverContext, final TimerEvent timerEvent) {
@@ -119,34 +106,6 @@ public final class CandidateState extends AbstractState {
         voteForMyself(serverContext);
     }
 
-    //should be shared with a follower as well.
-    private boolean appendToLog(final ServerContext serverContext, final AppendRequest appendRequest) {
-        final long prevLogIndex = appendRequest.prevLogIndex();
-        final long prevLogTerm = appendRequest.prevLogTerm();
-        final int currentTerm = currentTerm();
-
-        if (persistentState().lastLogIndex() < prevLogIndex) {
-            return false;
-        } else {
-            final int termAtPrevLogIndex = persistentState().termAtLogIndex(prevLogIndex);
-            if (currentTerm != termAtPrevLogIndex) {
-                //delete logs starting from prevLogIndex
-                persistentState().truncateLog(prevLogIndex); //could access the log via serverContext.messageLog()
-            }
-            //FIXme implement append new entries
-            //Append any new entries not already in the log
-
-            //If leaderCommit > commitIndex, set commitIndex =
-            //        min(leaderCommit, index of last new entry)
-            return true;
-        }
-
-        //Reply false if log doesn’t contain an entry at prevLogIndex
-        //whose term matches prevLogTerm (§5.3)
-        //3. If an existing entry conflicts with a new one (same index
-        //        but different terms), delete the existing entry and all that
-        //follow it (§5.3)
-    }
 
     private void voteForMyself(final ServerContext serverContext) {
         final PersistentState pstate = persistentState();

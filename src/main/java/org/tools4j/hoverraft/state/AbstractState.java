@@ -23,11 +23,9 @@
  */
 package org.tools4j.hoverraft.state;
 
-import org.tools4j.hoverraft.event.Event;
-import org.tools4j.hoverraft.event.EventHandler;
-import org.tools4j.hoverraft.event.HigherTermHandler;
-import org.tools4j.hoverraft.event.VoteRequestHandler;
+import org.tools4j.hoverraft.event.*;
 import org.tools4j.hoverraft.machine.StateMachine;
+import org.tools4j.hoverraft.message.AppendRequest;
 import org.tools4j.hoverraft.message.CommandMessage;
 import org.tools4j.hoverraft.message.VoteRequest;
 import org.tools4j.hoverraft.server.ServerContext;
@@ -42,13 +40,15 @@ abstract public class AbstractState implements State {
     private final VolatileState volatileState;
     private final HigherTermHandler higherTermHandler;
     private final VoteRequestHandler voteRequestHandler;
+    private final AppendRequestHandler appendRequestHandler;
 
     public AbstractState(final Role role, final PersistentState persistentState, final VolatileState volatileState) {
         this.role = Objects.requireNonNull(role);
         this.persistentState = Objects.requireNonNull(persistentState);
         this.volatileState = Objects.requireNonNull(volatileState);
         this.higherTermHandler = new HigherTermHandler(persistentState);
-        this.voteRequestHandler= new VoteRequestHandler(persistentState);
+        this.voteRequestHandler = new VoteRequestHandler(persistentState);
+        this.appendRequestHandler = new AppendRequestHandler(persistentState, volatileState);
     }
 
     abstract protected EventHandler eventHandler();
@@ -81,15 +81,19 @@ abstract public class AbstractState implements State {
         return voteRequestHandler.onVoteRequest(serverContext, voteRequest);
     }
 
+    protected Transition onAppendRequest(final ServerContext serverContext, final AppendRequest appendRequest) {
+        return appendRequestHandler.onAppendRequest(serverContext, appendRequest);
+    }
+
     protected void invokeStateMachineWithCommittedLogEntries(final ServerContext serverContext) {
-        final MessageLog<CommandMessage> messageLog = serverContext.messageLog();
+        final CommandLog commandLog = persistentState.commandLog();
         final StateMachine stateMachine = serverContext.stateMachine();
         long lastApplied = volatileState.lastApplied();
         while (volatileState.commitIndex() > lastApplied) {
             lastApplied++;
-            messageLog.readIndex(lastApplied);
-            final CommandMessage commandMsg = messageLog.read();
-            stateMachine.onMessage(commandMsg);
+            commandLog.readIndex(lastApplied);
+            final CommandLogEntry commandLogEntry = commandLog.read();
+            stateMachine.onMessage(commandLogEntry.commandMessage());
             volatileState.lastApplied(lastApplied);
         }
     }

@@ -27,6 +27,7 @@ import io.aeron.Subscription;
 import io.aeron.logbuffer.FragmentHandler;
 import io.aeron.logbuffer.Header;
 import org.agrona.DirectBuffer;
+import org.tools4j.hoverraft.message.direct.AbstractDirectMessage;
 import org.tools4j.hoverraft.message.direct.DirectMessage;
 import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
 import org.tools4j.hoverraft.transport.Receiver;
@@ -34,7 +35,7 @@ import org.tools4j.hoverraft.transport.Receiver;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-public class AeronReceiver implements Receiver<DirectMessage> {
+public class AeronReceiver implements Receiver<AbstractDirectMessage> {
 
     private final DirectMessageFactory directMessageFactory;
     private final Subscription subscription;
@@ -46,9 +47,9 @@ public class AeronReceiver implements Receiver<DirectMessage> {
     }
 
     @Override
-    public int poll(final Consumer<? super DirectMessage> messageMandler, final int limit) {
+    public int poll(final Consumer<? super AbstractDirectMessage> messageMandler, final int limit) {
         final FragmentHandler fragmentHandler = (buf, off, len, hdr) -> {
-            final DirectMessage message = directMessageFactory.wrapForReading(buf, off);
+            final AbstractDirectMessage message = directMessageFactory.wrapForReading(buf, off);
             messageMandler.accept(message);
         };
         for (int i = 0; i < limit; i++) {
@@ -63,11 +64,11 @@ public class AeronReceiver implements Receiver<DirectMessage> {
     }
 
     private class AeronHandler implements FragmentHandler {
-        private final ThreadLocal<DirectMessage> message = ThreadLocal.withInitial(() -> null);
+        private final ThreadLocal<AbstractDirectMessage> message = ThreadLocal.withInitial(() -> null);
 
         @Override
         public void onFragment(DirectBuffer buffer, int offset, int length, Header header) {
-            final DirectMessage message = directMessageFactory.wrapForReading(buffer, offset);
+            final AbstractDirectMessage message = directMessageFactory.wrapForReading(buffer, offset);
             this.message.set(message);
         }
     }

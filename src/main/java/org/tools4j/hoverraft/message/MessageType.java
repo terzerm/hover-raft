@@ -24,6 +24,7 @@
 package org.tools4j.hoverraft.message;
 
 import org.agrona.DirectBuffer;
+import org.tools4j.hoverraft.message.direct.AbstractDirectMessage;
 import org.tools4j.hoverraft.message.direct.DirectMessage;
 import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
 import org.tools4j.hoverraft.server.ServerContext;
@@ -35,7 +36,7 @@ public enum MessageType {
             return factory.voteRequest();
         }
         @Override
-        public DirectMessage create(final DirectMessageFactory factory) {
+        public AbstractDirectMessage create(final DirectMessageFactory factory) {
             return factory.voteRequest();
         }
     },
@@ -45,7 +46,7 @@ public enum MessageType {
             return factory.voteResponse();
         }
         @Override
-        public DirectMessage create(final DirectMessageFactory factory) {
+        public AbstractDirectMessage create(final DirectMessageFactory factory) {
             return factory.voteResponse();
         }
     },
@@ -55,7 +56,7 @@ public enum MessageType {
             return factory.appendRequest();
         }
         @Override
-        public DirectMessage create(final DirectMessageFactory factory) {
+        public AbstractDirectMessage create(final DirectMessageFactory factory) {
             return factory.appendRequest();
         }
     },
@@ -65,7 +66,7 @@ public enum MessageType {
             return factory.appendResponse();
         }
         @Override
-        public DirectMessage create(final DirectMessageFactory factory) {
+        public AbstractDirectMessage create(final DirectMessageFactory factory) {
             return factory.appendResponse();
         }
     },
@@ -75,7 +76,7 @@ public enum MessageType {
             return factory.timeoutNow();
         }
         @Override
-        public DirectMessage create(final DirectMessageFactory factory) {
+        public AbstractDirectMessage create(final DirectMessageFactory factory) {
             return factory.timeoutNow();
         }
     },
@@ -85,7 +86,7 @@ public enum MessageType {
             return factory.commandMessage();
         }
         @Override
-        public DirectMessage create(final DirectMessageFactory factory) {
+        public AbstractDirectMessage create(final DirectMessageFactory factory) {
             return factory.commandMessage();
         }
     };
@@ -102,7 +103,7 @@ public enum MessageType {
 
     abstract public Message create(MessageFactory factory);
 
-    abstract public DirectMessage create(DirectMessageFactory factory);
+    abstract public AbstractDirectMessage create(DirectMessageFactory factory);
 
     public static DirectMessage createOrNull(final ServerContext serverContext,
                                              final DirectBuffer buffer,

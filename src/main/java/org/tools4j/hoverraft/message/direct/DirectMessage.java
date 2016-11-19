@@ -30,7 +30,7 @@ import org.tools4j.hoverraft.message.Message;
 /**
  * A message
  */
-public interface DirectMessage extends Message {
+public interface DirectMessage  {
 
     int byteLength();
 

@@ -65,9 +65,12 @@ public final class VoteRequestHandler {
     }
 
     private boolean candidateLogIsAtLeastUptodate(final VoteRequest voteRequest) {
-        final int candidateLastLogTerm = voteRequest.lastLogTerm();
-        final long candidateLastLogIndex = voteRequest.lastLogIndex();
-        return persistentState.lastLogTerm() < candidateLastLogTerm ||
-                (persistentState.lastLogTerm() == candidateLastLogTerm && persistentState.lastLogIndex() <= candidateLastLogIndex);
+        return persistentState.commandLog().compareTo(voteRequest.lastLogEntry()) <= 0;
+
+// Keeping this to check if logic below is equivalent to log comparison.
+//        final int candidateLastLogTerm = voteRequest.lastLogTerm();
+//        final long candidateLastLogIndex = voteRequest.lastLogIndex();
+//        return persistentState.commandMessageLog().lastLogTerm() < candidateLastLogTerm ||
+//                (persistentState.commandMessageLog().lastLogTerm() == candidateLastLogTerm && persistentState.commandMessageLog().lastLogIndex() <= candidateLastLogIndex);
     }
 }

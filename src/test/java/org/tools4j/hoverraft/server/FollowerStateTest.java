@@ -68,16 +68,33 @@ public class FollowerStateTest {
         final int term = persistentState.currentTerm();
         final int serverId = serverContext.id();
         final int leaderId = serverId + 1;
+
+        volatileState.commitIndex(50);
+
         final AppendRequest appendRequest = DirectMessageFactory.createForWriting()
                 .appendRequest()
                 .term(term)
-                .leaderId(leaderId);
+                .leaderId(leaderId)
+                .leaderCommit(50);
+
+
+        appendRequest.commandLogEntry().index(101L)
+                                       .term(term);
+
+        //make appendRequest prevLogEntry to match the end of commandLog
+        appendRequest.prevLogEntry().term(term)
+                                    .index(100);
+
+        when(persistentState.commandLog().contains(appendRequest.prevLogEntry())).thenReturn(CommandLog.CONTAINMENT.IN);
+
         when(serverContext.connections().serverSender(leaderId)).thenReturn(sender);
 
         //when
         final Transition transition = followerState.onEvent(serverContext, appendRequest);
 
         //then
+        verify(persistentState.commandLog()).append(appendRequest.commandLogEntry());
+
         final ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
         verify(sender).offer(captor.capture());
         assertThat(captor.getValue()).isInstanceOf(AppendResponse.class);

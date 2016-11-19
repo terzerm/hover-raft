@@ -30,10 +30,6 @@ import org.tools4j.hoverraft.state.Transition;
 
 public interface CommandMessage extends Message {
 
-    int term();
-
-    CommandMessage term(int term);
-
     int commandSourceId();
 
     CommandMessage commandSourceId(int sourceId);

@@ -31,19 +31,25 @@ import org.tools4j.hoverraft.server.ServerContext;
  * Transition from current state, either STEADY (no change) or into a new {@link Role}.
  */
 public enum Transition implements Event {
-    STEADY(null),
-    TO_FOLLOWER(Role.FOLLOWER),
-    TO_CANDIDATE(Role.CANDIDATE),
-    TO_LEADER(Role.LEADER);
+    STEADY(null, false),
+    TO_FOLLOWER(Role.FOLLOWER, true),
+    TO_CANDIDATE(Role.CANDIDATE, false),
+    TO_LEADER(Role.LEADER, false);
 
     private final Role targetRole;
+    private final boolean replayEvent;
 
-    Transition(final Role targetRole) {
+    Transition(final Role targetRole, final boolean replayEvent) {
         this.targetRole = targetRole;//nullable
+        this.replayEvent = replayEvent;
     }
 
     public final Role targetRole(final Role currentRole) {
         return this == STEADY ? currentRole : targetRole;
+    }
+
+    public final boolean replayEvent() {
+        return replayEvent;
     }
 
     @Override

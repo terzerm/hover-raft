@@ -29,6 +29,7 @@ import org.agrona.concurrent.UnsafeBuffer;
 import org.tools4j.hoverraft.config.ConsensusConfig;
 import org.tools4j.hoverraft.config.ServerConfig;
 import org.tools4j.hoverraft.message.direct.DirectCommandMessage;
+import org.tools4j.hoverraft.state.CommandLog;
 import org.tools4j.hoverraft.state.PersistentState;
 import org.tools4j.hoverraft.transport.MessageLog;
 import org.tools4j.hoverraft.util.Files;
@@ -62,8 +63,10 @@ public final class DirectPersistentState implements PersistentState {
         return state.getInt(4);
     }
 
-    public MessageLog<DirectCommandMessage> commandLog() {
-        return commandLog;
+    @Override
+    public CommandLog commandLog() {
+        //FIXme
+        return null;
     }
 
     public MessageLog<DirectCommandMessage> sourceLog(int sourceId) {
@@ -87,22 +90,6 @@ public final class DirectPersistentState implements PersistentState {
         state.putInt(4, candidateId);
     }
 
-    public int lastLogTerm() {
-        return termAtLogIndex(lastLogIndex());
-    }
-
-    public int termAtLogIndex(final long index) {
-        commandLog.readIndex(index);
-        return commandLog.read().term();
-    }
-
-    public long truncateLog(long inclusiveIndex) {
-        return commandLog.truncate(inclusiveIndex);
-    }
-
-    public long lastLogIndex() {
-        return commandLog.size() - 1;
-    }
 
     private static MutableDirectBuffer initState(final ServerConfig serverConfig, final ConsensusConfig consensusConfig) throws IOException {
         final String path = Files.fileDirectory();

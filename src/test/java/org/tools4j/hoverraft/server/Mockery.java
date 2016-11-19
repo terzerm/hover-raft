@@ -29,6 +29,7 @@ import org.tools4j.hoverraft.config.ThreadingMode;
 import org.tools4j.hoverraft.machine.StateMachine;
 import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
+import org.tools4j.hoverraft.state.CommandLog;
 import org.tools4j.hoverraft.state.PersistentState;
 import org.tools4j.hoverraft.state.VolatileState;
 import org.tools4j.hoverraft.transport.Connections;
@@ -97,9 +98,12 @@ public class Mockery {
 
     public static PersistentState persistentState() {
         final PersistentState persistentState = mock(PersistentState.class);
+        final CommandLog commandLog = mock(CommandLog.class);
+
         when(persistentState.currentTerm()).thenReturn(1);
-        when(persistentState.lastLogTerm()).thenReturn(0);
-        when(persistentState.lastLogIndex()).thenReturn(-1L);
+        when(persistentState.commandLog()).thenReturn(commandLog);
+        when(commandLog.term()).thenReturn(0);
+        when(commandLog.index()).thenReturn(-1L);
         when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
         return persistentState;
     }

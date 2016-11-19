@@ -25,6 +25,7 @@ package org.tools4j.hoverraft.message.direct;
 
 import org.tools4j.hoverraft.message.MessageType;
 import org.tools4j.hoverraft.message.VoteRequest;
+import org.tools4j.hoverraft.state.LogEntry;
 
 public final class DirectVoteRequest extends AbstractDirectMessage implements VoteRequest {
 
@@ -37,6 +38,31 @@ public final class DirectVoteRequest extends AbstractDirectMessage implements Vo
     private static final int LAST_LOG_INDEX_OFF = LAST_LOG_TERM_OFF + LAST_LOG_TERM_LEN;
     private static final int LAST_LOG_INDEX_LEN = 8;
     public static final int BYTE_LENGTH = LAST_LOG_INDEX_OFF + LAST_LOG_INDEX_LEN;
+
+    private final LogEntry lastLogEntry = new LogEntry() {
+        @Override
+        public int term() {
+            return readBuffer.getInt(offset + LAST_LOG_TERM_OFF);
+        }
+
+        @Override
+        public long index() {
+            return readBuffer.getLong(offset + LAST_LOG_INDEX_OFF);
+        }
+
+        @Override
+        public LogEntry term(int term) {
+            writeBuffer.putInt(offset + LAST_LOG_TERM_OFF, term);
+            return this;
+        }
+
+        @Override
+        public LogEntry index(long index) {
+            writeBuffer.putLong(offset + LAST_LOG_INDEX_OFF, index);
+            return this;
+        }
+    };
+
 
     @Override
     public MessageType type() {
@@ -66,22 +92,8 @@ public final class DirectVoteRequest extends AbstractDirectMessage implements Vo
         return this;
     }
 
-    public int lastLogTerm() {
-        return readBuffer.getInt(offset + LAST_LOG_TERM_OFF);
+    @Override
+    public LogEntry lastLogEntry() {
+        return lastLogEntry;
     }
-
-    public DirectVoteRequest lastLogTerm(final int lastLogTerm) {
-        writeBuffer.putInt(offset + LAST_LOG_TERM_OFF, lastLogTerm);
-        return this;
-    }
-
-    public long lastLogIndex() {
-        return readBuffer.getLong(offset + LAST_LOG_INDEX_OFF);
-    }
-
-    public DirectVoteRequest lastLogIndex(final long lastLogIndex) {
-        writeBuffer.putLong(offset + LAST_LOG_INDEX_OFF, lastLogIndex);
-        return this;
-    }
-
 }

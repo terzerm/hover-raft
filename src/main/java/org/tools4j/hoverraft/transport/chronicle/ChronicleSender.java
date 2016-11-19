@@ -25,6 +25,7 @@ package org.tools4j.hoverraft.transport.chronicle;
 
 import net.openhft.chronicle.ExcerptAppender;
 import org.agrona.DirectBuffer;
+import org.tools4j.hoverraft.message.direct.AbstractDirectMessage;
 import org.tools4j.hoverraft.message.direct.DirectMessage;
 import org.tools4j.hoverraft.transport.Sender;
 
@@ -33,7 +34,7 @@ import java.util.Objects;
 /**
  * Publication writing to a chronicle queue.
  */
-public class ChronicleSender implements Sender<DirectMessage> {
+public class ChronicleSender implements Sender<AbstractDirectMessage> {
 
     private final ExcerptAppender appender;
 
@@ -42,7 +43,7 @@ public class ChronicleSender implements Sender<DirectMessage> {
     }
 
     @Override
-    public long offer(final DirectMessage message) {
+    public long offer(final AbstractDirectMessage message) {
         final DirectBuffer buffer = Objects.requireNonNull(message.buffer());
         final int len = message.byteLength();
         appender.startExcerpt(len + 4);

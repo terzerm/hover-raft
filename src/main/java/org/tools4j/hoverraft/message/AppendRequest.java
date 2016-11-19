@@ -24,8 +24,9 @@
 package org.tools4j.hoverraft.message;
 
 import org.tools4j.hoverraft.event.EventHandler;
-import org.tools4j.hoverraft.machine.Command;
 import org.tools4j.hoverraft.server.ServerContext;
+import org.tools4j.hoverraft.state.CommandLogEntry;
+import org.tools4j.hoverraft.state.LogEntry;
 import org.tools4j.hoverraft.state.Transition;
 
 public interface AppendRequest extends Message {
@@ -38,19 +39,13 @@ public interface AppendRequest extends Message {
 
     AppendRequest leaderId(int leaderId);
 
-    int prevLogTerm();
-
-    AppendRequest prevLogTerm(int prevLogTerm);
-
-    long prevLogIndex();
-
-    AppendRequest prevLogIndex(long prevLogIndex);
+    LogEntry prevLogEntry();
 
     long leaderCommit();
 
     AppendRequest leaderCommit(long leaderCommit);
 
-    Command command();
+    CommandLogEntry commandLogEntry();
 
     @Override
     default Transition accept(final ServerContext serverContext, final EventHandler eventHandler) {

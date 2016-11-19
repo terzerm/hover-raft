@@ -23,6 +23,7 @@
  */
 package org.tools4j.hoverraft.state;
 
+
 public interface PersistentState {
 
     int NOT_VOTED_YET = -1;
@@ -37,11 +38,5 @@ public interface PersistentState {
 
     void votedFor(final int candidateId);
 
-    int lastLogTerm();
-
-    long lastLogIndex();
-
-    int termAtLogIndex(long index);
-
-    long truncateLog(long inclusiveIndex);
+    CommandLog commandLog();
 }
