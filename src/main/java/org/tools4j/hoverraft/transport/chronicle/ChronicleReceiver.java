@@ -70,7 +70,7 @@ public class ChronicleReceiver implements Receiver<AbstractDirectMessage> {
     }
 
     private void consume(final Consumer<? super AbstractDirectMessage> messageMandler) {
-        final AbstractDirectMessage message = directMessageFactory.wrapForReading((DirectBuffer) mutableDirectBuffer, 0);
+        final AbstractDirectMessage message = directMessageFactory.wrapForReading(mutableDirectBuffer, 0);
         messageMandler.accept(message);
     }
 }

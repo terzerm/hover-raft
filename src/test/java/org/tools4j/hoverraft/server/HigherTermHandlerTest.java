@@ -61,10 +61,10 @@ public class HigherTermHandlerTest {
     @Before
     public void init() {
         serverContext = Mockery.direct(1);
-        persistentState = Mockery.persistentState();
+        persistentState = serverContext.persistentState();
 
         //under test
-        handler = new HigherTermHandler(persistentState);
+        handler = new HigherTermHandler();
     }
 
     @Test

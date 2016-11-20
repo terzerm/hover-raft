@@ -36,9 +36,9 @@ public class ServerProcess {
     private final Thread thread = new Thread(this::run);
     private final AtomicReference<Status> status = new AtomicReference<>(Status.IDLE);
 
-    private final Server server;
+    private final ServerContext server;
 
-    public ServerProcess(final Server server) {
+    public ServerProcess(final ServerContext server) {
         this.server = Objects.requireNonNull(server);
     }
 

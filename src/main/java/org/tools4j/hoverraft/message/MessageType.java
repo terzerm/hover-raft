@@ -23,11 +23,8 @@
  */
 package org.tools4j.hoverraft.message;
 
-import org.agrona.DirectBuffer;
 import org.tools4j.hoverraft.message.direct.AbstractDirectMessage;
-import org.tools4j.hoverraft.message.direct.DirectMessage;
 import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
-import org.tools4j.hoverraft.server.ServerContext;
 
 public enum MessageType {
     VOTE_REQUEST {
@@ -105,19 +102,21 @@ public enum MessageType {
 
     abstract public AbstractDirectMessage create(DirectMessageFactory factory);
 
-    public static DirectMessage createOrNull(final ServerContext serverContext,
-                                             final DirectBuffer buffer,
-                                             final int offset,
-                                             final int length) {
-        if (length >= 4) {
-            final int type = buffer.getInt(offset);
-            if (0 <= type & type <= VALUES.length) {
-                final DirectMessage message = valueByOrdinal(type).create(serverContext.messageFactory());
-                message.wrap(buffer, offset + 4);
-                return message;
-            }
-        }
-        return null;
-    }
+// It appears to be obsolete code, which requires ServerContext to provide DirectMessageFactory
+// instead of MessageFactory.
+//    public static Message createOrNull(final ServerContext serverContext,
+//                                             final DirectBuffer buffer,
+//                                             final int offset,
+//                                             final int length) {
+//        if (length >= 4) {
+//            final int type = buffer.getInt(offset);
+//            if (0 <= type & type <= VALUES.length) {
+//                final Message message = valueByOrdinal(type).create(serverContext.messageFactory());
+//                message.wrap(buffer, offset + 4);
+//                return message;
+//            }
+//        }
+//        return null;
+//    }
 
 }

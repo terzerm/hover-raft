@@ -56,10 +56,10 @@ public class FollowerStateTest {
     @Before
     public void init() {
         serverContext = Mockery.simple(1);
-        persistentState= Mockery.persistentState();
-        volatileState = Mockery.volatileState(serverContext.consensusConfig());
+        persistentState = serverContext.persistentState();
+        volatileState = serverContext.volatileState();
 
-        followerState = new FollowerState(persistentState, volatileState);
+        followerState = new FollowerState();
     }
 
     @Test

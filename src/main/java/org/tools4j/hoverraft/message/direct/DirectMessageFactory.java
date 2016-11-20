@@ -28,6 +28,7 @@ import org.agrona.ExpandableArrayBuffer;
 import org.agrona.MutableDirectBuffer;
 import org.tools4j.hoverraft.message.MessageFactory;
 import org.tools4j.hoverraft.message.MessageType;
+import org.tools4j.hoverraft.state.direct.DirectCommandLogEntry;
 
 /**
  * Factory for messages writing data into an internal readBuffer. Messages and readBuffer are reused accross
@@ -41,33 +42,45 @@ public final class DirectMessageFactory implements MessageFactory {
     private final DirectVoteResponse voteResponse = new DirectVoteResponse();
     private final DirectTimeoutNow timeoutNow = new DirectTimeoutNow();
     private final DirectCommandMessage commandMessage = new DirectCommandMessage();
+    private final DirectCommandLogEntry commandLogEntry = new DirectCommandLogEntry();
 
     private DirectMessageFactory() {
         super();
     }
 
+    @Override
     public DirectAppendRequest appendRequest() {
         return appendRequest;
     }
 
+    @Override
     public DirectAppendResponse appendResponse() {
         return appendResponse;
     }
 
+    @Override
     public DirectVoteRequest voteRequest() {
         return voteRequest;
     }
 
+    @Override
     public DirectVoteResponse voteResponse() {
         return voteResponse;
     }
 
+    @Override
     public DirectTimeoutNow timeoutNow() {
         return timeoutNow;
     }
 
+    @Override
     public DirectCommandMessage commandMessage() {
         return commandMessage;
+    }
+
+    @Override
+    public DirectCommandLogEntry commandLogEntry() {
+        return commandLogEntry;
     }
 
     public static DirectMessageFactory create() {
@@ -102,6 +115,7 @@ public final class DirectMessageFactory implements MessageFactory {
         voteResponse.wrap(mutableDirectBuffer, offset);
         timeoutNow.wrap(mutableDirectBuffer, offset);
         commandMessage.wrap(mutableDirectBuffer, offset);
+        commandLogEntry.wrap(mutableDirectBuffer, offset);
         return this;
     }
 }

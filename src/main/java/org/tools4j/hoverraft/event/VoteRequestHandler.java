@@ -25,31 +25,28 @@ package org.tools4j.hoverraft.event;
 
 import org.tools4j.hoverraft.message.VoteRequest;
 import org.tools4j.hoverraft.server.ServerContext;
+import org.tools4j.hoverraft.state.CommandLog;
 import org.tools4j.hoverraft.state.PersistentState;
 import org.tools4j.hoverraft.state.Transition;
 
-import java.util.Objects;
-
 public final class VoteRequestHandler {
 
-    private final PersistentState persistentState;
-
-    public VoteRequestHandler(final PersistentState persistentState) {
-        this.persistentState = Objects.requireNonNull(persistentState);
-    }
-
     public Transition onVoteRequest(final ServerContext serverContext, final VoteRequest voteRequest) {
+        final PersistentState persistentState = serverContext.persistentState();
+        final CommandLog commandLog = persistentState.commandLog();
         final int term = voteRequest.term();
         final int candidateId = voteRequest.candidateId();
         final Transition transition;
         final boolean granted;
-        if (persistentState.currentTerm() <= term && candidateLogIsAtLeastUptodate(voteRequest)) {
+        if (persistentState.currentTerm() <= term && commandLog.compareTo(voteRequest.lastLogEntry()) <= 0) {
             if (persistentState.votedFor() == PersistentState.NOT_VOTED_YET) {
                 persistentState.votedFor(candidateId);
+                //Why transition is TO_FOLLOWER?
+                //in this case we should not replay the event!?
                 transition = Transition.TO_FOLLOWER;
                 granted = true;
             } else {
-                granted = persistentState.votedFor() == candidateId;
+                granted = serverContext.persistentState().votedFor() == candidateId;
                 transition = Transition.STEADY;
             }
         } else {
@@ -57,20 +54,10 @@ public final class VoteRequestHandler {
             transition = Transition.STEADY;
         }
         serverContext.messageFactory().voteResponse()
-                .term(persistentState.currentTerm())
+                .term(serverContext.persistentState().currentTerm())
                 .voteGranted(granted)
                 .sendTo(serverContext.connections().serverSender(candidateId),
                         serverContext.resendStrategy());
         return transition;
-    }
-
-    private boolean candidateLogIsAtLeastUptodate(final VoteRequest voteRequest) {
-        return persistentState.commandLog().compareTo(voteRequest.lastLogEntry()) <= 0;
-
-// Keeping this to check if logic below is equivalent to log comparison.
-//        final int candidateLastLogTerm = voteRequest.lastLogTerm();
-//        final long candidateLastLogIndex = voteRequest.lastLogIndex();
-//        return persistentState.commandMessageLog().lastLogTerm() < candidateLastLogTerm ||
-//                (persistentState.commandMessageLog().lastLogTerm() == candidateLastLogTerm && persistentState.commandMessageLog().lastLogIndex() <= candidateLastLogIndex);
     }
 }

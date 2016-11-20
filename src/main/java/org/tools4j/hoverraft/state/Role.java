@@ -24,20 +24,20 @@
 package org.tools4j.hoverraft.state;
 
 import java.util.Objects;
-import java.util.function.BiFunction;
+import java.util.function.Supplier;
 
 public enum Role {
     CANDIDATE(CandidateState::new),
     LEADER(LeaderState::new),
     FOLLOWER(FollowerState::new);
 
-    private final BiFunction<PersistentState, VolatileState, State> stateFactory;
+    private final Supplier<State> stateSupplier;
 
-    Role(final BiFunction<PersistentState, VolatileState, State> stateFactory) {
-        this.stateFactory = Objects.requireNonNull(stateFactory);
+    Role(final Supplier<State> stateSupplier) {
+        this.stateSupplier = Objects.requireNonNull(stateSupplier);
     }
 
-    public State createState(final PersistentState persistentState, final VolatileState volatileState) {
-        return stateFactory.apply(persistentState, volatileState);
+    public State state() {
+        return stateSupplier.get();
     }
 }

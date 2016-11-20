@@ -28,7 +28,10 @@ import org.tools4j.hoverraft.config.ServerConfig;
 import org.tools4j.hoverraft.machine.StateMachine;
 import org.tools4j.hoverraft.message.CommandMessage;
 import org.tools4j.hoverraft.message.Message;
+import org.tools4j.hoverraft.message.MessageFactory;
 import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
+import org.tools4j.hoverraft.state.PersistentState;
+import org.tools4j.hoverraft.state.VolatileState;
 import org.tools4j.hoverraft.timer.Timer;
 import org.tools4j.hoverraft.transport.Connections;
 import org.tools4j.hoverraft.transport.MessageLog;
@@ -42,15 +45,19 @@ public interface ServerContext {
 
     Connections<Message> connections();
 
-    MessageLog<CommandMessage> messageLog();
+    PersistentState persistentState();
 
-    DirectMessageFactory messageFactory();
+    VolatileState volatileState();
+
+    MessageFactory messageFactory();
 
     StateMachine stateMachine();
 
     Timer timer();
 
     ResendStrategy resendStrategy();
+
+    void perform();
 
     default int id() {
         return serverConfig().id();

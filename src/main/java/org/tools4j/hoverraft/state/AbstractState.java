@@ -26,29 +26,23 @@ package org.tools4j.hoverraft.state;
 import org.tools4j.hoverraft.event.*;
 import org.tools4j.hoverraft.machine.StateMachine;
 import org.tools4j.hoverraft.message.AppendRequest;
-import org.tools4j.hoverraft.message.CommandMessage;
 import org.tools4j.hoverraft.message.VoteRequest;
 import org.tools4j.hoverraft.server.ServerContext;
-import org.tools4j.hoverraft.transport.MessageLog;
 
 import java.util.Objects;
 
 abstract public class AbstractState implements State {
 
     private final Role role;
-    private final PersistentState persistentState;
-    private final VolatileState volatileState;
     private final HigherTermHandler higherTermHandler;
     private final VoteRequestHandler voteRequestHandler;
     private final AppendRequestHandler appendRequestHandler;
 
-    public AbstractState(final Role role, final PersistentState persistentState, final VolatileState volatileState) {
+    public AbstractState(final Role role) {
         this.role = Objects.requireNonNull(role);
-        this.persistentState = Objects.requireNonNull(persistentState);
-        this.volatileState = Objects.requireNonNull(volatileState);
-        this.higherTermHandler = new HigherTermHandler(persistentState);
-        this.voteRequestHandler = new VoteRequestHandler(persistentState);
-        this.appendRequestHandler = new AppendRequestHandler(persistentState, volatileState);
+        this.higherTermHandler = new HigherTermHandler();
+        this.voteRequestHandler = new VoteRequestHandler();
+        this.appendRequestHandler = new AppendRequestHandler();
     }
 
     abstract protected EventHandler eventHandler();
@@ -65,18 +59,6 @@ abstract public class AbstractState implements State {
                 .ifSteadyThen(serverContext, event, eventHandler());
     }
 
-    public int currentTerm() {
-        return persistentState.currentTerm();
-    }
-
-    protected PersistentState persistentState() {
-        return persistentState;
-    }
-
-    protected VolatileState volatileState() {
-        return volatileState;
-    }
-
     protected Transition onVoteRequest(final ServerContext serverContext, final VoteRequest voteRequest) {
         return voteRequestHandler.onVoteRequest(serverContext, voteRequest);
     }
@@ -86,6 +68,9 @@ abstract public class AbstractState implements State {
     }
 
     protected void invokeStateMachineWithCommittedLogEntries(final ServerContext serverContext) {
+        final VolatileState volatileState = serverContext.volatileState();
+        final PersistentState persistentState = serverContext.persistentState();
+
         final CommandLog commandLog = persistentState.commandLog();
         final StateMachine stateMachine = serverContext.stateMachine();
         long lastApplied = volatileState.lastApplied();

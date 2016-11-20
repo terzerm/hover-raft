@@ -65,7 +65,7 @@ public class Mockery {
         final ConsensusConfig consensusConfig = consensusConfig(servers, sources);
         return new Server(SERVER_ID,
                 consensusConfig(servers, sources), persistentState(), volatileState(consensusConfig),
-                messageLog(), stateMachine(), connections(servers, sources), messageFactory);
+                stateMachine(), connections(servers, sources), messageFactory);
     }
 
     public static ConsensusConfig consensusConfig(final int servers, final int sources) {

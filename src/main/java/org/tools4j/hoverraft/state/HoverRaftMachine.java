@@ -36,25 +36,10 @@ import java.util.Objects;
  */
 public class HoverRaftMachine {
 
-    private final Map<Role, State> stateMap;
-    private final PersistentState persistentState;
-    private final VolatileState volatileState;
-
     private State currentState;
 
-    public HoverRaftMachine(final PersistentState persistentState, final VolatileState volatileState) {
-        this.persistentState = Objects.requireNonNull(persistentState);
-        this.volatileState = Objects.requireNonNull(volatileState);
-        this.stateMap = initStateMap();
+    public HoverRaftMachine() {
         currentState = initialState();
-    }
-
-    private Map<Role, State> initStateMap() {
-        final Map<Role, State> map = new EnumMap<>(Role.class);
-        for (final Role role : Role.values()) {
-            map.put(role, role.createState(persistentState, volatileState));
-        }
-        return map;
     }
 
     private State initialState() {
@@ -62,7 +47,7 @@ public class HoverRaftMachine {
     }
 
     private State transitionTo(final Role role) {
-        return stateMap.get(role);
+        return role.state();
     }
 
     public void onEvent(final ServerContext serverContext, final Event event) {

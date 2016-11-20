@@ -60,9 +60,9 @@ public class VoteRequestHandlerTest {
     @Before
     public void init() {
         serverContext = Mockery.simple(1);
-        persistentState = Mockery.persistentState();
+        persistentState = serverContext.persistentState();
 
-        handler = new VoteRequestHandler(persistentState);
+        handler = new VoteRequestHandler();
     }
 
     private int candidateId() {

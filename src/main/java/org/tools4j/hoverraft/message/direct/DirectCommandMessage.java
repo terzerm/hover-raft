@@ -57,6 +57,7 @@ public final class DirectCommandMessage extends AbstractDirectMessage implements
         }
     };
 
+//What was the purpose of this constructor?
 //    public DirectCommandMessage() {
 //        wrap(new UnsafeBuffer(ByteBuffer.allocateDirect(BYTE_LENGTH)), 0);
 //    }
