@@ -34,6 +34,8 @@ import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.message.VoteRequest;
 import org.tools4j.hoverraft.message.VoteResponse;
 import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
+import org.tools4j.hoverraft.state.CommandLog;
+import org.tools4j.hoverraft.state.LogEntry;
 import org.tools4j.hoverraft.state.PersistentState;
 import org.tools4j.hoverraft.state.Role;
 import org.tools4j.hoverraft.transport.Sender;
@@ -115,8 +117,8 @@ public class VoteRequestHandlerTest {
 
         when(serverContext.connections().serverSender(candidateId)).thenReturn(sender);
         when(persistentState.votedFor()).thenReturn(previouslyVotedFor);
-        when(persistentState.commandLog().term()).thenReturn(lastLogTerm);
-        when(persistentState.commandLog().index()).thenReturn(lastLogIndex);
+        when(persistentState.commandLog().lastLogEntry().term()).thenReturn(lastLogTerm);
+        when(persistentState.commandLog().lastLogEntry().index()).thenReturn(lastLogIndex);
 
         //when + then
         onVoteRequest(term, voteRequest, granted);
@@ -142,8 +144,8 @@ public class VoteRequestHandlerTest {
 
         when(serverContext.connections().serverSender(candidateId)).thenReturn(sender);
         when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
-        when(persistentState.commandLog().term()).thenReturn(lastLogTerm);
-        when(persistentState.commandLog().index()).thenReturn(lastLogIndex);
+        when(persistentState.commandLog().lastLogEntry().term()).thenReturn(lastLogTerm);
+        when(persistentState.commandLog().lastLogEntry().index()).thenReturn(lastLogIndex);
 
         //when + then
         onVoteRequest(term, voteRequest, GRANTED);
@@ -168,8 +170,8 @@ public class VoteRequestHandlerTest {
 
         when(serverContext.connections().serverSender(candidateId)).thenReturn(sender);
         when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
-        when(persistentState.commandLog().term()).thenReturn(lastLogTerm);
-        when(persistentState.commandLog().index()).thenReturn(lastLogIndex);
+        when(persistentState.commandLog().lastLogEntry().term()).thenReturn(lastLogTerm);
+        when(persistentState.commandLog().lastLogEntry().index()).thenReturn(lastLogIndex);
 
         //when + then
         onVoteRequest(term, voteRequest, GRANTED);
@@ -193,8 +195,8 @@ public class VoteRequestHandlerTest {
 
         when(serverContext.connections().serverSender(serverId)).thenReturn(sender);
         when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
-        when(persistentState.commandLog().term()).thenReturn(lastLogTerm);
-        when(persistentState.commandLog().index()).thenReturn(lastLogIndex);
+        when(persistentState.commandLog().lastLogEntry().term()).thenReturn(lastLogTerm);
+        when(persistentState.commandLog().lastLogEntry().index()).thenReturn(lastLogIndex);
 
         //when + then
         onVoteRequest(term, voteRequest, REJECTED);
@@ -218,7 +220,7 @@ public class VoteRequestHandlerTest {
 
         when(serverContext.connections().serverSender(serverId)).thenReturn(sender);
         when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
-        when(persistentState.commandLog().compareTo(voteRequest.lastLogEntry())).thenReturn(1);
+        when(persistentState.commandLog().lastLogEntry().compareTo(voteRequest.lastLogEntry())).thenReturn(1);
 
         //when + then
         onVoteRequest(term, voteRequest, REJECTED);
@@ -240,9 +242,12 @@ public class VoteRequestHandlerTest {
         voteRequest.lastLogEntry().term(lastLogTerm)
                 .index(badLastLogIndex);
 
+        final CommandLog commandLog = persistentState.commandLog();
+        final LogEntry commandLoglastLogEntry = commandLog.lastLogEntry();
+
         when(serverContext.connections().serverSender(serverId)).thenReturn(sender);
         when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
-        when(persistentState.commandLog().compareTo(voteRequest.lastLogEntry())).thenReturn(1);
+        when(commandLoglastLogEntry.compareTo(voteRequest.lastLogEntry())).thenReturn(1);
 
 
         //when + then

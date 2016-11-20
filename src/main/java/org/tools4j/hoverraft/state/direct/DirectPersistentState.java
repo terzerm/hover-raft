@@ -66,7 +66,7 @@ public final class DirectPersistentState implements PersistentState {
     @Override
     public CommandLog commandLog() {
         //FIXme
-        return null;
+        throw new UnsupportedOperationException("not yet implemented");
     }
 
     public MessageLog<DirectCommandMessage> sourceLog(int sourceId) {

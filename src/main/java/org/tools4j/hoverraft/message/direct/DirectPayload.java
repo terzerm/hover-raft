@@ -21,44 +21,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.transport.chronicle;
+package org.tools4j.hoverraft.message.direct;
 
-import net.openhft.chronicle.ExcerptAppender;
 import org.agrona.DirectBuffer;
-import org.tools4j.hoverraft.message.direct.DirectMessage;
-import org.tools4j.hoverraft.transport.Sender;
-
-import java.util.Objects;
+import org.agrona.MutableDirectBuffer;
+import org.tools4j.hoverraft.message.Message;
 
 /**
- * Publication writing to a chronicle queue.
+ * A message
  */
-public class ChronicleSender implements Sender<DirectMessage> {
+public interface DirectPayload {
 
-    private final ExcerptAppender appender;
+    int byteLength();
 
-    public ChronicleSender(final ExcerptAppender appender) {
-        this.appender = Objects.requireNonNull(appender);
-    }
+    int offset();
 
-    @Override
-    public long offer(final DirectMessage message) {
-        final DirectBuffer buffer = Objects.requireNonNull(message.buffer());
-        final int len = message.byteLength();
-        appender.startExcerpt(len + 4);
-        appender.writeInt(len);
-        final int end = len + 4;
-        int index = 4;
-        while (index < end) {
-            if (index + 8 <= len) {
-                appender.writeLong(buffer.getLong(index));
-                index += 8;
-            } else {
-                appender.writeByte(buffer.getByte(index));
-                index++;
-            }
-        }
-        appender.finish();
-        return appender.position();
-    }
+    DirectBuffer buffer();
+
+    void wrap(DirectBuffer buffer, int offset);
+
+    void wrap(MutableDirectBuffer buffer, int offset);
+
+    void unwrap();
 }

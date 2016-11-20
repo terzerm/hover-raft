@@ -32,5 +32,5 @@ public interface MessageLog<M extends Message> {
     void readIndex(long index);
     M read();
     void append(M message);
-    long truncate(long inclusiveIndex);
+    long truncateIncluding(long inclusiveIndex);
 }

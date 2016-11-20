@@ -23,7 +23,5 @@ public class InMemoryCommandLogTest {
         commandLog.append(commandLogEntry1);
 
         assertThat(commandLog.size()).isEqualTo(1);
-
-
     }
 }

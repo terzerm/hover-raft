@@ -38,7 +38,7 @@ public final class VoteRequestHandler {
         final int candidateId = voteRequest.candidateId();
         final Transition transition;
         final boolean granted;
-        if (persistentState.currentTerm() <= term && commandLog.compareTo(voteRequest.lastLogEntry()) <= 0) {
+        if (persistentState.currentTerm() <= term && commandLog.lastLogEntry().compareTo(voteRequest.lastLogEntry()) <= 0) {
             if (persistentState.votedFor() == PersistentState.NOT_VOTED_YET) {
                 persistentState.votedFor(candidateId);
                 //Why transition is TO_FOLLOWER?

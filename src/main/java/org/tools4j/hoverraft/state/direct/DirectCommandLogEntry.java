@@ -4,60 +4,39 @@ import org.agrona.DirectBuffer;
 import org.agrona.MutableDirectBuffer;
 import org.tools4j.hoverraft.message.CommandMessage;
 import org.tools4j.hoverraft.message.direct.DirectCommandMessage;
-import org.tools4j.hoverraft.message.direct.DirectMessage;
+import org.tools4j.hoverraft.message.direct.DirectLogEntry;
+import org.tools4j.hoverraft.message.direct.DirectPayload;
 import org.tools4j.hoverraft.state.CommandLogEntry;
 import org.tools4j.hoverraft.state.LogEntry;
+import org.tools4j.hoverraft.state.LogEntryComparator;
 
+import java.util.Comparator;
 import java.util.Objects;
 
 //Does not really implement Message. Should it?
 //If not, then can't use MessageLog<DirectCommandLogEntry> and have to have
 //a separate direct implementation for DirectCommandLog.
-public class DirectCommandLogEntry implements CommandLogEntry, DirectMessage {
-    protected static final int TERM_OFF = 0;
-    protected static final int TERM_LEN = 4;
-
-    protected static final int INDEX_OFF = TERM_OFF + TERM_LEN;
-    protected static final int INDEX_LEN = 8;
-
-    protected static final int COMMAND_MSG_OFF = INDEX_OFF + INDEX_LEN;
-
-    protected DirectBuffer readBuffer;
-    protected MutableDirectBuffer writeBuffer;
-    protected int offset;
+public class DirectCommandLogEntry extends DirectLogEntry implements CommandLogEntry {
+    protected static final int COMMAND_MSG_OFF = DirectLogEntry.BYTE_LENGTH;
 
     private DirectCommandMessage directCommandMessage = new DirectCommandMessage();
 
     @Override
-    public int offset() {
-        return offset;
+    public void wrap(final DirectBuffer buffer, final int offset) {
+        super.wrap(buffer, offset);
+        directCommandMessage.wrap(buffer, offset + COMMAND_MSG_OFF);
     }
 
     @Override
-    public DirectBuffer buffer() {
-        return readBuffer;
-    }
-
-    public void wrap(final DirectBuffer buffer, final int offset) {
-        this.readBuffer = Objects.requireNonNull(buffer);
-        this.writeBuffer = null;
-        this.offset = offset;
-        directCommandMessage.wrap(buffer, offset + COMMAND_MSG_OFF);
-    }
-
     public void wrap(final MutableDirectBuffer buffer, final int offset) {
-        Objects.requireNonNull(buffer);
-        this.readBuffer = buffer;
-        this.writeBuffer = buffer;
-        this.offset = offset;
+        super.wrap(buffer, offset);
         directCommandMessage.wrap(buffer, offset + COMMAND_MSG_OFF);
     }
 
+    @Override
     public void unwrap() {
-        this.readBuffer = null;
-        this.writeBuffer = null;
-        this.offset = 0;
         directCommandMessage.unwrap();
+        super.unwrap();
     }
 
 
@@ -71,26 +50,4 @@ public class DirectCommandLogEntry implements CommandLogEntry, DirectMessage {
         return COMMAND_MSG_OFF + directCommandMessage.byteLength();
     }
 
-
-    @Override
-    public int term() {
-        return readBuffer.getInt(offset + TERM_OFF);
-    }
-
-    @Override
-    public LogEntry term(int term) {
-        writeBuffer.putInt(offset + TERM_OFF, term);
-        return this;
-    }
-
-    @Override
-    public long index() {
-        return readBuffer.getLong(offset + INDEX_OFF);
-    }
-
-    @Override
-    public LogEntry index(long index) {
-        writeBuffer.putLong(offset + INDEX_OFF, index);
-        return this;
-    }
 }

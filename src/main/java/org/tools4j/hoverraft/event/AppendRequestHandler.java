@@ -45,7 +45,7 @@ public class AppendRequestHandler {
         switch(containment) {
             case OUT: return false;
             case CONFLICT:
-                commandLog.truncate(prevLogEntry.index());
+                commandLog.truncateIncluding(prevLogEntry.index());
                 return false;
             case IN:
                 //Append any new entries not already in the log

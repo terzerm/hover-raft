@@ -23,6 +23,8 @@
  */
 package org.tools4j.hoverraft.message.direct;
 
+import org.agrona.DirectBuffer;
+import org.agrona.MutableDirectBuffer;
 import org.tools4j.hoverraft.message.MessageType;
 import org.tools4j.hoverraft.message.VoteRequest;
 import org.tools4j.hoverraft.state.LogEntry;
@@ -33,36 +35,12 @@ public final class DirectVoteRequest extends AbstractDirectMessage implements Vo
     private static final int TERM_LEN = 4;
     private static final int CANDIDATE_ID_OFF = TERM_OFF + TERM_LEN;
     private static final int CANDIDATE_ID_LEN = 4;
-    private static final int LAST_LOG_TERM_OFF = CANDIDATE_ID_OFF + CANDIDATE_ID_LEN;
-    private static final int LAST_LOG_TERM_LEN = 4;
-    private static final int LAST_LOG_INDEX_OFF = LAST_LOG_TERM_OFF + LAST_LOG_TERM_LEN;
-    private static final int LAST_LOG_INDEX_LEN = 8;
-    public static final int BYTE_LENGTH = LAST_LOG_INDEX_OFF + LAST_LOG_INDEX_LEN;
+    private static final int LAST_LOG_ENTRY_OFF = CANDIDATE_ID_OFF + CANDIDATE_ID_LEN;
+    private static final int LAST_LOG_ENTRY_LEN = DirectLogEntry.BYTE_LENGTH;
 
-    private final LogEntry lastLogEntry = new LogEntry() {
-        @Override
-        public int term() {
-            return readBuffer.getInt(offset + LAST_LOG_TERM_OFF);
-        }
+    public static final int BYTE_LENGTH = LAST_LOG_ENTRY_OFF + LAST_LOG_ENTRY_LEN;
 
-        @Override
-        public long index() {
-            return readBuffer.getLong(offset + LAST_LOG_INDEX_OFF);
-        }
-
-        @Override
-        public LogEntry term(int term) {
-            writeBuffer.putInt(offset + LAST_LOG_TERM_OFF, term);
-            return this;
-        }
-
-        @Override
-        public LogEntry index(long index) {
-            writeBuffer.putLong(offset + LAST_LOG_INDEX_OFF, index);
-            return this;
-        }
-    };
-
+    private final DirectLogEntry lastLogEntry = new DirectLogEntry() ;
 
     @Override
     public MessageType type() {
@@ -96,4 +74,23 @@ public final class DirectVoteRequest extends AbstractDirectMessage implements Vo
     public LogEntry lastLogEntry() {
         return lastLogEntry;
     }
+
+    @Override
+    public void wrap(DirectBuffer buffer, int offset) {
+        super.wrap(buffer, offset);
+        lastLogEntry.wrap(buffer, LAST_LOG_ENTRY_OFF);
+    }
+
+    @Override
+    public void wrap(MutableDirectBuffer buffer, int offset) {
+        super.wrap(buffer, offset);
+        lastLogEntry.wrap(buffer, LAST_LOG_ENTRY_OFF);
+    }
+
+    @Override
+    public void unwrap() {
+        lastLogEntry.unwrap();
+        super.unwrap();
+    }
+
 }

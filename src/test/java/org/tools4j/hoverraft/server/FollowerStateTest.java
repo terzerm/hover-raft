@@ -85,7 +85,11 @@ public class FollowerStateTest {
         appendRequest.prevLogEntry().term(term)
                                     .index(100);
 
-        when(persistentState.commandLog().contains(appendRequest.prevLogEntry())).thenReturn(CommandLog.CONTAINMENT.IN);
+        final CommandLog commandLog = persistentState.commandLog();
+        final LogEntry prevLogEntry = appendRequest.prevLogEntry();
+        final CommandLogEntry commandLogEntry = appendRequest.commandLogEntry();
+
+        when(commandLog.contains(prevLogEntry)).thenReturn(CommandLog.CONTAINMENT.IN);
 
         when(serverContext.connections().serverSender(leaderId)).thenReturn(sender);
 
@@ -93,7 +97,7 @@ public class FollowerStateTest {
         final Transition transition = followerState.onEvent(serverContext, appendRequest);
 
         //then
-        verify(persistentState.commandLog()).append(appendRequest.commandLogEntry());
+        verify(commandLog).append(commandLogEntry);
 
         final ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
         verify(sender).offer(captor.capture());

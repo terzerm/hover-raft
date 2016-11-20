@@ -97,11 +97,11 @@ public final class DirectMessageFactory implements MessageFactory {
         return factory;
     }
 
-    public AbstractDirectMessage wrapForReading(final DirectBuffer directBuffer, final int offset) {
+    public DirectMessage wrapForReading(final DirectBuffer directBuffer, final int offset) {
         final int type = directBuffer.getInt(offset);
         if (type >= 0 & type <= MessageType.maxOrdinal()) {
             final MessageType messageType = MessageType.valueByOrdinal(type);
-            final AbstractDirectMessage message = messageType.create(this);
+            final DirectMessage message = messageType.create(this);
             message.wrap(directBuffer, offset);
             return message;
         }

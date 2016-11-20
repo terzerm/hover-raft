@@ -1,14 +1,47 @@
 package org.tools4j.hoverraft.state;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class InMemoryCommandLog implements CommandLog {
+    private static final Comparator<LogEntry> LOG_ENTRY_COMPARATOR = new LogEntryComparator();
+
     private final List<CommandLogEntry> commandLogEntries = new ArrayList<>();
     private final AtomicInteger readIndex = new AtomicInteger(0);
 
+    private final LogEntry lastLogEntry = new LogEntry() {
+        @Override
+        public int term() {
+            readIndex(index());
+            return read().term();
+        }
+
+        @Override
+        public long index() {
+            return commandLogEntries.size() - 1;
+        }
+
+
+        @Override
+        public LogEntry term(final int term) {
+            throw new UnsupportedOperationException("term update is not allowed");
+        }
+
+        @Override
+        public LogEntry index(final long index) {
+            throw new UnsupportedOperationException("index update is not allowed");
+        }
+
+        @Override
+        public int compareTo(@NotNull final LogEntry logEntry) {
+            return LOG_ENTRY_COMPARATOR.compare(this, Objects.requireNonNull(logEntry));
+        }
+    };
 
     @Override
     public long size() {
@@ -34,7 +67,7 @@ public class InMemoryCommandLog implements CommandLog {
         if (readIndex.get() < commandLogEntries.size()) {
             return commandLogEntries.get(readIndex.getAndIncrement());
         }
-        throw new IllegalArgumentException("Read index " + readIndex + " has reached end of message log with size " + commandLogEntries.size());
+        throw new IllegalStateException("Read index " + readIndex + " has reached end of message log with size " + commandLogEntries.size());
     }
 
     @Override
@@ -44,11 +77,11 @@ public class InMemoryCommandLog implements CommandLog {
 
 
     @Override
-    public synchronized void truncate(long index) {
+    public synchronized void truncateIncluding(long index) {
         if (index >= commandLogEntries.size()) {
             throw new IllegalArgumentException("Truncate index " + index + " must be less than the size " + commandLogEntries.size());
         }
-        for (long idx = index(); idx >= index; idx--) {
+        for (long idx = lastLogEntry.index(); idx >= index; idx--) {
             commandLogEntries.remove((int)idx);
         }
         if (readIndex() >= index) {
@@ -58,7 +91,7 @@ public class InMemoryCommandLog implements CommandLog {
 
     @Override
     public CONTAINMENT contains(LogEntry logEntry) {
-        if (logEntry.index() > index()) {
+        if (logEntry.index() > lastLogEntry.index()) {
             return CONTAINMENT.OUT;
         } else {
             readIndex(logEntry.index());
@@ -68,39 +101,12 @@ public class InMemoryCommandLog implements CommandLog {
             } else {
                 return CONTAINMENT.IN;
             }
-
         }
     }
 
     @Override
-    public int compareTo(LogEntry logEntry) {
-        int termCompare = Integer.compare(term(), logEntry.term());
-        if (termCompare == 0) {
-            return Long.compare(index(), logEntry.index());
-        } else {
-            return termCompare;
-        }
+    public LogEntry lastLogEntry() {
+        return lastLogEntry;
     }
 
-    @Override
-    public int term() {
-        readIndex(index());
-        return read().term();
-    }
-
-    @Override
-    public long index() {
-        return commandLogEntries.size() - 1;
-    }
-
-    //FIXme apparently setters for term and index should not be in the LogEntry
-    @Override
-    public LogEntry term(int term) {
-        throw new UnsupportedOperationException("This is shit! I can't implement it. Should not have these methods in LogEntry");
-    }
-
-    @Override
-    public LogEntry index(long index) {
-        throw new UnsupportedOperationException("This is shit! I can't implement it. Should not have these methods in LogEntry");
-    }
 }
