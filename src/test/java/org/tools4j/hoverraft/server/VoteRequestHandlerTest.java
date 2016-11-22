@@ -117,8 +117,8 @@ public class VoteRequestHandlerTest {
 
         when(serverContext.connections().serverSender(candidateId)).thenReturn(sender);
         when(persistentState.votedFor()).thenReturn(previouslyVotedFor);
-        when(persistentState.commandLog().lastLogEntry().term()).thenReturn(lastLogTerm);
-        when(persistentState.commandLog().lastLogEntry().index()).thenReturn(lastLogIndex);
+        when(persistentState.commandLog().lastEntry().term()).thenReturn(lastLogTerm);
+        when(persistentState.commandLog().lastEntry().index()).thenReturn(lastLogIndex);
 
         //when + then
         onVoteRequest(term, voteRequest, granted);
@@ -144,8 +144,8 @@ public class VoteRequestHandlerTest {
 
         when(serverContext.connections().serverSender(candidateId)).thenReturn(sender);
         when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
-        when(persistentState.commandLog().lastLogEntry().term()).thenReturn(lastLogTerm);
-        when(persistentState.commandLog().lastLogEntry().index()).thenReturn(lastLogIndex);
+        when(persistentState.commandLog().lastEntry().term()).thenReturn(lastLogTerm);
+        when(persistentState.commandLog().lastEntry().index()).thenReturn(lastLogIndex);
 
         //when + then
         onVoteRequest(term, voteRequest, GRANTED);
@@ -170,8 +170,8 @@ public class VoteRequestHandlerTest {
 
         when(serverContext.connections().serverSender(candidateId)).thenReturn(sender);
         when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
-        when(persistentState.commandLog().lastLogEntry().term()).thenReturn(lastLogTerm);
-        when(persistentState.commandLog().lastLogEntry().index()).thenReturn(lastLogIndex);
+        when(persistentState.commandLog().lastEntry().term()).thenReturn(lastLogTerm);
+        when(persistentState.commandLog().lastEntry().index()).thenReturn(lastLogIndex);
 
         //when + then
         onVoteRequest(term, voteRequest, GRANTED);
@@ -195,8 +195,8 @@ public class VoteRequestHandlerTest {
 
         when(serverContext.connections().serverSender(serverId)).thenReturn(sender);
         when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
-        when(persistentState.commandLog().lastLogEntry().term()).thenReturn(lastLogTerm);
-        when(persistentState.commandLog().lastLogEntry().index()).thenReturn(lastLogIndex);
+        when(persistentState.commandLog().lastEntry().term()).thenReturn(lastLogTerm);
+        when(persistentState.commandLog().lastEntry().index()).thenReturn(lastLogIndex);
 
         //when + then
         onVoteRequest(term, voteRequest, REJECTED);
@@ -220,7 +220,7 @@ public class VoteRequestHandlerTest {
 
         when(serverContext.connections().serverSender(serverId)).thenReturn(sender);
         when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
-        when(persistentState.commandLog().lastLogEntry().compareTo(voteRequest.lastLogEntry())).thenReturn(1);
+        when(persistentState.commandLog().lastEntry().compareTo(voteRequest.lastLogEntry())).thenReturn(1);
 
         //when + then
         onVoteRequest(term, voteRequest, REJECTED);
@@ -243,7 +243,7 @@ public class VoteRequestHandlerTest {
                 .index(badLastLogIndex);
 
         final CommandLog commandLog = persistentState.commandLog();
-        final LogEntry commandLoglastLogEntry = commandLog.lastLogEntry();
+        final LogEntry commandLoglastLogEntry = commandLog.lastEntry();
 
         when(serverContext.connections().serverSender(serverId)).thenReturn(sender);
         when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);

@@ -13,9 +13,6 @@ import org.tools4j.hoverraft.state.LogEntryComparator;
 import java.util.Comparator;
 import java.util.Objects;
 
-//Does not really implement Message. Should it?
-//If not, then can't use MessageLog<DirectCommandLogEntry> and have to have
-//a separate direct implementation for DirectCommandLog.
 public class DirectCommandLogEntry extends DirectLogEntry implements CommandLogEntry {
     protected static final int COMMAND_MSG_OFF = DirectLogEntry.BYTE_LENGTH;
 

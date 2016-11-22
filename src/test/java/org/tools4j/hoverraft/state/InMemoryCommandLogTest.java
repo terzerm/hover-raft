@@ -1,8 +1,8 @@
 package org.tools4j.hoverraft.state;
 
 import org.junit.Test;
+import org.tools4j.hoverraft.state.inmemory.InMemoryCommandLog;
 
-import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 

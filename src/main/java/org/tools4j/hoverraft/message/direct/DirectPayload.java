@@ -25,10 +25,9 @@ package org.tools4j.hoverraft.message.direct;
 
 import org.agrona.DirectBuffer;
 import org.agrona.MutableDirectBuffer;
-import org.tools4j.hoverraft.message.Message;
 
 /**
- * A message
+ * Direct Payload
  */
 public interface DirectPayload {
 

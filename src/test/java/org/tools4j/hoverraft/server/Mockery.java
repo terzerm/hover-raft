@@ -105,7 +105,7 @@ public class Mockery {
         when(persistentState.currentTerm()).thenReturn(1);
         when(persistentState.commandLog()).thenReturn(commandLog);
 
-        when(commandLog.lastLogEntry()).thenReturn(lastLogEntry);
+        when(commandLog.lastEntry()).thenReturn(lastLogEntry);
         when(lastLogEntry.term()).thenReturn(0);
         when(lastLogEntry.index()).thenReturn(-1L);
 

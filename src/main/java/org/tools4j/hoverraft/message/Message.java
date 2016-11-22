@@ -34,6 +34,12 @@ public interface Message extends Event {
 
     MessageType type();
 
-    void sendTo(Sender<? super Message> sender, ResendStrategy resendStrategy);
+    default void sendTo(final Sender<? super Message> sender, final ResendStrategy resendStrategy) {
+        final long res = sender.offer(this);
+        if (res < 0) {
+            resendStrategy.onRejectedOffer(sender, this, res);
+        }
+    }
+
 
 }

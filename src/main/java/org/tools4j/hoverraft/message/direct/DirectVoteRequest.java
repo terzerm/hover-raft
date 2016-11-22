@@ -52,19 +52,23 @@ public final class DirectVoteRequest extends AbstractDirectMessage implements Vo
         return BYTE_LENGTH;
     }
 
+    @Override
     public int term() {
         return readBuffer.getInt(offset + TERM_OFF);
     }
 
+    @Override
     public DirectVoteRequest term(final int term) {
         writeBuffer.putInt(offset + TERM_OFF, term);
         return this;
     }
 
+    @Override
     public int candidateId() {
         return readBuffer.getInt(offset + CANDIDATE_ID_OFF);
     }
 
+    @Override
     public DirectVoteRequest candidateId(final int candidateId) {
         writeBuffer.putInt(offset + CANDIDATE_ID_OFF, candidateId);
         return this;
@@ -78,13 +82,13 @@ public final class DirectVoteRequest extends AbstractDirectMessage implements Vo
     @Override
     public void wrap(DirectBuffer buffer, int offset) {
         super.wrap(buffer, offset);
-        lastLogEntry.wrap(buffer, LAST_LOG_ENTRY_OFF);
+        lastLogEntry.wrap(buffer, offset + LAST_LOG_ENTRY_OFF);
     }
 
     @Override
     public void wrap(MutableDirectBuffer buffer, int offset) {
         super.wrap(buffer, offset);
-        lastLogEntry.wrap(buffer, LAST_LOG_ENTRY_OFF);
+        lastLogEntry.wrap(buffer, offset + LAST_LOG_ENTRY_OFF);
     }
 
     @Override

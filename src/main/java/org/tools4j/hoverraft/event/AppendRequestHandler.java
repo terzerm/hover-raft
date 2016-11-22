@@ -40,7 +40,7 @@ public class AppendRequestHandler {
         final CommandLog commandLog = serverContext.persistentState().commandLog();
         final VolatileState volatileState = serverContext.volatileState();
 
-        CommandLog.CONTAINMENT containment =  commandLog.contains(prevLogEntry);
+        final CommandLog.CONTAINMENT containment = commandLog.contains(prevLogEntry);
 
         switch(containment) {
             case OUT: return false;

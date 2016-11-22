@@ -8,6 +8,20 @@ public interface CommandLog {
     CommandLogEntry read();
     void append(CommandLogEntry commandLogEntry);
     void truncateIncluding(long index);
-    LogEntry lastLogEntry();
-    CONTAINMENT contains(LogEntry logEntry);
+    LogEntry lastEntry();
+
+    default CONTAINMENT contains(final LogEntry logEntry) {
+        if (logEntry.index() > lastEntry().index()) {
+            return CONTAINMENT.OUT;
+        } else {
+            readIndex(logEntry.index());
+            final int termAtLogEntryIndex = read().term();
+            if (logEntry.term() != termAtLogEntryIndex) {
+                return CONTAINMENT.CONFLICT;
+            } else {
+                return CONTAINMENT.IN;
+            }
+        }
+    }
+
 }

@@ -38,29 +38,9 @@ public final class DirectCommandMessage extends AbstractDirectMessage implements
     private static final int COMMAND_INDEX_LEN = 8;
     private static final int COMMAND_OFF = COMMAND_INDEX_OFF + COMMAND_INDEX_LEN;
 
-    public static final int BYTE_LENGTH = COMMAND_OFF;
+    private static final int BYTE_LENGTH = COMMAND_OFF;
 
-    private final DirectCommand command = new DirectCommand() {
-        @Override
-        protected DirectBuffer readBuffer() {
-            return readBuffer;
-        }
-
-        @Override
-        protected MutableDirectBuffer writeBuffer() {
-            return writeBuffer;
-        }
-
-        @Override
-        protected int offset() {
-            return COMMAND_OFF;
-        }
-    };
-
-//What was the purpose of this constructor?
-//    public DirectCommandMessage() {
-//        wrap(new UnsafeBuffer(ByteBuffer.allocateDirect(BYTE_LENGTH)), 0);
-//    }
+    private final DirectCommand command = new DirectCommand();
 
     @Override
     public MessageType type() {
@@ -72,19 +52,23 @@ public final class DirectCommandMessage extends AbstractDirectMessage implements
         return BYTE_LENGTH + command.byteLength();
     }
 
+    @Override
     public int commandSourceId() {
         return readBuffer.getInt(offset + COMMAND_SOURCE_ID_OFF);
     }
 
+    @Override
     public DirectCommandMessage commandSourceId(final int sourceId) {
         writeBuffer.putInt(offset + COMMAND_SOURCE_ID_OFF, sourceId);
         return this;
     }
 
+    @Override
     public long commandIndex() {
         return readBuffer.getLong(offset + COMMAND_INDEX_OFF);
     }
 
+    @Override
     public DirectCommandMessage commandIndex(final long commandIndex) {
         writeBuffer.putLong(offset + COMMAND_INDEX_OFF, commandIndex);
         return this;
@@ -93,5 +77,23 @@ public final class DirectCommandMessage extends AbstractDirectMessage implements
     @Override
     public Command command() {
         return command;
+    }
+
+    @Override
+    public void wrap(DirectBuffer buffer, int offset) {
+        super.wrap(buffer, offset);
+        command.wrap(buffer, offset + COMMAND_OFF);
+    }
+
+    @Override
+    public void wrap(MutableDirectBuffer buffer, int offset) {
+        super.wrap(buffer, offset);
+        command.wrap(buffer, offset + COMMAND_OFF);
+    }
+
+    @Override
+    public void unwrap() {
+        command.unwrap();
+        super.unwrap();
     }
 }

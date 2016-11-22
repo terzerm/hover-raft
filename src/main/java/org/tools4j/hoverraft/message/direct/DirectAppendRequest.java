@@ -105,14 +105,14 @@ public final class DirectAppendRequest extends AbstractDirectMessage implements 
     @Override
     public void wrap(DirectBuffer buffer, int offset) {
         super.wrap(buffer, offset);
-        prevLogEntry.wrap(buffer, PREV_LOG_ENTRY_OFF);
+        prevLogEntry.wrap(buffer, offset + PREV_LOG_ENTRY_OFF);
         directCommandLogEntry.wrap(buffer, offset + COMMAND_LOG_ENTRY_OFF);
     }
 
     @Override
     public void wrap(MutableDirectBuffer buffer, int offset) {
         super.wrap(buffer, offset);
-        prevLogEntry.wrap(buffer, PREV_LOG_ENTRY_OFF);
+        prevLogEntry.wrap(buffer, offset + PREV_LOG_ENTRY_OFF);
         directCommandLogEntry.wrap(buffer, offset + COMMAND_LOG_ENTRY_OFF);
     }
 

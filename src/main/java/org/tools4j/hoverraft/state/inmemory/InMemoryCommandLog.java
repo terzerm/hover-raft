@@ -1,6 +1,10 @@
-package org.tools4j.hoverraft.state;
+package org.tools4j.hoverraft.state.inmemory;
 
 import org.jetbrains.annotations.NotNull;
+import org.tools4j.hoverraft.state.CommandLog;
+import org.tools4j.hoverraft.state.CommandLogEntry;
+import org.tools4j.hoverraft.state.LogEntry;
+import org.tools4j.hoverraft.state.LogEntryComparator;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -14,7 +18,7 @@ public class InMemoryCommandLog implements CommandLog {
     private final List<CommandLogEntry> commandLogEntries = new ArrayList<>();
     private final AtomicInteger readIndex = new AtomicInteger(0);
 
-    private final LogEntry lastLogEntry = new LogEntry() {
+    private final LogEntry lastEntry = new LogEntry() {
         @Override
         public int term() {
             readIndex(index());
@@ -81,7 +85,7 @@ public class InMemoryCommandLog implements CommandLog {
         if (index >= commandLogEntries.size()) {
             throw new IllegalArgumentException("Truncate index " + index + " must be less than the size " + commandLogEntries.size());
         }
-        for (long idx = lastLogEntry.index(); idx >= index; idx--) {
+        for (long idx = lastEntry.index(); idx >= index; idx--) {
             commandLogEntries.remove((int)idx);
         }
         if (readIndex() >= index) {
@@ -90,23 +94,8 @@ public class InMemoryCommandLog implements CommandLog {
     }
 
     @Override
-    public CONTAINMENT contains(LogEntry logEntry) {
-        if (logEntry.index() > lastLogEntry.index()) {
-            return CONTAINMENT.OUT;
-        } else {
-            readIndex(logEntry.index());
-            final int termAtLogEntryIndex = read().term();
-            if (logEntry.term() != termAtLogEntryIndex) {
-                return CONTAINMENT.CONFLICT;
-            } else {
-                return CONTAINMENT.IN;
-            }
-        }
-    }
-
-    @Override
-    public LogEntry lastLogEntry() {
-        return lastLogEntry;
+    public LogEntry lastEntry() {
+        return lastEntry;
     }
 
 }
