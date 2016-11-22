@@ -25,11 +25,12 @@ package org.tools4j.hoverraft.message;
 
 import org.tools4j.hoverraft.message.direct.DirectMessage;
 import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
+import org.tools4j.hoverraft.message.inmemory.InMemoryMessageFactory;
 
 public enum MessageType {
     VOTE_REQUEST {
         @Override
-        public Message create(final MessageFactory factory) {
+        public Message create(final InMemoryMessageFactory factory) {
             return factory.voteRequest();
         }
         @Override
@@ -39,7 +40,7 @@ public enum MessageType {
     },
     VOTE_RESPONSE {
         @Override
-        public Message create(final MessageFactory factory) {
+        public Message create(final InMemoryMessageFactory factory) {
             return factory.voteResponse();
         }
         @Override
@@ -49,7 +50,7 @@ public enum MessageType {
     },
     APPEND_REQUEST {
         @Override
-        public Message create(final MessageFactory factory) {
+        public Message create(final InMemoryMessageFactory factory) {
             return factory.appendRequest();
         }
         @Override
@@ -59,7 +60,7 @@ public enum MessageType {
     },
     APPEND_RESPONSE {
         @Override
-        public Message create(final MessageFactory factory) {
+        public Message create(final InMemoryMessageFactory factory) {
             return factory.appendResponse();
         }
         @Override
@@ -69,7 +70,7 @@ public enum MessageType {
     },
     TIMEOUT_NOW {
         @Override
-        public Message create(final MessageFactory factory) {
+        public Message create(final InMemoryMessageFactory factory) {
             return factory.timeoutNow();
         }
         @Override
@@ -79,7 +80,7 @@ public enum MessageType {
     },
     COMMAND_MESSAGE {
         @Override
-        public Message create(final MessageFactory factory) {
+        public Message create(final InMemoryMessageFactory factory) {
             return factory.commandMessage();
         }
         @Override
@@ -98,7 +99,7 @@ public enum MessageType {
         return VALUES.length - 1;
     }
 
-    abstract public Message create(MessageFactory factory);
+    abstract public Message create(InMemoryMessageFactory factory);
 
     abstract public DirectMessage create(DirectMessageFactory factory);
 

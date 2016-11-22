@@ -5,16 +5,10 @@ import org.agrona.MutableDirectBuffer;
 import org.tools4j.hoverraft.message.CommandMessage;
 import org.tools4j.hoverraft.message.direct.DirectCommandMessage;
 import org.tools4j.hoverraft.message.direct.DirectLogEntry;
-import org.tools4j.hoverraft.message.direct.DirectPayload;
 import org.tools4j.hoverraft.state.CommandLogEntry;
-import org.tools4j.hoverraft.state.LogEntry;
-import org.tools4j.hoverraft.state.LogEntryComparator;
-
-import java.util.Comparator;
-import java.util.Objects;
 
 public class DirectCommandLogEntry extends DirectLogEntry implements CommandLogEntry {
-    protected static final int COMMAND_MSG_OFF = DirectLogEntry.BYTE_LENGTH;
+    private static final int COMMAND_MSG_OFF = DirectLogEntry.BYTE_LENGTH;
 
     private DirectCommandMessage directCommandMessage = new DirectCommandMessage();
 

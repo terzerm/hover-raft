@@ -38,7 +38,7 @@ public final class DirectCommandMessage extends AbstractDirectMessage implements
     private static final int COMMAND_INDEX_LEN = 8;
     private static final int COMMAND_OFF = COMMAND_INDEX_OFF + COMMAND_INDEX_LEN;
 
-    private static final int BYTE_LENGTH = COMMAND_OFF;
+    public static final int EMPTY_COMMAND_BYTE_LENGTH = COMMAND_OFF;
 
     private final DirectCommand command = new DirectCommand();
 
@@ -49,7 +49,7 @@ public final class DirectCommandMessage extends AbstractDirectMessage implements
 
     @Override
     public int byteLength() {
-        return BYTE_LENGTH + command.byteLength();
+        return EMPTY_COMMAND_BYTE_LENGTH + command.byteLength();
     }
 
     @Override
