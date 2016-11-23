@@ -3,6 +3,7 @@ package org.tools4j.hoverraft.message.direct;
 import org.agrona.ExpandableArrayBuffer;
 import org.junit.Before;
 import org.junit.Test;
+import org.tools4j.hoverraft.message.MessageType;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -30,6 +31,7 @@ public class DirectCommandMessageTest {
                 .command().bytesFrom(commandBytes, 0, commandBytes.length);
 
         //then
+        assertThat(directCommandMessage.type()).isEqualTo(MessageType.COMMAND_MESSAGE);
         assertThat(directCommandMessage.commandSourceId()).isEqualTo(sourceId);
         assertThat(directCommandMessage.commandIndex()).isEqualTo(commandIndex);
         assertThat(directCommandMessage.command().byteLength()).isEqualTo(commandBytes.length);
@@ -37,6 +39,11 @@ public class DirectCommandMessageTest {
         final byte[] retrievedCommandBytes = new byte[directCommandMessage.command().byteLength()];
         directCommandMessage.command().bytesTo(retrievedCommandBytes, 0);
 
+
         assertThat(new String(retrievedCommandBytes)).isEqualTo(myCommand);
+
+        final int expectedCommandMessageBytesLength = DirectCommandMessage.EMPTY_COMMAND_BYTE_LENGTH + commandBytes.length;
+        assertThat(directCommandMessage.byteLength()).isEqualTo(expectedCommandMessageBytesLength);
+
     }
 }
