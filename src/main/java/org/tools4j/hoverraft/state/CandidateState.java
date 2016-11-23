@@ -81,26 +81,17 @@ public final class CandidateState extends AbstractState {
         return Transition.STEADY;
     }
 
-    private Transition onAppendRequest(final ServerContext serverContext, final AppendRequest appendRequest) {
-        final int term = appendRequest.term();
-        final int leaderId = appendRequest.leaderId();
+
+    protected Transition onAppendRequest(final ServerContext serverContext, final AppendRequest appendRequest) {
+        final int appendRequestTerm = appendRequest.term();
         final int currentTerm = currentTerm();
-        final Transition transition;
-        final boolean successful;
-        if (currentTerm == term) /* should never be larger */ {
+
+        if (appendRequestTerm >= currentTerm) {
             serverContext.timer().reset();
-            successful = appendToLog(serverContext, appendRequest);
-            transition = Transition.TO_FOLLOWER;
+            return Transition.TO_FOLLOWER;
         } else {
-            successful = false;
-            transition = Transition.STEADY;
+            return super.onAppendRequest(serverContext, appendRequest);
         }
-        serverContext.messageFactory().appendResponse()
-                .term(currentTerm)
-                .successful(successful)
-                .sendTo(serverContext.connections().serverSender(leaderId),
-                        serverContext.resendStrategy());
-        return transition;
     }
 
     private Transition onTimerEvent(final ServerContext serverContext, final TimerEvent timerEvent) {
@@ -115,10 +106,6 @@ public final class CandidateState extends AbstractState {
         voteForMyself(serverContext);
     }
 
-    private boolean appendToLog(final ServerContext serverContext, final AppendRequest appendRequest) {
-        //FIXME write to message log
-        return true;
-    }
 
     private void voteForMyself(final ServerContext serverContext) {
         final PersistentState pstate = persistentState();

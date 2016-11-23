@@ -21,16 +21,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.message;
+package org.tools4j.hoverraft.message.direct;
 
-import org.tools4j.hoverraft.transport.ResendStrategy;
-import org.tools4j.hoverraft.transport.Sender;
+import org.agrona.DirectBuffer;
+import org.agrona.MutableDirectBuffer;
 
-abstract public class AbstractMessage implements Message {
-    public void sendTo(final Sender<? super Message> sender, final ResendStrategy resendStrategy) {
-        final long res = sender.offer(this);
-        if (res < 0) {
-            resendStrategy.onRejectedOffer(sender, this, res);
-        }
-    }
+/**
+ * Direct Payload
+ */
+public interface DirectPayload {
+
+    int byteLength();
+
+    int offset();
+
+    DirectBuffer buffer();
+
+    void wrap(DirectBuffer buffer, int offset);
+
+    void wrap(MutableDirectBuffer buffer, int offset);
+
+    void unwrap();
 }

@@ -25,45 +25,22 @@ package org.tools4j.hoverraft.message.direct;
 
 import org.agrona.DirectBuffer;
 import org.agrona.MutableDirectBuffer;
-import org.agrona.concurrent.UnsafeBuffer;
 import org.tools4j.hoverraft.machine.Command;
 import org.tools4j.hoverraft.message.CommandMessage;
 import org.tools4j.hoverraft.message.MessageType;
 
-import java.nio.ByteBuffer;
 
 public final class DirectCommandMessage extends AbstractDirectMessage implements CommandMessage {
 
-    private static final int TERM_OFF = TYPE_OFF + TYPE_LEN;
-    private static final int TERM_LEN = 4;
-    private static final int COMMAND_SOURCE_ID_OFF = TERM_OFF + TERM_LEN;
+    private static final int COMMAND_SOURCE_ID_OFF = TYPE_OFF + TYPE_LEN;
     private static final int COMMAND_SOURCE_ID_LEN = 4;
     private static final int COMMAND_INDEX_OFF = COMMAND_SOURCE_ID_OFF + COMMAND_SOURCE_ID_LEN;
     private static final int COMMAND_INDEX_LEN = 8;
     private static final int COMMAND_OFF = COMMAND_INDEX_OFF + COMMAND_INDEX_LEN;
 
-    public static final int BYTE_LENGTH = COMMAND_INDEX_OFF + COMMAND_INDEX_LEN;
+    public static final int EMPTY_COMMAND_BYTE_LENGTH = COMMAND_OFF;
 
-    private final DirectCommand command = new DirectCommand() {
-        @Override
-        protected DirectBuffer readBuffer() {
-            return readBuffer;
-        }
-
-        @Override
-        protected MutableDirectBuffer writeBuffer() {
-            return writeBuffer;
-        }
-
-        @Override
-        protected int offset() {
-            return COMMAND_OFF;
-        }
-    };
-
-    public DirectCommandMessage() {
-        wrap(new UnsafeBuffer(ByteBuffer.allocateDirect(BYTE_LENGTH)), 0);
-    }
+    private final DirectCommand command = new DirectCommand();
 
     @Override
     public MessageType type() {
@@ -72,31 +49,26 @@ public final class DirectCommandMessage extends AbstractDirectMessage implements
 
     @Override
     public int byteLength() {
-        return BYTE_LENGTH;
+        return EMPTY_COMMAND_BYTE_LENGTH + command.byteLength();
     }
 
-    public int term() {
-        return readBuffer.getInt(offset + TERM_OFF);
-    }
-
-    public DirectCommandMessage term(final int term) {
-        writeBuffer.putInt(offset + TERM_OFF, term);
-        return this;
-    }
-
+    @Override
     public int commandSourceId() {
         return readBuffer.getInt(offset + COMMAND_SOURCE_ID_OFF);
     }
 
+    @Override
     public DirectCommandMessage commandSourceId(final int sourceId) {
         writeBuffer.putInt(offset + COMMAND_SOURCE_ID_OFF, sourceId);
         return this;
     }
 
+    @Override
     public long commandIndex() {
         return readBuffer.getLong(offset + COMMAND_INDEX_OFF);
     }
 
+    @Override
     public DirectCommandMessage commandIndex(final long commandIndex) {
         writeBuffer.putLong(offset + COMMAND_INDEX_OFF, commandIndex);
         return this;
@@ -105,5 +77,23 @@ public final class DirectCommandMessage extends AbstractDirectMessage implements
     @Override
     public Command command() {
         return command;
+    }
+
+    @Override
+    public void wrap(DirectBuffer buffer, int offset) {
+        super.wrap(buffer, offset);
+        command.wrap(buffer, offset + COMMAND_OFF);
+    }
+
+    @Override
+    public void wrap(MutableDirectBuffer buffer, int offset) {
+        super.wrap(buffer, offset);
+        command.wrap(buffer, offset + COMMAND_OFF);
+    }
+
+    @Override
+    public void unwrap() {
+        command.unwrap();
+        super.unwrap();
     }
 }

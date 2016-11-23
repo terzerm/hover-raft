@@ -23,6 +23,8 @@
  */
 package org.tools4j.hoverraft.message;
 
+import org.tools4j.hoverraft.state.CommandLogEntry;
+
 /**
  * Factory for messages.
  */
@@ -39,4 +41,6 @@ public interface MessageFactory {
     TimeoutNow timeoutNow();
 
     CommandMessage commandMessage();
+
+    CommandLogEntry commandLogEntry();
 }

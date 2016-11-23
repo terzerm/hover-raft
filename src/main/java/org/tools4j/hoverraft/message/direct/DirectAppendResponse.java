@@ -48,19 +48,23 @@ public final class DirectAppendResponse extends AbstractDirectMessage implements
         return BYTE_LENGTH;
     }
 
+    @Override
     public int term() {
         return readBuffer.getInt(offset + TERM_OFF);
     }
 
+    @Override
     public DirectAppendResponse term(final int term) {
         writeBuffer.putInt(offset + TERM_OFF, term);
         return this;
     }
 
+    @Override
     public boolean successful() {
         return readBuffer.getByte(offset + SUCCESSFUL_OFF) == 1;
     }
 
+    @Override
     public DirectAppendResponse successful(final boolean successful) {
         writeBuffer.putByte(offset + SUCCESSFUL_OFF, successful ? SUCCESSFUL : UNSUCCESSFUL);
         return this;

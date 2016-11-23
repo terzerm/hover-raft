@@ -34,6 +34,8 @@ import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.message.VoteRequest;
 import org.tools4j.hoverraft.message.VoteResponse;
 import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
+import org.tools4j.hoverraft.state.CommandLog;
+import org.tools4j.hoverraft.state.LogEntry;
 import org.tools4j.hoverraft.state.PersistentState;
 import org.tools4j.hoverraft.state.Role;
 import org.tools4j.hoverraft.transport.Sender;
@@ -108,18 +110,22 @@ public class VoteRequestHandlerTest {
         final VoteRequest voteRequest = DirectMessageFactory.createForWriting()
                 .voteRequest()
                 .term(term)
-                .candidateId(candidateId)
-                .lastLogTerm(lastLogTerm)
-                .lastLogIndex(lastLogIndex);
+                .candidateId(candidateId);
+        //need LogEntry mutators to return parent object on done()
+        voteRequest.lastLogEntry().term(lastLogTerm)
+                                .index(lastLogIndex);
+
         when(serverContext.connections().serverSender(candidateId)).thenReturn(sender);
         when(persistentState.votedFor()).thenReturn(previouslyVotedFor);
-        when(persistentState.lastLogTerm()).thenReturn(lastLogTerm);
-        when(persistentState.lastLogIndex()).thenReturn(lastLogIndex);
+        when(persistentState.commandLog().lastEntry().term()).thenReturn(lastLogTerm);
+        when(persistentState.commandLog().lastEntry().index()).thenReturn(lastLogIndex);
 
         //when + then
         onVoteRequest(term, voteRequest, granted);
     }
 
+
+    //FIXMe extract below scenarios to test log.compare(logEntry)
     @Test
     public void onVoteRequest_validCandidate_newerLastLogTerm() throws Exception {
         //given
@@ -131,13 +137,15 @@ public class VoteRequestHandlerTest {
         final VoteRequest voteRequest = DirectMessageFactory.createForWriting()
                 .voteRequest()
                 .term(term)
-                .candidateId(candidateId)
-                .lastLogTerm(newerLastLogTerm)
-                .lastLogIndex(lastLogIndex);
+                .candidateId(candidateId);
+        //need LogEntry mutators to return parent object on done()
+        voteRequest.lastLogEntry().term(newerLastLogTerm)
+                .index(lastLogIndex);
+
         when(serverContext.connections().serverSender(candidateId)).thenReturn(sender);
         when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
-        when(persistentState.lastLogTerm()).thenReturn(lastLogTerm);
-        when(persistentState.lastLogIndex()).thenReturn(lastLogIndex);
+        when(persistentState.commandLog().lastEntry().term()).thenReturn(lastLogTerm);
+        when(persistentState.commandLog().lastEntry().index()).thenReturn(lastLogIndex);
 
         //when + then
         onVoteRequest(term, voteRequest, GRANTED);
@@ -154,13 +162,16 @@ public class VoteRequestHandlerTest {
         final VoteRequest voteRequest = DirectMessageFactory.createForWriting()
                 .voteRequest()
                 .term(term)
-                .candidateId(candidateId)
-                .lastLogTerm(lastLogTerm)
-                .lastLogIndex(newerLastLogIndex);
+                .candidateId(candidateId);
+
+        //need LogEntry mutators to return parent object on done()
+        voteRequest.lastLogEntry().term(lastLogTerm)
+                .index(lastLogIndex);
+
         when(serverContext.connections().serverSender(candidateId)).thenReturn(sender);
         when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
-        when(persistentState.lastLogTerm()).thenReturn(lastLogTerm);
-        when(persistentState.lastLogIndex()).thenReturn(lastLogIndex);
+        when(persistentState.commandLog().lastEntry().term()).thenReturn(lastLogTerm);
+        when(persistentState.commandLog().lastEntry().index()).thenReturn(lastLogIndex);
 
         //when + then
         onVoteRequest(term, voteRequest, GRANTED);
@@ -177,13 +188,15 @@ public class VoteRequestHandlerTest {
         final VoteRequest voteRequest = DirectMessageFactory.createForWriting()
                 .voteRequest()
                 .term(badTerm)
-                .candidateId(serverId)
-                .lastLogTerm(lastLogTerm)
-                .lastLogIndex(lastLogIndex);
+                .candidateId(serverId);
+        //need LogEntry mutators to return parent object on done()
+        voteRequest.lastLogEntry().term(lastLogTerm)
+                .index(lastLogIndex);
+
         when(serverContext.connections().serverSender(serverId)).thenReturn(sender);
         when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
-        when(persistentState.lastLogTerm()).thenReturn(lastLogTerm);
-        when(persistentState.lastLogIndex()).thenReturn(lastLogIndex);
+        when(persistentState.commandLog().lastEntry().term()).thenReturn(lastLogTerm);
+        when(persistentState.commandLog().lastEntry().index()).thenReturn(lastLogIndex);
 
         //when + then
         onVoteRequest(term, voteRequest, REJECTED);
@@ -200,13 +213,14 @@ public class VoteRequestHandlerTest {
         final VoteRequest voteRequest = DirectMessageFactory.createForWriting()
                 .voteRequest()
                 .term(term)
-                .candidateId(serverId)
-                .lastLogTerm(badLastLogTerm)
-                .lastLogIndex(lastLogIndex);
+                .candidateId(serverId);
+        //need LogEntry mutators to return parent object on done()
+        voteRequest.lastLogEntry().term(badLastLogTerm)
+                .index(lastLogIndex);
+
         when(serverContext.connections().serverSender(serverId)).thenReturn(sender);
         when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
-        when(persistentState.lastLogTerm()).thenReturn(lastLogTerm);
-        when(persistentState.lastLogIndex()).thenReturn(lastLogIndex);
+        when(persistentState.commandLog().lastEntry().compareTo(voteRequest.lastLogEntry())).thenReturn(1);
 
         //when + then
         onVoteRequest(term, voteRequest, REJECTED);
@@ -223,13 +237,18 @@ public class VoteRequestHandlerTest {
         final VoteRequest voteRequest = DirectMessageFactory.createForWriting()
                 .voteRequest()
                 .term(term)
-                .candidateId(serverId)
-                .lastLogTerm(lastLogTerm)
-                .lastLogIndex(badLastLogIndex);
+                .candidateId(serverId);
+        //need LogEntry mutators to return parent object on done()
+        voteRequest.lastLogEntry().term(lastLogTerm)
+                .index(badLastLogIndex);
+
+        final CommandLog commandLog = persistentState.commandLog();
+        final LogEntry commandLoglastLogEntry = commandLog.lastEntry();
+
         when(serverContext.connections().serverSender(serverId)).thenReturn(sender);
         when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
-        when(persistentState.lastLogTerm()).thenReturn(lastLogTerm);
-        when(persistentState.lastLogIndex()).thenReturn(lastLogIndex);
+        when(commandLoglastLogEntry.compareTo(voteRequest.lastLogEntry())).thenReturn(1);
+
 
         //when + then
         onVoteRequest(term, voteRequest, REJECTED);

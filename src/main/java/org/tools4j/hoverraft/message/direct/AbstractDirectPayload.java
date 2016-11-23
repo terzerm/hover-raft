@@ -21,11 +21,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.machine;
+package org.tools4j.hoverraft.message.direct;
 
-import org.tools4j.hoverraft.message.CommandMessage;
+import org.agrona.DirectBuffer;
+import org.agrona.MutableDirectBuffer;
 
-public interface StateMachine {
-    //Should it be bare Command or CommandMessage
-    void onMessage(CommandMessage message);
+import java.util.Objects;
+
+abstract public class AbstractDirectPayload implements DirectPayload {
+
+    protected DirectBuffer readBuffer;
+    protected MutableDirectBuffer writeBuffer;
+    protected int offset;
+
+    @Override
+    public int offset() {
+        return offset;
+    }
+
+    @Override
+    public DirectBuffer buffer() {
+        return readBuffer;
+    }
+
+    public void wrap(final DirectBuffer buffer, final int offset) {
+        this.readBuffer = Objects.requireNonNull(buffer);
+        this.writeBuffer = null;
+        this.offset = offset;
+    }
+
+    public void wrap(final MutableDirectBuffer buffer, final int offset) {
+        this.readBuffer = Objects.requireNonNull(buffer);
+        this.writeBuffer = buffer;
+        this.offset = offset;
+    }
+
+    public void unwrap() {
+        this.readBuffer = null;
+        this.writeBuffer = null;
+        this.offset = 0;
+    }
 }

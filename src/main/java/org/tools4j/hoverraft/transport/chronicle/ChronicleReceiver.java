@@ -24,7 +24,6 @@
 package org.tools4j.hoverraft.transport.chronicle;
 
 import net.openhft.chronicle.ExcerptTailer;
-import org.agrona.DirectBuffer;
 import org.agrona.MutableDirectBuffer;
 import org.tools4j.hoverraft.message.direct.DirectMessage;
 import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
@@ -69,7 +68,7 @@ public class ChronicleReceiver implements Receiver<DirectMessage> {
     }
 
     private void consume(final Consumer<? super DirectMessage> messageMandler) {
-        final DirectMessage message = directMessageFactory.wrapForReading((DirectBuffer) mutableDirectBuffer, 0);
+        final DirectMessage message = directMessageFactory.wrapForReading(mutableDirectBuffer, 0);
         messageMandler.accept(message);
     }
 }

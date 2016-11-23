@@ -62,24 +62,6 @@ public class FollowerState extends AbstractState {
         };
     }
 
-    private Transition onAppendRequest(final ServerContext serverContext, final AppendRequest appendRequest) {
-        final int term = appendRequest.term();
-        final int leaderId = appendRequest.leaderId();
-        final int currentTerm = currentTerm();
-        final boolean successful;
-        if (currentTerm == term) /* should never be larger */ {
-            serverContext.timer().reset();
-            successful = appendToLog(serverContext, appendRequest);
-        } else {
-            successful = false;
-        }
-        serverContext.messageFactory().appendResponse()
-                .term(currentTerm)
-                .successful(successful)
-                .sendTo(serverContext.connections().serverSender(leaderId),
-                        serverContext.resendStrategy());
-        return Transition.STEADY;
-    }
 
     private Transition onTimerEvent(final ServerContext serverContext, final TimerEvent timerEvent) {
         return Transition.TO_CANDIDATE;
@@ -92,9 +74,5 @@ public class FollowerState extends AbstractState {
         return Transition.STEADY;
     }
 
-    private boolean appendToLog(final ServerContext serverContext, final AppendRequest appendRequest) {
-        //FIXME write to message log
-        return true;
-    }
 
 }

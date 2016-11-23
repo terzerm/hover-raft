@@ -25,6 +25,7 @@ package org.tools4j.hoverraft.message;
 
 import org.tools4j.hoverraft.event.EventHandler;
 import org.tools4j.hoverraft.server.ServerContext;
+import org.tools4j.hoverraft.state.LogEntry;
 import org.tools4j.hoverraft.state.Transition;
 
 public interface VoteRequest extends Message {
@@ -37,13 +38,7 @@ public interface VoteRequest extends Message {
 
     VoteRequest candidateId(int candidateId);
 
-    int lastLogTerm();
-
-    VoteRequest lastLogTerm(int lastLogTerm);
-
-    long lastLogIndex();
-
-    VoteRequest lastLogIndex(long lastLogIndex);
+    LogEntry lastLogEntry();
 
     @Override
     default Transition accept(final ServerContext serverContext, final EventHandler eventHandler) {

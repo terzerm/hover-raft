@@ -23,8 +23,11 @@
  */
 package org.tools4j.hoverraft.message.direct;
 
+import org.agrona.DirectBuffer;
+import org.agrona.MutableDirectBuffer;
 import org.tools4j.hoverraft.message.MessageType;
 import org.tools4j.hoverraft.message.VoteRequest;
+import org.tools4j.hoverraft.state.LogEntry;
 
 public final class DirectVoteRequest extends AbstractDirectMessage implements VoteRequest {
 
@@ -32,11 +35,12 @@ public final class DirectVoteRequest extends AbstractDirectMessage implements Vo
     private static final int TERM_LEN = 4;
     private static final int CANDIDATE_ID_OFF = TERM_OFF + TERM_LEN;
     private static final int CANDIDATE_ID_LEN = 4;
-    private static final int LAST_LOG_TERM_OFF = CANDIDATE_ID_OFF + CANDIDATE_ID_LEN;
-    private static final int LAST_LOG_TERM_LEN = 4;
-    private static final int LAST_LOG_INDEX_OFF = LAST_LOG_TERM_OFF + LAST_LOG_TERM_LEN;
-    private static final int LAST_LOG_INDEX_LEN = 8;
-    public static final int BYTE_LENGTH = LAST_LOG_INDEX_OFF + LAST_LOG_INDEX_LEN;
+    private static final int LAST_LOG_ENTRY_OFF = CANDIDATE_ID_OFF + CANDIDATE_ID_LEN;
+    private static final int LAST_LOG_ENTRY_LEN = DirectLogEntry.BYTE_LENGTH;
+
+    public static final int BYTE_LENGTH = LAST_LOG_ENTRY_OFF + LAST_LOG_ENTRY_LEN;
+
+    private final DirectLogEntry lastLogEntry = new DirectLogEntry() ;
 
     @Override
     public MessageType type() {
@@ -48,40 +52,49 @@ public final class DirectVoteRequest extends AbstractDirectMessage implements Vo
         return BYTE_LENGTH;
     }
 
+    @Override
     public int term() {
         return readBuffer.getInt(offset + TERM_OFF);
     }
 
+    @Override
     public DirectVoteRequest term(final int term) {
         writeBuffer.putInt(offset + TERM_OFF, term);
         return this;
     }
 
+    @Override
     public int candidateId() {
         return readBuffer.getInt(offset + CANDIDATE_ID_OFF);
     }
 
+    @Override
     public DirectVoteRequest candidateId(final int candidateId) {
         writeBuffer.putInt(offset + CANDIDATE_ID_OFF, candidateId);
         return this;
     }
 
-    public int lastLogTerm() {
-        return readBuffer.getInt(offset + LAST_LOG_TERM_OFF);
+    @Override
+    public LogEntry lastLogEntry() {
+        return lastLogEntry;
     }
 
-    public DirectVoteRequest lastLogTerm(final int lastLogTerm) {
-        writeBuffer.putInt(offset + LAST_LOG_TERM_OFF, lastLogTerm);
-        return this;
+    @Override
+    public void wrap(DirectBuffer buffer, int offset) {
+        super.wrap(buffer, offset);
+        lastLogEntry.wrap(buffer, offset + LAST_LOG_ENTRY_OFF);
     }
 
-    public long lastLogIndex() {
-        return readBuffer.getLong(offset + LAST_LOG_INDEX_OFF);
+    @Override
+    public void wrap(MutableDirectBuffer buffer, int offset) {
+        super.wrap(buffer, offset);
+        lastLogEntry.wrap(buffer, offset + LAST_LOG_ENTRY_OFF);
     }
 
-    public DirectVoteRequest lastLogIndex(final long lastLogIndex) {
-        writeBuffer.putLong(offset + LAST_LOG_INDEX_OFF, lastLogIndex);
-        return this;
+    @Override
+    public void unwrap() {
+        lastLogEntry.unwrap();
+        super.unwrap();
     }
 
 }

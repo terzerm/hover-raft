@@ -78,7 +78,9 @@ public class HoverRaftMachine {
             //play transition change as an event
             onEvent(serverContext, transition);
             //now replay the original event to the new state
-            onEvent(serverContext, event);
+            if (transition.replayEvent()) {
+                onEvent(serverContext, event);
+            }
         }
     }
 

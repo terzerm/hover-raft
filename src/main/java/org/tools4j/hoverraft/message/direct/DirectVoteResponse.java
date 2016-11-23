@@ -48,19 +48,23 @@ public final class DirectVoteResponse extends AbstractDirectMessage implements V
         return BYTE_LENGTH;
     }
 
+    @Override
     public int term() {
         return readBuffer.getInt(offset + TERM_OFF);
     }
 
+    @Override
     public DirectVoteResponse term(final int term) {
         writeBuffer.putInt(offset + TERM_OFF, term);
         return this;
     }
 
+    @Override
     public boolean voteGranted() {
         return readBuffer.getByte(offset + GRANTED_OFF) == GRANTED;
     }
 
+    @Override
     public DirectVoteResponse voteGranted(final boolean granted) {
         writeBuffer.putByte(offset + GRANTED_OFF, granted ? GRANTED : DENIED);
         return this;

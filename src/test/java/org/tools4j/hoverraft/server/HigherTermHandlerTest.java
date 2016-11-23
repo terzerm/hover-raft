@@ -172,25 +172,4 @@ public class HigherTermHandlerTest {
         verify(persistentState).clearVotedForAndSetCurrentTerm(term + 1);
     }
 
-    @Test
-    public void onCommandMessage() throws Exception {
-        final int term = 42;
-        when(persistentState.currentTerm()).thenReturn(term);
-
-        //message term < current term
-        when(commandMessage.term()).thenReturn(term - 1);
-        handler.onCommandMessage(serverContext, commandMessage);
-        verify(persistentState, never()).clearVotedForAndSetCurrentTerm(anyInt());
-
-        //message term == current term
-        when(commandMessage.term()).thenReturn(term);
-        handler.onCommandMessage(serverContext, commandMessage);
-        verify(persistentState, never()).clearVotedForAndSetCurrentTerm(anyInt());
-
-        //message term > current term
-        when(commandMessage.term()).thenReturn(term + 1);
-        handler.onCommandMessage(serverContext, commandMessage);
-        verify(persistentState).clearVotedForAndSetCurrentTerm(term + 1);
-    }
-
 }

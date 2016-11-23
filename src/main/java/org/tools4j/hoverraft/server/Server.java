@@ -28,6 +28,7 @@ import org.tools4j.hoverraft.config.ServerConfig;
 import org.tools4j.hoverraft.machine.StateMachine;
 import org.tools4j.hoverraft.message.CommandMessage;
 import org.tools4j.hoverraft.message.Message;
+import org.tools4j.hoverraft.message.MessageFactory;
 import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
 import org.tools4j.hoverraft.state.HoverRaftMachine;
 import org.tools4j.hoverraft.state.PersistentState;
@@ -35,7 +36,6 @@ import org.tools4j.hoverraft.state.VolatileState;
 import org.tools4j.hoverraft.timer.Timer;
 import org.tools4j.hoverraft.timer.TimerEvent;
 import org.tools4j.hoverraft.transport.Connections;
-import org.tools4j.hoverraft.transport.MessageLog;
 import org.tools4j.hoverraft.transport.ResendStrategy;
 
 import java.util.Objects;
@@ -45,7 +45,6 @@ public final class Server implements ServerContext {
     private final ServerConfig serverConfig;
     private final ConsensusConfig consensusConfig;
     private final HoverRaftMachine hoverRaftMachine;
-    private final MessageLog<CommandMessage> messageLog;
     private final StateMachine stateMachine;
     private final Connections<Message> connections;
     private final DirectMessageFactory messageFactory;
@@ -57,14 +56,13 @@ public final class Server implements ServerContext {
                   final ConsensusConfig consensusConfig,
                   final PersistentState persistentState,
                   final VolatileState volatileState,
-                  final MessageLog<CommandMessage> messageLog,
                   final StateMachine stateMachine,
                   final Connections<Message> connections,
                   final DirectMessageFactory messageFactory) {
         this.serverConfig = Objects.requireNonNull(consensusConfig.serverConfigByIdOrNull(serverId), "No server serverConfig found for ID " + serverId);
         this.consensusConfig = Objects.requireNonNull(consensusConfig);
-        this.hoverRaftMachine = new HoverRaftMachine(persistentState, volatileState);
-        this.messageLog = Objects.requireNonNull(messageLog);
+        this.hoverRaftMachine = new HoverRaftMachine(Objects.requireNonNull(persistentState),
+                Objects.requireNonNull(volatileState));
         this.stateMachine = Objects.requireNonNull(stateMachine);
         this.connections = Objects.requireNonNull(connections);
         this.messageFactory = Objects.requireNonNull(messageFactory);
@@ -73,24 +71,23 @@ public final class Server implements ServerContext {
         this.timer = new Timer();
     }
 
+    @Override
     public ServerConfig serverConfig() {
         return serverConfig;
     }
 
+    @Override
     public ConsensusConfig consensusConfig() {
         return consensusConfig;
     }
 
+    @Override
     public Connections<Message> connections() {
         return connections;
     }
 
     @Override
-    public MessageLog<CommandMessage> messageLog() {
-        return messageLog;
-    }
-
-    public DirectMessageFactory messageFactory() {
+    public MessageFactory messageFactory() {
         return messageFactory;
     }
 
@@ -99,6 +96,7 @@ public final class Server implements ServerContext {
         return stateMachine;
     }
 
+    @Override
     public void perform() {
         checkTimeoutElapsed();
         serverMessagePoller.pollNextMessage();
@@ -120,6 +118,7 @@ public final class Server implements ServerContext {
         return timer;
     }
 
+    @Override
     public ResendStrategy resendStrategy() {
         return ResendStrategy.NOOP;//FIXME use better resend strategy
     }

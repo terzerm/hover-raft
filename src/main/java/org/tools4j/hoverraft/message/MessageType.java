@@ -23,15 +23,14 @@
  */
 package org.tools4j.hoverraft.message;
 
-import org.agrona.DirectBuffer;
 import org.tools4j.hoverraft.message.direct.DirectMessage;
 import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
-import org.tools4j.hoverraft.server.ServerContext;
+import org.tools4j.hoverraft.message.inmemory.InMemoryMessageFactory;
 
 public enum MessageType {
     VOTE_REQUEST {
         @Override
-        public Message create(final MessageFactory factory) {
+        public Message create(final InMemoryMessageFactory factory) {
             return factory.voteRequest();
         }
         @Override
@@ -41,7 +40,7 @@ public enum MessageType {
     },
     VOTE_RESPONSE {
         @Override
-        public Message create(final MessageFactory factory) {
+        public Message create(final InMemoryMessageFactory factory) {
             return factory.voteResponse();
         }
         @Override
@@ -51,7 +50,7 @@ public enum MessageType {
     },
     APPEND_REQUEST {
         @Override
-        public Message create(final MessageFactory factory) {
+        public Message create(final InMemoryMessageFactory factory) {
             return factory.appendRequest();
         }
         @Override
@@ -61,7 +60,7 @@ public enum MessageType {
     },
     APPEND_RESPONSE {
         @Override
-        public Message create(final MessageFactory factory) {
+        public Message create(final InMemoryMessageFactory factory) {
             return factory.appendResponse();
         }
         @Override
@@ -71,7 +70,7 @@ public enum MessageType {
     },
     TIMEOUT_NOW {
         @Override
-        public Message create(final MessageFactory factory) {
+        public Message create(final InMemoryMessageFactory factory) {
             return factory.timeoutNow();
         }
         @Override
@@ -81,7 +80,7 @@ public enum MessageType {
     },
     COMMAND_MESSAGE {
         @Override
-        public Message create(final MessageFactory factory) {
+        public Message create(final InMemoryMessageFactory factory) {
             return factory.commandMessage();
         }
         @Override
@@ -100,23 +99,25 @@ public enum MessageType {
         return VALUES.length - 1;
     }
 
-    abstract public Message create(MessageFactory factory);
+    abstract public Message create(InMemoryMessageFactory factory);
 
     abstract public DirectMessage create(DirectMessageFactory factory);
 
-    public static DirectMessage createOrNull(final ServerContext serverContext,
-                                             final DirectBuffer buffer,
-                                             final int offset,
-                                             final int length) {
-        if (length >= 4) {
-            final int type = buffer.getInt(offset);
-            if (0 <= type & type <= VALUES.length) {
-                final DirectMessage message = valueByOrdinal(type).create(serverContext.messageFactory());
-                message.wrap(buffer, offset + 4);
-                return message;
-            }
-        }
-        return null;
-    }
+// It appears to be obsolete code, which requires ServerContext to provide DirectMessageFactory
+// instead of MessageFactory.
+//    public static Message createOrNull(final ServerContext serverContext,
+//                                             final DirectBuffer buffer,
+//                                             final int offset,
+//                                             final int length) {
+//        if (length >= 4) {
+//            final int type = buffer.getInt(offset);
+//            if (0 <= type & type <= VALUES.length) {
+//                final Message message = valueByOrdinal(type).create(serverContext.messageFactory());
+//                message.wrap(buffer, offset + 4);
+//                return message;
+//            }
+//        }
+//        return null;
+//    }
 
 }

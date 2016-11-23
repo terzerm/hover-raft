@@ -48,19 +48,23 @@ public final class DirectTimeoutNow extends AbstractDirectMessage implements Tim
         return BYTE_LENGTH;
     }
 
+    @Override
     public int term() {
         return readBuffer.getInt(offset + TERM_OFF);
     }
 
+    @Override
     public DirectTimeoutNow term(final int term) {
         writeBuffer.putInt(offset + TERM_OFF, term);
         return this;
     }
 
+    @Override
     public int candidateId() {
         return readBuffer.getInt(offset + CANDIDATE_ID_OFF);
     }
 
+    @Override
     public DirectTimeoutNow candidateId(final int candidateId) {
         writeBuffer.putInt(offset + CANDIDATE_ID_OFF, candidateId);
         return this;

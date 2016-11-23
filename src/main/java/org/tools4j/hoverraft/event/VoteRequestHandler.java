@@ -25,6 +25,7 @@ package org.tools4j.hoverraft.event;
 
 import org.tools4j.hoverraft.message.VoteRequest;
 import org.tools4j.hoverraft.server.ServerContext;
+import org.tools4j.hoverraft.state.CommandLog;
 import org.tools4j.hoverraft.state.PersistentState;
 import org.tools4j.hoverraft.state.Transition;
 
@@ -39,13 +40,16 @@ public final class VoteRequestHandler {
     }
 
     public Transition onVoteRequest(final ServerContext serverContext, final VoteRequest voteRequest) {
+        final CommandLog commandLog = persistentState.commandLog();
         final int term = voteRequest.term();
         final int candidateId = voteRequest.candidateId();
         final Transition transition;
         final boolean granted;
-        if (persistentState.currentTerm() <= term && candidateLogIsAtLeastUptodate(voteRequest)) {
+        if (persistentState.currentTerm() <= term && commandLog.lastEntry().compareTo(voteRequest.lastLogEntry()) <= 0) {
             if (persistentState.votedFor() == PersistentState.NOT_VOTED_YET) {
                 persistentState.votedFor(candidateId);
+                //Why transition is TO_FOLLOWER?
+                //in this case we should not replay the event!?
                 transition = Transition.TO_FOLLOWER;
                 granted = true;
             } else {
@@ -62,12 +66,5 @@ public final class VoteRequestHandler {
                 .sendTo(serverContext.connections().serverSender(candidateId),
                         serverContext.resendStrategy());
         return transition;
-    }
-
-    private boolean candidateLogIsAtLeastUptodate(final VoteRequest voteRequest) {
-        final int candidateLastLogTerm = voteRequest.lastLogTerm();
-        final long candidateLastLogIndex = voteRequest.lastLogIndex();
-        return persistentState.lastLogTerm() < candidateLastLogTerm ||
-                (persistentState.lastLogTerm() == candidateLastLogTerm && persistentState.lastLogIndex() <= candidateLastLogIndex);
     }
 }

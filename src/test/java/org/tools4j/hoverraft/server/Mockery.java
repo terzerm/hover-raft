@@ -29,6 +29,8 @@ import org.tools4j.hoverraft.config.ThreadingMode;
 import org.tools4j.hoverraft.machine.StateMachine;
 import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
+import org.tools4j.hoverraft.state.CommandLog;
+import org.tools4j.hoverraft.state.LogEntry;
 import org.tools4j.hoverraft.state.PersistentState;
 import org.tools4j.hoverraft.state.VolatileState;
 import org.tools4j.hoverraft.transport.Connections;
@@ -64,7 +66,7 @@ public class Mockery {
         final ConsensusConfig consensusConfig = consensusConfig(servers, sources);
         return new Server(SERVER_ID,
                 consensusConfig(servers, sources), persistentState(), volatileState(consensusConfig),
-                messageLog(), stateMachine(), connections(servers, sources), messageFactory);
+                stateMachine(), connections(servers, sources), messageFactory);
     }
 
     public static ConsensusConfig consensusConfig(final int servers, final int sources) {
@@ -97,9 +99,16 @@ public class Mockery {
 
     public static PersistentState persistentState() {
         final PersistentState persistentState = mock(PersistentState.class);
+        final LogEntry lastLogEntry = mock(LogEntry.class);
+        final CommandLog commandLog = mock(CommandLog.class);
+
         when(persistentState.currentTerm()).thenReturn(1);
-        when(persistentState.lastLogTerm()).thenReturn(0);
-        when(persistentState.lastLogIndex()).thenReturn(-1L);
+        when(persistentState.commandLog()).thenReturn(commandLog);
+
+        when(commandLog.lastEntry()).thenReturn(lastLogEntry);
+        when(lastLogEntry.term()).thenReturn(0);
+        when(lastLogEntry.index()).thenReturn(-1L);
+
         when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
         return persistentState;
     }

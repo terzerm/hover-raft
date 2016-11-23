@@ -63,11 +63,6 @@ public final class HigherTermHandler implements EventHandler {
         return onTerm(timeoutRequest.term());
     }
 
-    @Override
-    public Transition onCommandMessage(ServerContext serverContext, CommandMessage commandMessage) {
-        return onTerm(commandMessage.term());
-    }
-
     private Transition onTerm(final int term) {
         if (term > persistentState.currentTerm()) {
             persistentState.clearVotedForAndSetCurrentTerm(term);

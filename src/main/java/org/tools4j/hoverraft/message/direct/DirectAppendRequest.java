@@ -25,9 +25,11 @@ package org.tools4j.hoverraft.message.direct;
 
 import org.agrona.DirectBuffer;
 import org.agrona.MutableDirectBuffer;
-import org.tools4j.hoverraft.machine.Command;
 import org.tools4j.hoverraft.message.AppendRequest;
 import org.tools4j.hoverraft.message.MessageType;
+import org.tools4j.hoverraft.state.CommandLogEntry;
+import org.tools4j.hoverraft.state.LogEntry;
+import org.tools4j.hoverraft.state.direct.DirectCommandLogEntry;
 
 public final class DirectAppendRequest extends AbstractDirectMessage implements AppendRequest {
 
@@ -36,32 +38,19 @@ public final class DirectAppendRequest extends AbstractDirectMessage implements 
     private static final int TERM_LEN = 4;
     private static final int LEADER_ID_OFF = TERM_OFF + TERM_LEN;
     private static final int LEADER_ID_LEN = 4;
-    private static final int PREV_LOG_TERM_OFF = LEADER_ID_OFF + LEADER_ID_LEN;
-    private static final int PREV_LOG_TERM_LEN = 4;
-    private static final int PREV_LOG_INDEX_OFF = PREV_LOG_TERM_OFF + PREV_LOG_TERM_LEN;
-    private static final int PREV_LOG_INDEX_LEN = 8;
-    private static final int LEADER_COMMIT_OFF = PREV_LOG_INDEX_OFF + PREV_LOG_INDEX_LEN;
+
+    private static final int PREV_LOG_ENTRY_OFF = LEADER_ID_OFF + LEADER_ID_LEN;
+    private static final int PREV_LOG_ENTRY_LEN = DirectLogEntry.BYTE_LENGTH;
+
+    private static final int LEADER_COMMIT_OFF = PREV_LOG_ENTRY_OFF + PREV_LOG_ENTRY_LEN;
     private static final int LEADER_COMMIT_LEN = 8;
-    private static final int COMMAND_OFF = LEADER_COMMIT_OFF + LEADER_COMMIT_LEN;
+    private static final int COMMAND_LOG_ENTRY_OFF = LEADER_COMMIT_OFF + LEADER_COMMIT_LEN;
 
-    public static final int BYTE_LENGTH = COMMAND_OFF + DirectCommand.BYTE_LENGTH_LEN;
+    public static final int BYTE_LENGTH = COMMAND_LOG_ENTRY_OFF;
 
-    private final DirectCommand command = new DirectCommand() {
-        @Override
-        protected DirectBuffer readBuffer() {
-            return readBuffer;
-        }
+    private final DirectLogEntry prevLogEntry = new DirectLogEntry() ;
 
-        @Override
-        protected MutableDirectBuffer writeBuffer() {
-            return writeBuffer;
-        }
-
-        @Override
-        protected int offset() {
-            return COMMAND_OFF;
-        }
-    };
+    private final DirectCommandLogEntry directCommandLogEntry = new DirectCommandLogEntry();
 
     @Override
     public MessageType type() {
@@ -70,7 +59,7 @@ public final class DirectAppendRequest extends AbstractDirectMessage implements 
 
     @Override
     public int byteLength() {
-        return BYTE_LENGTH + command.byteLength();
+        return BYTE_LENGTH + directCommandLogEntry.byteLength();
     }
 
     public int term() {
@@ -93,24 +82,9 @@ public final class DirectAppendRequest extends AbstractDirectMessage implements 
         return this;
     }
 
-    public int prevLogTerm() {
-        return readBuffer.getInt(offset + PREV_LOG_TERM_OFF);
-    }
-
     @Override
-    public AppendRequest prevLogTerm(final int prevLogTerm) {
-        writeBuffer.putInt(offset + PREV_LOG_TERM_OFF, prevLogTerm);
-        return this;
-    }
-
-    public long prevLogIndex() {
-        return readBuffer.getLong(offset + PREV_LOG_INDEX_OFF);
-    }
-
-    @Override
-    public AppendRequest prevLogIndex(final long prevLogIndex) {
-        writeBuffer.putLong(offset + PREV_LOG_INDEX_OFF, prevLogIndex);
-        return this;
+    public LogEntry prevLogEntry() {
+        return prevLogEntry;
     }
 
     public long leaderCommit() {
@@ -124,8 +98,28 @@ public final class DirectAppendRequest extends AbstractDirectMessage implements 
     }
 
     @Override
-    public Command command() {
-        return command;
+    public CommandLogEntry commandLogEntry() {
+        return directCommandLogEntry;
     }
 
+    @Override
+    public void wrap(DirectBuffer buffer, int offset) {
+        super.wrap(buffer, offset);
+        prevLogEntry.wrap(buffer, offset + PREV_LOG_ENTRY_OFF);
+        directCommandLogEntry.wrap(buffer, offset + COMMAND_LOG_ENTRY_OFF);
+    }
+
+    @Override
+    public void wrap(MutableDirectBuffer buffer, int offset) {
+        super.wrap(buffer, offset);
+        prevLogEntry.wrap(buffer, offset + PREV_LOG_ENTRY_OFF);
+        directCommandLogEntry.wrap(buffer, offset + COMMAND_LOG_ENTRY_OFF);
+    }
+
+    @Override
+    public void unwrap() {
+        directCommandLogEntry.unwrap();
+        prevLogEntry.unwrap();
+        super.unwrap();
+    }
 }

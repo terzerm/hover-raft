@@ -29,6 +29,7 @@ import org.tools4j.hoverraft.transport.Sender;
 
 import java.util.Objects;
 
+//FIXMe can AbstractDirectMessage repace DirectMessage?
 public class AeronSender implements Sender<DirectMessage> {
 
     private final Publication publication;

@@ -74,11 +74,17 @@ public class InMemoryMessageLog<M extends Message> implements MessageLog<M> {
         if (readIndex.get() < messages.size()) {
             return messages.get(readIndex.getAndIncrement());
         }
-        throw new IllegalArgumentException("Read index " + readIndex + " has reached end of message log with size " + messages.size());
+        throw new IllegalStateException("Read index " + readIndex + " has reached end of message log with size " + messages.size());
     }
 
     @Override
     public synchronized void append(final M message) {
         messages.add(Objects.requireNonNull(message));
+    }
+
+    @Override
+    public long truncateIncluding(long inclusiveIndex) {
+        //FIXme implement it
+        return 0;
     }
 }

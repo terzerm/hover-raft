@@ -73,7 +73,16 @@ public class LeaderState extends AbstractState {
     }
 
     private Transition onCommandMessage(final ServerContext serverContext, final CommandMessage commandMessage) {
-        serverContext.messageLog().append(commandMessage);
+        CommandLogEntry newCommandLogEntry = serverContext.messageFactory().commandLogEntry();
+
+        //set or copy commandMessage into newCommandLogEntry
+        newCommandLogEntry.term(currentTerm());
+        newCommandLogEntry.commandMessage().commandIndex(commandMessage.commandIndex());
+        newCommandLogEntry.commandMessage().commandSourceId(commandMessage.commandSourceId());
+        //FIXme
+        //newCommandLogEntry.commandMessage().command().
+
+        persistentState().commandLog().append(newCommandLogEntry);
         sendAppendRequest(serverContext);//FIXME send command message in request
         return Transition.STEADY;
     }
