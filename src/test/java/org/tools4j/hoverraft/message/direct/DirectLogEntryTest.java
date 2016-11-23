@@ -3,10 +3,8 @@ package org.tools4j.hoverraft.message.direct;
 import org.agrona.ExpandableArrayBuffer;
 import org.junit.Before;
 import org.junit.Test;
-import org.tools4j.hoverraft.message.MessageType;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
 
 public class DirectLogEntryTest {
     private final ExpandableArrayBuffer buffer = new ExpandableArrayBuffer(DirectLogEntry.BYTE_LENGTH);

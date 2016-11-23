@@ -1,6 +1,7 @@
 package org.tools4j.hoverraft.message.direct;
 
 import org.jetbrains.annotations.NotNull;
+import org.tools4j.hoverraft.message.direct.AbstractDirectPayload;
 import org.tools4j.hoverraft.state.LogEntry;
 import org.tools4j.hoverraft.state.LogEntryComparator;
 

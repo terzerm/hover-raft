@@ -6,6 +6,7 @@ import org.tools4j.hoverraft.message.*;
 import org.tools4j.hoverraft.message.direct.*;
 import org.tools4j.hoverraft.state.CommandLogEntry;
 import org.tools4j.hoverraft.state.direct.DirectCommandLogEntry;
+import org.tools4j.hoverraft.message.direct.DirectLogEntry;
 
 public class InMemoryMessageFactory implements MessageFactory {
 
