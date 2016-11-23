@@ -34,7 +34,7 @@ import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.message.VoteRequest;
 import org.tools4j.hoverraft.message.VoteResponse;
 import org.tools4j.hoverraft.direct.RecyclingDirectFactory;
-import org.tools4j.hoverraft.command.log.CommandLog;
+import org.tools4j.hoverraft.command.CommandLog;
 import org.tools4j.hoverraft.state.PersistentState;
 import org.tools4j.hoverraft.state.Role;
 import org.tools4j.hoverraft.transport.Sender;

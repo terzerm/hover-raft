@@ -23,8 +23,8 @@
  */
 package org.tools4j.hoverraft.message;
 
-import org.tools4j.hoverraft.command.log.CommandLogEntry;
-import org.tools4j.hoverraft.command.log.LogEntry;
+import org.tools4j.hoverraft.command.CommandLogEntry;
+import org.tools4j.hoverraft.command.LogEntry;
 import org.tools4j.hoverraft.event.EventHandler;
 import org.tools4j.hoverraft.server.ServerContext;
 import org.tools4j.hoverraft.state.Transition;

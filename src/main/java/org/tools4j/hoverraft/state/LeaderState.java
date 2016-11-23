@@ -23,7 +23,7 @@
  */
 package org.tools4j.hoverraft.state;
 
-import org.tools4j.hoverraft.command.log.CommandLogEntry;
+import org.tools4j.hoverraft.command.CommandLogEntry;
 import org.tools4j.hoverraft.event.EventHandler;
 import org.tools4j.hoverraft.message.AppendResponse;
 import org.tools4j.hoverraft.message.CommandMessage;
@@ -74,7 +74,7 @@ public class LeaderState extends AbstractState {
     }
 
     private Transition onCommandMessage(final ServerContext serverContext, final CommandMessage commandMessage) {
-        CommandLogEntry newCommandLogEntry = serverContext.messageFactory().commandLogEntry();
+        CommandLogEntry newCommandLogEntry = serverContext.directFactory().commandLogEntry();
 
         //set or copy commandMessage into newCommandLogEntry
         newCommandLogEntry.term(currentTerm());

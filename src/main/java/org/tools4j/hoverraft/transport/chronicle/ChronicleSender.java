@@ -43,7 +43,7 @@ public class ChronicleSender implements Sender<Message> {
 
     @Override
     public long offer(final Message message) {
-        final DirectBuffer buffer = Objects.requireNonNull(message.bufferOrNull());
+        final DirectBuffer buffer = Objects.requireNonNull(message.readBufferOrNull());
         final int len = message.byteLength();
         appender.startExcerpt(len + 4);
         appender.writeInt(len);

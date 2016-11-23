@@ -23,7 +23,7 @@
  */
 package org.tools4j.hoverraft.message.direct;
 
-import org.tools4j.hoverraft.message.MessageType;
+import org.tools4j.hoverraft.direct.PayloadType;
 import org.tools4j.hoverraft.message.VoteResponse;
 
 public final class DirectVoteResponse extends AbstractDirectMessage implements VoteResponse {
@@ -39,8 +39,8 @@ public final class DirectVoteResponse extends AbstractDirectMessage implements V
     public static final int BYTE_LENGTH = GRANTED_OFF + GRANTED_LEN;
 
     @Override
-    public MessageType type() {
-        return MessageType.VOTE_RESPONSE;
+    public PayloadType type() {
+        return PayloadType.VOTE_RESPONSE;
     }
 
     @Override

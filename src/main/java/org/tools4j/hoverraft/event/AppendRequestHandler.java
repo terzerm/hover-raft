@@ -23,10 +23,10 @@
  */
 package org.tools4j.hoverraft.event;
 
-import org.tools4j.hoverraft.command.log.CommandLog;
-import org.tools4j.hoverraft.command.log.CommandLogEntry;
-import org.tools4j.hoverraft.command.log.LogContainment;
-import org.tools4j.hoverraft.command.log.LogEntry;
+import org.tools4j.hoverraft.command.CommandLog;
+import org.tools4j.hoverraft.command.CommandLogEntry;
+import org.tools4j.hoverraft.command.LogContainment;
+import org.tools4j.hoverraft.command.LogEntry;
 import org.tools4j.hoverraft.message.AppendRequest;
 import org.tools4j.hoverraft.server.ServerContext;
 import org.tools4j.hoverraft.state.PersistentState;
@@ -61,7 +61,7 @@ public class AppendRequestHandler {
             successful = appendToLog(serverContext, appendRequest);
         }
 
-        serverContext.messageFactory().appendResponse()
+        serverContext.directFactory().appendResponse()
                 .term(currentTerm)
                 .successful(successful)
                 .sendTo(serverContext.connections().serverSender(leaderId),

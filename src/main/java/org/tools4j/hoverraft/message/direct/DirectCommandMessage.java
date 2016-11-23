@@ -25,9 +25,9 @@ package org.tools4j.hoverraft.message.direct;
 
 import org.agrona.DirectBuffer;
 import org.agrona.MutableDirectBuffer;
-import org.tools4j.hoverraft.command.machine.Command;
+import org.tools4j.hoverraft.command.Command;
 import org.tools4j.hoverraft.message.CommandMessage;
-import org.tools4j.hoverraft.message.MessageType;
+import org.tools4j.hoverraft.direct.PayloadType;
 
 
 public final class DirectCommandMessage extends AbstractDirectMessage implements CommandMessage {
@@ -43,8 +43,8 @@ public final class DirectCommandMessage extends AbstractDirectMessage implements
     private final DirectCommand command = new DirectCommand();
 
     @Override
-    public MessageType type() {
-        return MessageType.COMMAND_MESSAGE;
+    public PayloadType type() {
+        return PayloadType.COMMAND_MESSAGE;
     }
 
     @Override

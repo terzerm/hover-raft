@@ -24,8 +24,9 @@
 package org.tools4j.hoverraft.state;
 
 import org.junit.Test;
-import org.tools4j.hoverraft.command.log.CommandLogEntry;
-import org.tools4j.hoverraft.command.log.InMemoryCommandLog;
+import org.tools4j.hoverraft.command.CommandLogEntry;
+import org.tools4j.hoverraft.command.InMemoryCommandLog;
+import org.tools4j.hoverraft.direct.AllocatingDirectFactory;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -37,11 +38,12 @@ public class InMemoryCommandLogTest {
 
     @Test
     public void append_should_add_new_logEntry() throws Exception {
-        CommandLogEntry commandLogEntry1 = mock(CommandLogEntry.class);
+        final AllocatingDirectFactory factory = new AllocatingDirectFactory();
+        CommandLogEntry commandLogEntry1 = factory.commandLogEntry();
 
-        when(commandLogEntry1.term()).thenReturn(1);
-        when(commandLogEntry1.index()).thenReturn(1L);
-
+        commandLogEntry1.term(1);
+        commandLogEntry1.index(1L);
+        commandLogEntry1.commandMessage().command().bytesFrom(new byte[] {}, 0, 0);
 
         InMemoryCommandLog commandLog = new InMemoryCommandLog();
         commandLog.append(commandLogEntry1);

@@ -23,7 +23,7 @@
  */
 package org.tools4j.hoverraft.event;
 
-import org.tools4j.hoverraft.command.log.CommandLog;
+import org.tools4j.hoverraft.command.CommandLog;
 import org.tools4j.hoverraft.message.VoteRequest;
 import org.tools4j.hoverraft.server.ServerContext;
 import org.tools4j.hoverraft.state.PersistentState;
@@ -60,7 +60,7 @@ public final class VoteRequestHandler {
             granted = false;
             transition = Transition.STEADY;
         }
-        serverContext.messageFactory().voteResponse()
+        serverContext.directFactory().voteResponse()
                 .term(persistentState.currentTerm())
                 .voteGranted(granted)
                 .sendTo(serverContext.connections().serverSender(candidateId),

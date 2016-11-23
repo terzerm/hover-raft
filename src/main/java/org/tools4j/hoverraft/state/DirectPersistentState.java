@@ -26,7 +26,7 @@ package org.tools4j.hoverraft.state;
 import org.agrona.MutableDirectBuffer;
 import org.agrona.collections.Int2ObjectHashMap;
 import org.agrona.concurrent.UnsafeBuffer;
-import org.tools4j.hoverraft.command.log.CommandLog;
+import org.tools4j.hoverraft.command.CommandLog;
 import org.tools4j.hoverraft.config.ConsensusConfig;
 import org.tools4j.hoverraft.config.ServerConfig;
 import org.tools4j.hoverraft.message.CommandMessage;

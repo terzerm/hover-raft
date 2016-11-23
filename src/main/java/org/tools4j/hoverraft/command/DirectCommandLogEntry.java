@@ -21,10 +21,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.command.log;
+package org.tools4j.hoverraft.command;
 
 import org.agrona.DirectBuffer;
 import org.agrona.MutableDirectBuffer;
+import org.tools4j.hoverraft.command.CommandLogEntry;
 import org.tools4j.hoverraft.message.CommandMessage;
 import org.tools4j.hoverraft.message.direct.DirectCommandMessage;
 import org.tools4j.hoverraft.message.direct.DirectLogEntry;

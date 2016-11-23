@@ -111,7 +111,7 @@ public final class ChronicleMessageLog implements MessageLog<CommandMessage> {
 
     @Override
     public void append(final CommandMessage message) {
-        final DirectBuffer buffer = Objects.requireNonNull(message.bufferOrNull());
+        final DirectBuffer buffer = Objects.requireNonNull(message.readBufferOrNull());
         final int len = message.byteLength();
         appender.startExcerpt(len + 4);
         appender.writeInt(len);

@@ -24,15 +24,15 @@
 package org.tools4j.hoverraft.server;
 
 import org.tools4j.hoverraft.config.ConsensusConfig;
+import org.tools4j.hoverraft.direct.DirectPayload;
 import org.tools4j.hoverraft.message.CommandMessage;
-import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.transport.Receiver;
 import org.tools4j.hoverraft.transport.Receivers;
 
 import java.util.Objects;
 import java.util.function.Consumer;
 
-public class RoundRobinMessagePoller<M extends Message> {
+public class RoundRobinMessagePoller<M extends DirectPayload> {
 
     private final Receiver<M> roundRobinReceiver;
     private final Consumer<? super M> messageHandler;
@@ -43,8 +43,8 @@ public class RoundRobinMessagePoller<M extends Message> {
         this.messageHandler = Objects.requireNonNull(messageHandler);
     }
 
-    public static RoundRobinMessagePoller<Message> forServerMessages(final ServerContext serverContext,
-                                                                     final Consumer<? super Message> messageHandler) {
+    public static RoundRobinMessagePoller<DirectPayload> forServerMessages(final ServerContext serverContext,
+                                                                           final Consumer<? super DirectPayload> messageHandler) {
         final ConsensusConfig config = serverContext.consensusConfig();
         final Receiver<?>[] receivers = new Receiver<?>[config.serverCount() - 1];
         int index = 0;

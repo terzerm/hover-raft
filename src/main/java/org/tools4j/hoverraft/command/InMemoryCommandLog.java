@@ -21,14 +21,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.command.log;
+package org.tools4j.hoverraft.command;
+
+import org.tools4j.hoverraft.direct.AllocatingDirectFactory;
+import org.tools4j.hoverraft.direct.DirectFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class InMemoryCommandLog implements CommandLog {
+
+    private final DirectFactory directFactory = new AllocatingDirectFactory();
     private final List<CommandLogEntry> commandLogEntries = new ArrayList<>();
     private final AtomicInteger readIndex = new AtomicInteger(0);
 
@@ -76,12 +80,16 @@ public class InMemoryCommandLog implements CommandLog {
     }
 
     @Override
-    public int readTerm() {
+    public synchronized int readTerm() {
         return read(null).term();
     }
 
     @Override
-    public synchronized CommandLogEntry read(final CommandLogEntry commandLogEntry) {
+    public synchronized CommandLogEntry read(final DirectFactory directFactory) {
+        return clone(read());
+    }
+
+    private CommandLogEntry read() {
         if (readIndex.get() < commandLogEntries.size()) {
             return commandLogEntries.get(readIndex.getAndIncrement());
         }
@@ -90,7 +98,7 @@ public class InMemoryCommandLog implements CommandLog {
 
     @Override
     public synchronized void append(final CommandLogEntry commandLogEntry) {
-        commandLogEntries.add(Objects.requireNonNull(commandLogEntry));
+        commandLogEntries.add(clone(commandLogEntry));
     }
 
 
@@ -110,6 +118,12 @@ public class InMemoryCommandLog implements CommandLog {
     @Override
     public LogEntry lastEntry() {
         return lastEntry;
+    }
+
+    private CommandLogEntry clone(final CommandLogEntry e) {
+        final CommandLogEntry clone = directFactory.commandLogEntry();
+        clone.writeBufferOrNull().putBytes(0, e.readBufferOrNull(), e.offset(), e.byteLength());
+        return clone;
     }
 
 }

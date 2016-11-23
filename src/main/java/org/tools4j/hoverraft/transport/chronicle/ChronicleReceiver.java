@@ -25,6 +25,7 @@ package org.tools4j.hoverraft.transport.chronicle;
 
 import net.openhft.chronicle.ExcerptTailer;
 import org.agrona.MutableDirectBuffer;
+import org.tools4j.hoverraft.direct.DirectPayload;
 import org.tools4j.hoverraft.direct.RecyclingDirectFactory;
 import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.transport.Receiver;
@@ -35,7 +36,7 @@ import java.util.function.Consumer;
 /**
  * Subscription reading from a chronicle queue.
  */
-public class ChronicleReceiver implements Receiver<Message> {
+public class ChronicleReceiver implements Receiver<DirectPayload> {
 
     private final ExcerptTailer tailer;
     private final MutableDirectBuffer mutableDirectBuffer;
@@ -48,7 +49,7 @@ public class ChronicleReceiver implements Receiver<Message> {
     }
 
     @Override
-    public int poll(final Consumer<? super Message> messageMandler, final int limit) {
+    public int poll(final Consumer<? super DirectPayload> messageMandler, final int limit) {
         int messagesRead = 0;
         while (messagesRead < limit && tailer.nextIndex()) {
             final int len = tailer.readInt();
@@ -68,7 +69,7 @@ public class ChronicleReceiver implements Receiver<Message> {
     }
 
     private void consume(final Consumer<? super Message> messageMandler) {
-        final Message message = directFactory.wrapForReading(mutableDirectBuffer, 0);
-        messageMandler.accept(message);
+        final DirectPayload message = directFactory.wrapForReading(mutableDirectBuffer, 0);
+        messageMandler.accept((Message) message);
     }
 }

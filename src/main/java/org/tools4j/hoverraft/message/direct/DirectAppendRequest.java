@@ -25,11 +25,11 @@ package org.tools4j.hoverraft.message.direct;
 
 import org.agrona.DirectBuffer;
 import org.agrona.MutableDirectBuffer;
-import org.tools4j.hoverraft.command.log.CommandLogEntry;
-import org.tools4j.hoverraft.command.log.DirectCommandLogEntry;
-import org.tools4j.hoverraft.command.log.LogEntry;
+import org.tools4j.hoverraft.command.CommandLogEntry;
+import org.tools4j.hoverraft.command.DirectCommandLogEntry;
+import org.tools4j.hoverraft.command.LogEntry;
 import org.tools4j.hoverraft.message.AppendRequest;
-import org.tools4j.hoverraft.message.MessageType;
+import org.tools4j.hoverraft.direct.PayloadType;
 
 public final class DirectAppendRequest extends AbstractDirectMessage implements AppendRequest {
 
@@ -53,8 +53,8 @@ public final class DirectAppendRequest extends AbstractDirectMessage implements 
     private final DirectCommandLogEntry directCommandLogEntry = new DirectCommandLogEntry();
 
     @Override
-    public MessageType type() {
-        return MessageType.APPEND_REQUEST;
+    public PayloadType type() {
+        return PayloadType.APPEND_REQUEST;
     }
 
     @Override

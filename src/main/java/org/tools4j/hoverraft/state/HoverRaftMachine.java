@@ -23,6 +23,7 @@
  */
 package org.tools4j.hoverraft.state;
 
+import org.tools4j.hoverraft.command.machine.StateMachine;
 import org.tools4j.hoverraft.event.Event;
 import org.tools4j.hoverraft.server.ServerContext;
 
@@ -32,7 +33,7 @@ import java.util.Objects;
 
 /**
  * The Hover raft state machine. Not named state machine to avoid confusion with the application
- * {@link org.tools4j.hoverraft.command.machine.StateMachine}.
+ * {@link StateMachine}.
  */
 public class HoverRaftMachine {
 

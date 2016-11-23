@@ -21,20 +21,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.command.log;
+package org.tools4j.hoverraft.command;
 
-public interface CommandLog {
-    long size();
-    long readIndex();
-    void readIndex(long index);
-    CommandLogEntry read(CommandLogEntry commandLogEntry);
-    int readTerm();
-    void append(CommandLogEntry commandLogEntry);
-    void truncateIncluding(long index);
-    LogEntry lastEntry();
+public interface LogEntry extends Comparable<LogEntry> {
+    int term();
+    LogEntry term(int term);
 
-    default LogContainment contains(final LogEntry logEntry) {
-        return LogContainment.containmentFor(logEntry, this);
+    long index();
+    LogEntry index(long index);
+
+    @Override
+    default int compareTo(final LogEntry other) {
+        return LogEntryComparator.INSTANCE.compare(this, other);
     }
-
 }

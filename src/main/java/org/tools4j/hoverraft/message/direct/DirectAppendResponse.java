@@ -24,7 +24,7 @@
 package org.tools4j.hoverraft.message.direct;
 
 import org.tools4j.hoverraft.message.AppendResponse;
-import org.tools4j.hoverraft.message.MessageType;
+import org.tools4j.hoverraft.direct.PayloadType;
 
 public final class DirectAppendResponse extends AbstractDirectMessage implements AppendResponse {
 
@@ -39,8 +39,8 @@ public final class DirectAppendResponse extends AbstractDirectMessage implements
     public static final int BYTE_LENGTH = SUCCESSFUL_OFF + SUCCESSFUL_LEN;
 
     @Override
-    public MessageType type() {
-        return MessageType.APPEND_RESPONSE;
+    public PayloadType type() {
+        return PayloadType.APPEND_RESPONSE;
     }
 
     @Override

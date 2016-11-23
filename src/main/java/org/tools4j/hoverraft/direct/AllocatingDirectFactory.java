@@ -25,8 +25,8 @@ package org.tools4j.hoverraft.direct;
 
 import org.agrona.ExpandableArrayBuffer;
 import org.agrona.MutableDirectBuffer;
-import org.tools4j.hoverraft.command.log.CommandLogEntry;
-import org.tools4j.hoverraft.command.log.DirectCommandLogEntry;
+import org.tools4j.hoverraft.command.CommandLogEntry;
+import org.tools4j.hoverraft.command.DirectCommandLogEntry;
 import org.tools4j.hoverraft.message.*;
 import org.tools4j.hoverraft.message.direct.*;
 

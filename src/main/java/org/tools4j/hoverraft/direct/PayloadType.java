@@ -21,76 +21,56 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.message;
+package org.tools4j.hoverraft.direct;
 
-import org.tools4j.hoverraft.direct.AllocatingDirectFactory;
-import org.tools4j.hoverraft.direct.RecyclingDirectFactory;
-
-public enum MessageType {
+public enum PayloadType {
     VOTE_REQUEST {
         @Override
-        public Message create(final AllocatingDirectFactory factory) {
-            return factory.voteRequest();
-        }
-        @Override
-        public Message create(final RecyclingDirectFactory factory) {
+        public DirectPayload create(final DirectFactory factory) {
             return factory.voteRequest();
         }
     },
     VOTE_RESPONSE {
         @Override
-        public Message create(final AllocatingDirectFactory factory) {
-            return factory.voteResponse();
-        }
-        @Override
-        public Message create(final RecyclingDirectFactory factory) {
+        public DirectPayload create(final DirectFactory factory) {
             return factory.voteResponse();
         }
     },
     APPEND_REQUEST {
         @Override
-        public Message create(final AllocatingDirectFactory factory) {
-            return factory.appendRequest();
-        }
-        @Override
-        public Message create(final RecyclingDirectFactory factory) {
+        public DirectPayload create(final DirectFactory factory) {
             return factory.appendRequest();
         }
     },
     APPEND_RESPONSE {
         @Override
-        public Message create(final AllocatingDirectFactory factory) {
-            return factory.appendResponse();
-        }
-        @Override
-        public Message create(final RecyclingDirectFactory factory) {
+        public DirectPayload create(final DirectFactory factory) {
             return factory.appendResponse();
         }
     },
     TIMEOUT_NOW {
         @Override
-        public Message create(final AllocatingDirectFactory factory) {
-            return factory.timeoutNow();
-        }
-        @Override
-        public Message create(final RecyclingDirectFactory factory) {
+        public DirectPayload create(final DirectFactory factory) {
             return factory.timeoutNow();
         }
     },
     COMMAND_MESSAGE {
         @Override
-        public Message create(final AllocatingDirectFactory factory) {
+        public DirectPayload create(final DirectFactory factory) {
             return factory.commandMessage();
         }
+    },
+    COMMAND_LOG_ENTRY {
         @Override
-        public Message create(final RecyclingDirectFactory factory) {
-            return factory.commandMessage();
+        public DirectPayload create(final DirectFactory factory) {
+            return factory.commandLogEntry();
         }
-    };
+    }
+    ;
 
-    private static final MessageType[] VALUES = values();
+    private static final PayloadType[] VALUES = values();
 
-    public static final MessageType valueByOrdinal(final int ordinal) {
+    public static final PayloadType valueByOrdinal(final int ordinal) {
         return VALUES[ordinal];
     }
 
@@ -98,20 +78,18 @@ public enum MessageType {
         return VALUES.length - 1;
     }
 
-    abstract public Message create(AllocatingDirectFactory factory);
+    abstract public DirectPayload create(DirectFactory factory);
 
-    abstract public Message create(RecyclingDirectFactory factory);
-
-// It appears to be obsolete code, which requires ServerContext to provide RecyclingDirectFactory
+// It appears to be obsolete code, which requires ServerContext to provide DirectFactory
 // instead of DirectFactory.
-//    public static Message createOrNull(final ServerContext serverContext,
+//    public static DirectPayload createOrNull(final ServerContext serverContext,
 //                                             final DirectBuffer buffer,
 //                                             final int offset,
 //                                             final int length) {
 //        if (length >= 4) {
 //            final int type = buffer.getInt(offset);
 //            if (0 <= type & type <= VALUES.length) {
-//                final Message message = valueByOrdinal(type).create(serverContext.messageFactory());
+//                final DirectPayload message = valueByOrdinal(type).create(serverContext.messageFactory());
 //                message.wrap(buffer, offset + 4);
 //                return message;
 //            }

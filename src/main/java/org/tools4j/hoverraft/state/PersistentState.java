@@ -24,7 +24,7 @@
 package org.tools4j.hoverraft.state;
 
 
-import org.tools4j.hoverraft.command.log.CommandLog;
+import org.tools4j.hoverraft.command.CommandLog;
 
 public interface PersistentState {
 

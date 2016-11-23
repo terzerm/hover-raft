@@ -23,13 +23,14 @@
  */
 package org.tools4j.hoverraft.transport;
 
+import org.tools4j.hoverraft.direct.DirectPayload;
 import org.tools4j.hoverraft.message.Message;
 
 import java.util.function.Consumer;
 
 public final class Receivers {
 
-    public static <M extends Message> Receiver<M> roundRobinReceiver(final Receiver<? extends M>... receivers) {
+    public static <M extends DirectPayload> Receiver<M> roundRobinReceiver(final Receiver<? extends M>... receivers) {
         return new Receiver<M>() {
             private int index = -1;
 

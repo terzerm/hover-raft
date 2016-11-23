@@ -23,11 +23,12 @@
  */
 package org.tools4j.hoverraft.transport;
 
+import org.tools4j.hoverraft.direct.DirectPayload;
 import org.tools4j.hoverraft.message.Message;
 
 import java.util.function.Consumer;
 
-public interface Receiver<M extends Message> {
+public interface Receiver<M extends DirectPayload> {
     /**
      * Polls messages in non-blocking mode. Messages are passed to the specified
      * message event.

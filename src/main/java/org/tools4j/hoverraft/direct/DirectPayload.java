@@ -35,7 +35,9 @@ public interface DirectPayload {
 
     int offset();
 
-    DirectBuffer bufferOrNull();
+    DirectBuffer readBufferOrNull();
+
+    MutableDirectBuffer writeBufferOrNull();
 
     void wrap(DirectBuffer buffer, int offset);
 

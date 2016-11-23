@@ -23,9 +23,9 @@
  */
 package org.tools4j.hoverraft.server;
 
-import org.tools4j.hoverraft.command.log.CommandLog;
-import org.tools4j.hoverraft.command.log.LogEntry;
-import org.tools4j.hoverraft.command.log.LogEntryComparator;
+import org.tools4j.hoverraft.command.CommandLog;
+import org.tools4j.hoverraft.command.LogEntry;
+import org.tools4j.hoverraft.command.LogEntryComparator;
 import org.tools4j.hoverraft.config.ConfigBuilder;
 import org.tools4j.hoverraft.config.ConsensusConfig;
 import org.tools4j.hoverraft.config.ThreadingMode;

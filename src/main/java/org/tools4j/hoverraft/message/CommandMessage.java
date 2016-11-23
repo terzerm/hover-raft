@@ -23,7 +23,7 @@
  */
 package org.tools4j.hoverraft.message;
 
-import org.tools4j.hoverraft.command.machine.Command;
+import org.tools4j.hoverraft.command.Command;
 import org.tools4j.hoverraft.event.EventHandler;
 import org.tools4j.hoverraft.server.ServerContext;
 import org.tools4j.hoverraft.state.Transition;

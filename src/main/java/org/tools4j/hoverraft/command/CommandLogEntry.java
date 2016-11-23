@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.command.log;
+package org.tools4j.hoverraft.command;
 
 import org.tools4j.hoverraft.direct.DirectPayload;
 import org.tools4j.hoverraft.message.CommandMessage;

@@ -23,7 +23,7 @@
  */
 package org.tools4j.hoverraft.direct;
 
-import org.tools4j.hoverraft.command.log.CommandLogEntry;
+import org.tools4j.hoverraft.command.CommandLogEntry;
 import org.tools4j.hoverraft.message.*;
 
 /**

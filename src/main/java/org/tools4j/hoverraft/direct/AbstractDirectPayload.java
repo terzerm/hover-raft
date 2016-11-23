@@ -40,8 +40,13 @@ abstract public class AbstractDirectPayload implements DirectPayload {
     }
 
     @Override
-    public DirectBuffer bufferOrNull() {
+    public DirectBuffer readBufferOrNull() {
         return readBuffer;
+    }
+
+    @Override
+    public MutableDirectBuffer writeBufferOrNull() {
+        return writeBuffer;
     }
 
     public void wrap(final DirectBuffer buffer, final int offset) {

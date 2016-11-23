@@ -40,6 +40,6 @@ public class AeronSender implements Sender<Message> {
 
     @Override
     public long offer(final Message message) {
-        return publication.offer(message.bufferOrNull(), message.offset(), message.byteLength());
+        return publication.offer(message.readBufferOrNull(), message.offset(), message.byteLength());
     }
 }

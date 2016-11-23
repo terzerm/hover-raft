@@ -26,8 +26,8 @@ package org.tools4j.hoverraft.direct;
 import org.agrona.DirectBuffer;
 import org.agrona.ExpandableArrayBuffer;
 import org.agrona.MutableDirectBuffer;
-import org.tools4j.hoverraft.command.log.CommandLogEntry;
-import org.tools4j.hoverraft.command.log.DirectCommandLogEntry;
+import org.tools4j.hoverraft.command.CommandLogEntry;
+import org.tools4j.hoverraft.command.DirectCommandLogEntry;
 import org.tools4j.hoverraft.message.*;
 import org.tools4j.hoverraft.message.direct.*;
 
@@ -98,13 +98,13 @@ public final class RecyclingDirectFactory implements DirectFactory {
         return factory;
     }
 
-    public Message wrapForReading(final DirectBuffer directBuffer, final int offset) {
+    public DirectPayload wrapForReading(final DirectBuffer directBuffer, final int offset) {
         final int type = directBuffer.getInt(offset);
-        if (type >= 0 & type <= MessageType.maxOrdinal()) {
-            final MessageType messageType = MessageType.valueByOrdinal(type);
-            final Message message = messageType.create(this);
-            message.wrap(directBuffer, offset);
-            return message;
+        if (type >= 0 & type <= PayloadType.maxOrdinal()) {
+            final PayloadType messageType = PayloadType.valueByOrdinal(type);
+            final DirectPayload payload = messageType.create(this);
+            payload.wrap(directBuffer, offset);
+            return payload;
         }
         throw new IllegalArgumentException("Illegal message type: " + type);
     }

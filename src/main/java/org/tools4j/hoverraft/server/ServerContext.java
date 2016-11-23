@@ -40,7 +40,7 @@ public interface ServerContext {
 
     Connections<Message> connections();
 
-    DirectFactory messageFactory();
+    DirectFactory directFactory();
 
     StateMachine stateMachine();
 
