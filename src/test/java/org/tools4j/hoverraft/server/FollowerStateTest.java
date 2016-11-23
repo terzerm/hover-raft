@@ -29,10 +29,14 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.tools4j.hoverraft.command.log.CommandLog;
+import org.tools4j.hoverraft.command.log.CommandLogEntry;
+import org.tools4j.hoverraft.command.log.LogContainment;
+import org.tools4j.hoverraft.command.log.LogEntry;
 import org.tools4j.hoverraft.message.AppendRequest;
 import org.tools4j.hoverraft.message.AppendResponse;
 import org.tools4j.hoverraft.message.Message;
-import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
+import org.tools4j.hoverraft.direct.RecyclingDirectFactory;
 import org.tools4j.hoverraft.state.*;
 import org.tools4j.hoverraft.transport.Sender;
 
@@ -71,7 +75,7 @@ public class FollowerStateTest {
 
         volatileState.commitIndex(50);
 
-        final AppendRequest appendRequest = DirectMessageFactory.createForWriting()
+        final AppendRequest appendRequest = RecyclingDirectFactory.createForWriting()
                 .appendRequest()
                 .term(term)
                 .leaderId(leaderId)
@@ -115,7 +119,7 @@ public class FollowerStateTest {
         final int badTerm = term - 1;
         final int serverId = serverContext.id();
         final int leaderId = serverId + 1;
-        final AppendRequest appendRequest = DirectMessageFactory.createForWriting()
+        final AppendRequest appendRequest = RecyclingDirectFactory.createForWriting()
                 .appendRequest()
                 .term(badTerm)
                 .leaderId(leaderId);

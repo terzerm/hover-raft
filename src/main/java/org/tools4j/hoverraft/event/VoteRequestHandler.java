@@ -23,9 +23,9 @@
  */
 package org.tools4j.hoverraft.event;
 
+import org.tools4j.hoverraft.command.log.CommandLog;
 import org.tools4j.hoverraft.message.VoteRequest;
 import org.tools4j.hoverraft.server.ServerContext;
-import org.tools4j.hoverraft.state.CommandLog;
 import org.tools4j.hoverraft.state.PersistentState;
 import org.tools4j.hoverraft.state.Transition;
 

@@ -23,7 +23,8 @@
  */
 package org.tools4j.hoverraft.message.direct;
 
-import org.tools4j.hoverraft.state.LogEntry;
+import org.tools4j.hoverraft.command.log.LogEntry;
+import org.tools4j.hoverraft.direct.AbstractDirectPayload;
 
 public class DirectLogEntry extends AbstractDirectPayload implements LogEntry {
     protected static final int TERM_OFF = 0;

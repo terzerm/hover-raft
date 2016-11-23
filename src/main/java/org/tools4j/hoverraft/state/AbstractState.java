@@ -23,12 +23,14 @@
  */
 package org.tools4j.hoverraft.state;
 
+import org.tools4j.hoverraft.command.log.CommandLog;
+import org.tools4j.hoverraft.command.log.CommandLogEntry;
+import org.tools4j.hoverraft.command.log.DirectCommandLogEntry;
+import org.tools4j.hoverraft.command.machine.StateMachine;
 import org.tools4j.hoverraft.event.*;
-import org.tools4j.hoverraft.machine.StateMachine;
 import org.tools4j.hoverraft.message.AppendRequest;
 import org.tools4j.hoverraft.message.VoteRequest;
 import org.tools4j.hoverraft.server.ServerContext;
-import org.tools4j.hoverraft.state.direct.DirectCommandLogEntry;
 
 import java.util.Objects;
 

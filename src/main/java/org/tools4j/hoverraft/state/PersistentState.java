@@ -24,6 +24,8 @@
 package org.tools4j.hoverraft.state;
 
 
+import org.tools4j.hoverraft.command.log.CommandLog;
+
 public interface PersistentState {
 
     int NOT_VOTED_YET = -1;

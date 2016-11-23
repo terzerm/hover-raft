@@ -21,16 +21,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.message.inmemory;
+package org.tools4j.hoverraft.direct;
 
 import org.agrona.ExpandableArrayBuffer;
 import org.agrona.MutableDirectBuffer;
+import org.tools4j.hoverraft.command.log.CommandLogEntry;
+import org.tools4j.hoverraft.command.log.DirectCommandLogEntry;
 import org.tools4j.hoverraft.message.*;
 import org.tools4j.hoverraft.message.direct.*;
-import org.tools4j.hoverraft.state.CommandLogEntry;
-import org.tools4j.hoverraft.state.direct.DirectCommandLogEntry;
 
-public class InMemoryMessageFactory implements MessageFactory {
+public class AllocatingDirectFactory implements DirectFactory {
 
     private MutableDirectBuffer newBuffer(final int initialCapacity) {
         return new ExpandableArrayBuffer(initialCapacity);

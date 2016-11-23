@@ -21,11 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.state.inmemory;
-
-import org.tools4j.hoverraft.state.CommandLog;
-import org.tools4j.hoverraft.state.CommandLogEntry;
-import org.tools4j.hoverraft.state.LogEntry;
+package org.tools4j.hoverraft.command.log;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -21,25 +21,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.message.direct;
+package org.tools4j.hoverraft.direct;
 
-import org.agrona.DirectBuffer;
-import org.agrona.MutableDirectBuffer;
+import org.tools4j.hoverraft.command.log.CommandLogEntry;
+import org.tools4j.hoverraft.message.*;
 
 /**
- * Direct Payload
+ * Factory for {@link DirectPayload} objects.
  */
-public interface DirectPayload {
+public interface DirectFactory {
 
-    int byteLength();
+    AppendRequest appendRequest();
 
-    int offset();
+    AppendResponse appendResponse();
 
-    DirectBuffer buffer();
+    VoteRequest voteRequest();
 
-    void wrap(DirectBuffer buffer, int offset);
+    VoteResponse voteResponse();
 
-    void wrap(MutableDirectBuffer buffer, int offset);
+    TimeoutNow timeoutNow();
 
-    void unwrap();
+    CommandMessage commandMessage();
+
+    CommandLogEntry commandLogEntry();
 }

@@ -21,17 +21,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.state;
+package org.tools4j.hoverraft.command.log;
 
-public interface LogEntry extends Comparable<LogEntry> {
-    int term();
-    LogEntry term(int term);
+import java.util.Comparator;
 
-    long index();
-    LogEntry index(long index);
+public enum LogEntryComparator implements Comparator<LogEntry> {
+    INSTANCE;
 
     @Override
-    default int compareTo(final LogEntry other) {
-        return LogEntryComparator.INSTANCE.compare(this, other);
+    public int compare(final LogEntry logEntry1, final LogEntry logEntry2) {
+        final int termCompare = Integer.compare(logEntry1.term(), logEntry2.term());
+        return termCompare == 0 ? Long.compare(logEntry1.index(), logEntry2.index()) : termCompare;
     }
 }

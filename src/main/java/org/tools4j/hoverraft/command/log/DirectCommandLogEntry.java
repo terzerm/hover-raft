@@ -21,14 +21,46 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.state;
+package org.tools4j.hoverraft.command.log;
 
+import org.agrona.DirectBuffer;
+import org.agrona.MutableDirectBuffer;
 import org.tools4j.hoverraft.message.CommandMessage;
+import org.tools4j.hoverraft.message.direct.DirectCommandMessage;
+import org.tools4j.hoverraft.message.direct.DirectLogEntry;
 
-public interface CommandLogEntry extends LogEntry {
-    CommandMessage commandMessage();
+public class DirectCommandLogEntry extends DirectLogEntry implements CommandLogEntry {
+    private static final int COMMAND_MSG_OFF = DirectLogEntry.BYTE_LENGTH;
 
-    default LogContainment containedIn(final CommandLog commandLog) {
-        return LogContainment.containmentFor(this, commandLog);
+    private DirectCommandMessage directCommandMessage = new DirectCommandMessage();
+
+    @Override
+    public void wrap(final DirectBuffer buffer, final int offset) {
+        super.wrap(buffer, offset);
+        directCommandMessage.wrap(buffer, offset + COMMAND_MSG_OFF);
     }
+
+    @Override
+    public void wrap(final MutableDirectBuffer buffer, final int offset) {
+        super.wrap(buffer, offset);
+        directCommandMessage.wrap(buffer, offset + COMMAND_MSG_OFF);
+    }
+
+    @Override
+    public void unwrap() {
+        directCommandMessage.unwrap();
+        super.unwrap();
+    }
+
+
+    @Override
+    public CommandMessage commandMessage() {
+        return directCommandMessage;
+    }
+
+    @Override
+    public int byteLength() {
+        return COMMAND_MSG_OFF + directCommandMessage.byteLength();
+    }
+
 }

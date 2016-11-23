@@ -21,28 +21,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.machine;
+package org.tools4j.hoverraft.direct;
 
-import org.tools4j.hoverraft.message.CommandMessage;
-import org.tools4j.hoverraft.message.Message;
-import org.tools4j.hoverraft.transport.MessageLog;
+import org.agrona.DirectBuffer;
+import org.agrona.MutableDirectBuffer;
 
 import java.util.Objects;
 
-/**
- * A {@link StateMachine} which simply persists the messages passed to it into a {@link MessageLog}.
- */
-public final class LogMachine implements StateMachine {
+abstract public class AbstractDirectPayload implements DirectPayload {
 
-    private final MessageLog<Message> messageLog;
+    protected DirectBuffer readBuffer;
+    protected MutableDirectBuffer writeBuffer;
+    protected int offset;
 
-    public LogMachine(final MessageLog<Message> messageLog) {
-        this.messageLog = Objects.requireNonNull(messageLog);
+    @Override
+    public int offset() {
+        return offset;
     }
 
     @Override
-    public void onMessage(final CommandMessage message) {
-        messageLog.append(message);
+    public DirectBuffer bufferOrNull() {
+        return readBuffer;
     }
 
+    public void wrap(final DirectBuffer buffer, final int offset) {
+        this.readBuffer = Objects.requireNonNull(buffer);
+        this.writeBuffer = null;
+        this.offset = offset;
+    }
+
+    public void wrap(final MutableDirectBuffer buffer, final int offset) {
+        this.readBuffer = Objects.requireNonNull(buffer);
+        this.writeBuffer = buffer;
+        this.offset = offset;
+    }
+
+    public void unwrap() {
+        this.readBuffer = null;
+        this.writeBuffer = null;
+        this.offset = 0;
+    }
 }

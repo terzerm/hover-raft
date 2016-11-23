@@ -21,9 +21,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.message.direct;
+package org.tools4j.hoverraft.command.log;
 
-import org.tools4j.hoverraft.message.Message;
+public interface LogEntry extends Comparable<LogEntry> {
+    int term();
+    LogEntry term(int term);
 
-public interface DirectMessage extends DirectPayload, Message {
+    long index();
+    LogEntry index(long index);
+
+    @Override
+    default int compareTo(final LogEntry other) {
+        return LogEntryComparator.INSTANCE.compare(this, other);
+    }
 }

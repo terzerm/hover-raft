@@ -21,19 +21,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.machine;
+package org.tools4j.hoverraft.direct;
 
 import org.agrona.DirectBuffer;
 import org.agrona.MutableDirectBuffer;
 
-import java.nio.ByteBuffer;
+/**
+ * Direct Payload
+ */
+public interface DirectPayload {
 
-public interface Command {
     int byteLength();
-    void bytesFrom(byte[] bytes, int offset, int length);
-    void bytesFrom(ByteBuffer bytes, int offset, int length);
-    void bytesFrom(DirectBuffer bytes, int offset, int length);
-    void bytesTo(byte[] bytes, int offset);
-    void bytesTo(ByteBuffer bytes, int offset);
-    void bytesTo(MutableDirectBuffer bytes, int offset);
+
+    int offset();
+
+    DirectBuffer bufferOrNull();
+
+    void wrap(DirectBuffer buffer, int offset);
+
+    void wrap(MutableDirectBuffer buffer, int offset);
+
+    void unwrap();
 }

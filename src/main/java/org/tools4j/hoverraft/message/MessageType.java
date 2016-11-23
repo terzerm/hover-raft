@@ -23,68 +23,67 @@
  */
 package org.tools4j.hoverraft.message;
 
-import org.tools4j.hoverraft.message.direct.DirectMessage;
-import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
-import org.tools4j.hoverraft.message.inmemory.InMemoryMessageFactory;
+import org.tools4j.hoverraft.direct.AllocatingDirectFactory;
+import org.tools4j.hoverraft.direct.RecyclingDirectFactory;
 
 public enum MessageType {
     VOTE_REQUEST {
         @Override
-        public Message create(final InMemoryMessageFactory factory) {
+        public Message create(final AllocatingDirectFactory factory) {
             return factory.voteRequest();
         }
         @Override
-        public DirectMessage create(final DirectMessageFactory factory) {
+        public Message create(final RecyclingDirectFactory factory) {
             return factory.voteRequest();
         }
     },
     VOTE_RESPONSE {
         @Override
-        public Message create(final InMemoryMessageFactory factory) {
+        public Message create(final AllocatingDirectFactory factory) {
             return factory.voteResponse();
         }
         @Override
-        public DirectMessage create(final DirectMessageFactory factory) {
+        public Message create(final RecyclingDirectFactory factory) {
             return factory.voteResponse();
         }
     },
     APPEND_REQUEST {
         @Override
-        public Message create(final InMemoryMessageFactory factory) {
+        public Message create(final AllocatingDirectFactory factory) {
             return factory.appendRequest();
         }
         @Override
-        public DirectMessage create(final DirectMessageFactory factory) {
+        public Message create(final RecyclingDirectFactory factory) {
             return factory.appendRequest();
         }
     },
     APPEND_RESPONSE {
         @Override
-        public Message create(final InMemoryMessageFactory factory) {
+        public Message create(final AllocatingDirectFactory factory) {
             return factory.appendResponse();
         }
         @Override
-        public DirectMessage create(final DirectMessageFactory factory) {
+        public Message create(final RecyclingDirectFactory factory) {
             return factory.appendResponse();
         }
     },
     TIMEOUT_NOW {
         @Override
-        public Message create(final InMemoryMessageFactory factory) {
+        public Message create(final AllocatingDirectFactory factory) {
             return factory.timeoutNow();
         }
         @Override
-        public DirectMessage create(final DirectMessageFactory factory) {
+        public Message create(final RecyclingDirectFactory factory) {
             return factory.timeoutNow();
         }
     },
     COMMAND_MESSAGE {
         @Override
-        public Message create(final InMemoryMessageFactory factory) {
+        public Message create(final AllocatingDirectFactory factory) {
             return factory.commandMessage();
         }
         @Override
-        public DirectMessage create(final DirectMessageFactory factory) {
+        public Message create(final RecyclingDirectFactory factory) {
             return factory.commandMessage();
         }
     };
@@ -99,12 +98,12 @@ public enum MessageType {
         return VALUES.length - 1;
     }
 
-    abstract public Message create(InMemoryMessageFactory factory);
+    abstract public Message create(AllocatingDirectFactory factory);
 
-    abstract public DirectMessage create(DirectMessageFactory factory);
+    abstract public Message create(RecyclingDirectFactory factory);
 
-// It appears to be obsolete code, which requires ServerContext to provide DirectMessageFactory
-// instead of MessageFactory.
+// It appears to be obsolete code, which requires ServerContext to provide RecyclingDirectFactory
+// instead of DirectFactory.
 //    public static Message createOrNull(final ServerContext serverContext,
 //                                             final DirectBuffer buffer,
 //                                             final int offset,

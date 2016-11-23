@@ -21,11 +21,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.machine;
+package org.tools4j.hoverraft.command.machine;
 
-import org.tools4j.hoverraft.message.CommandMessage;
+import org.agrona.DirectBuffer;
+import org.agrona.MutableDirectBuffer;
 
-public interface StateMachine {
-    //Should it be bare Command or CommandMessage
-    void onMessage(CommandMessage message);
+import java.nio.ByteBuffer;
+
+public interface Command {
+    int byteLength();
+    void bytesFrom(byte[] bytes, int offset, int length);
+    void bytesFrom(ByteBuffer bytes, int offset, int length);
+    void bytesFrom(DirectBuffer bytes, int offset, int length);
+    void bytesTo(byte[] bytes, int offset);
+    void bytesTo(ByteBuffer bytes, int offset);
+    void bytesTo(MutableDirectBuffer bytes, int offset);
 }

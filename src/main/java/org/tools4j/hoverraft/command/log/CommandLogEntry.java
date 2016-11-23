@@ -21,26 +21,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.message;
+package org.tools4j.hoverraft.command.log;
 
-import org.tools4j.hoverraft.state.CommandLogEntry;
+import org.tools4j.hoverraft.direct.DirectPayload;
+import org.tools4j.hoverraft.message.CommandMessage;
 
-/**
- * Factory for messages.
- */
-public interface MessageFactory {
-
-    AppendRequest appendRequest();
-
-    AppendResponse appendResponse();
-
-    VoteRequest voteRequest();
-
-    VoteResponse voteResponse();
-
-    TimeoutNow timeoutNow();
-
+public interface CommandLogEntry extends DirectPayload, LogEntry {
     CommandMessage commandMessage();
 
-    CommandLogEntry commandLogEntry();
+    default LogContainment containedIn(final CommandLog commandLog) {
+        return LogContainment.containmentFor(this, commandLog);
+    }
 }

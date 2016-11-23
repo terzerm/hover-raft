@@ -21,94 +21,95 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.message.direct;
+package org.tools4j.hoverraft.direct;
 
 import org.agrona.DirectBuffer;
 import org.agrona.ExpandableArrayBuffer;
 import org.agrona.MutableDirectBuffer;
-import org.tools4j.hoverraft.message.MessageFactory;
-import org.tools4j.hoverraft.message.MessageType;
-import org.tools4j.hoverraft.state.direct.DirectCommandLogEntry;
+import org.tools4j.hoverraft.command.log.CommandLogEntry;
+import org.tools4j.hoverraft.command.log.DirectCommandLogEntry;
+import org.tools4j.hoverraft.message.*;
+import org.tools4j.hoverraft.message.direct.*;
 
 /**
  * Factory for messages writing data into an internal readBuffer. Messages and readBuffer are reused accross
  * multiple calls.
  */
-public final class DirectMessageFactory implements MessageFactory {
+public final class RecyclingDirectFactory implements DirectFactory {
 
-    private final DirectAppendRequest appendRequest = new DirectAppendRequest();
-    private final DirectAppendResponse appendResponse = new DirectAppendResponse();
-    private final DirectVoteRequest voteRequest = new DirectVoteRequest();
-    private final DirectVoteResponse voteResponse = new DirectVoteResponse();
-    private final DirectTimeoutNow timeoutNow = new DirectTimeoutNow();
-    private final DirectCommandMessage commandMessage = new DirectCommandMessage();
-    private final DirectCommandLogEntry commandLogEntry = new DirectCommandLogEntry();
+    private final AppendRequest appendRequest = new DirectAppendRequest();
+    private final AppendResponse appendResponse = new DirectAppendResponse();
+    private final VoteRequest voteRequest = new DirectVoteRequest();
+    private final VoteResponse voteResponse = new DirectVoteResponse();
+    private final TimeoutNow timeoutNow = new DirectTimeoutNow();
+    private final CommandMessage commandMessage = new DirectCommandMessage();
+    private final CommandLogEntry commandLogEntry = new DirectCommandLogEntry();
 
-    private DirectMessageFactory() {
+    private RecyclingDirectFactory() {
         super();
     }
 
     @Override
-    public DirectAppendRequest appendRequest() {
+    public AppendRequest appendRequest() {
         return appendRequest;
     }
 
     @Override
-    public DirectAppendResponse appendResponse() {
+    public AppendResponse appendResponse() {
         return appendResponse;
     }
 
     @Override
-    public DirectVoteRequest voteRequest() {
+    public VoteRequest voteRequest() {
         return voteRequest;
     }
 
     @Override
-    public DirectVoteResponse voteResponse() {
+    public VoteResponse voteResponse() {
         return voteResponse;
     }
 
     @Override
-    public DirectTimeoutNow timeoutNow() {
+    public TimeoutNow timeoutNow() {
         return timeoutNow;
     }
 
     @Override
-    public DirectCommandMessage commandMessage() {
+    public CommandMessage commandMessage() {
         return commandMessage;
     }
 
     @Override
-    public DirectCommandLogEntry commandLogEntry() {
+    public CommandLogEntry commandLogEntry() {
         return commandLogEntry;
     }
 
-    public static DirectMessageFactory create() {
-        return new DirectMessageFactory();
+    public static RecyclingDirectFactory create() {
+        return new RecyclingDirectFactory();
     }
 
-    public static DirectMessageFactory createForWriting() {
+    public static RecyclingDirectFactory createForWriting() {
         return createForWriting(new ExpandableArrayBuffer(), 0);
     }
 
-    public static DirectMessageFactory createForWriting(final MutableDirectBuffer buffer, final int offset) {
-        final DirectMessageFactory factory = new DirectMessageFactory();
+    public static RecyclingDirectFactory createForWriting(final MutableDirectBuffer buffer, final int offset) {
+        final RecyclingDirectFactory factory = new RecyclingDirectFactory();
         factory.wrapForWriting(buffer, offset);
         return factory;
     }
 
-    public DirectMessage wrapForReading(final DirectBuffer directBuffer, final int offset) {
+    public Message wrapForReading(final DirectBuffer directBuffer, final int offset) {
         final int type = directBuffer.getInt(offset);
         if (type >= 0 & type <= MessageType.maxOrdinal()) {
             final MessageType messageType = MessageType.valueByOrdinal(type);
-            final DirectMessage message = messageType.create(this);
+            final Message message = messageType.create(this);
             message.wrap(directBuffer, offset);
             return message;
         }
         throw new IllegalArgumentException("Illegal message type: " + type);
     }
 
-    public DirectMessageFactory wrapForWriting(final MutableDirectBuffer mutableDirectBuffer, final int offset) {
+    public RecyclingDirectFactory wrapForWriting(final MutableDirectBuffer mutableDirectBuffer, final int offset) {
         appendRequest.wrap(mutableDirectBuffer, offset);
         appendResponse.wrap(mutableDirectBuffer, offset);
         voteRequest.wrap(mutableDirectBuffer, offset);

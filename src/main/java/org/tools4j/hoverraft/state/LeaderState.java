@@ -23,6 +23,7 @@
  */
 package org.tools4j.hoverraft.state;
 
+import org.tools4j.hoverraft.command.log.CommandLogEntry;
 import org.tools4j.hoverraft.event.EventHandler;
 import org.tools4j.hoverraft.message.AppendResponse;
 import org.tools4j.hoverraft.message.CommandMessage;
@@ -80,10 +81,10 @@ public class LeaderState extends AbstractState {
         newCommandLogEntry.commandMessage().commandIndex(commandMessage.commandIndex());
         newCommandLogEntry.commandMessage().commandSourceId(commandMessage.commandSourceId());
         //FIXme
-        //newCommandLogEntry.commandMessage().command().
+        //newCommandLogEntry.commandMessage().log().
 
         persistentState().commandLog().append(newCommandLogEntry);
-        sendAppendRequest(serverContext);//FIXME send command message in request
+        sendAppendRequest(serverContext);//FIXME send log message in request
         return Transition.STEADY;
     }
 

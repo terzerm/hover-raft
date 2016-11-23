@@ -21,20 +21,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.state;
+package org.tools4j.hoverraft.command.log;
 
-public interface CommandLog {
-    long size();
-    long readIndex();
-    void readIndex(long index);
-    CommandLogEntry read(CommandLogEntry commandLogEntry);
-    int readTerm();
-    void append(CommandLogEntry commandLogEntry);
-    void truncateIncluding(long index);
-    LogEntry lastEntry();
+public enum LogContainment {
+    IN, OUT, CONFLICT;
 
-    default LogContainment contains(final LogEntry logEntry) {
-        return LogContainment.containmentFor(logEntry, this);
+
+    public static LogContainment containmentFor(final LogEntry logEntry, final CommandLog commandLog) {
+        if (logEntry.index() > commandLog.lastEntry().index()) {
+            return OUT;
+        } else {
+            commandLog.readIndex(logEntry.index());
+            final int termAtLogEntryIndex = commandLog.readTerm();
+            return logEntry.term() == termAtLogEntryIndex ? IN : CONFLICT;
+        }
     }
-
 }

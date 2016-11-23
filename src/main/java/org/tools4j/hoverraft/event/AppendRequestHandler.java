@@ -23,9 +23,15 @@
  */
 package org.tools4j.hoverraft.event;
 
+import org.tools4j.hoverraft.command.log.CommandLog;
+import org.tools4j.hoverraft.command.log.CommandLogEntry;
+import org.tools4j.hoverraft.command.log.LogContainment;
+import org.tools4j.hoverraft.command.log.LogEntry;
 import org.tools4j.hoverraft.message.AppendRequest;
 import org.tools4j.hoverraft.server.ServerContext;
-import org.tools4j.hoverraft.state.*;
+import org.tools4j.hoverraft.state.PersistentState;
+import org.tools4j.hoverraft.state.Transition;
+import org.tools4j.hoverraft.state.VolatileState;
 
 import java.util.Objects;
 

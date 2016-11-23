@@ -21,19 +21,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.state;
+package org.tools4j.hoverraft.command.machine;
 
-public enum LogContainment {
-    IN, OUT, CONFLICT;
+import org.tools4j.hoverraft.message.CommandMessage;
 
-
-    public static LogContainment containmentFor(final LogEntry logEntry, final CommandLog commandLog) {
-        if (logEntry.index() > commandLog.lastEntry().index()) {
-            return OUT;
-        } else {
-            commandLog.readIndex(logEntry.index());
-            final int termAtLogEntryIndex = commandLog.readTerm();
-            return logEntry.term() == termAtLogEntryIndex ? IN : CONFLICT;
-        }
-    }
+public interface StateMachine {
+    //Should it be bare Command or CommandMessage
+    void onMessage(CommandMessage message);
 }

@@ -25,9 +25,9 @@ package org.tools4j.hoverraft.message.direct;
 
 import org.agrona.DirectBuffer;
 import org.agrona.MutableDirectBuffer;
+import org.tools4j.hoverraft.command.log.LogEntry;
 import org.tools4j.hoverraft.message.MessageType;
 import org.tools4j.hoverraft.message.VoteRequest;
-import org.tools4j.hoverraft.state.LogEntry;
 
 public final class DirectVoteRequest extends AbstractDirectMessage implements VoteRequest {
 

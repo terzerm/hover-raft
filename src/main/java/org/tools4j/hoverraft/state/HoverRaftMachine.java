@@ -32,7 +32,7 @@ import java.util.Objects;
 
 /**
  * The Hover raft state machine. Not named state machine to avoid confusion with the application
- * {@link org.tools4j.hoverraft.machine.StateMachine}.
+ * {@link org.tools4j.hoverraft.command.machine.StateMachine}.
  */
 public class HoverRaftMachine {
 

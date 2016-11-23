@@ -24,13 +24,13 @@
 package org.tools4j.hoverraft.transport.aeron;
 
 import io.aeron.Publication;
-import org.tools4j.hoverraft.message.direct.DirectMessage;
+import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.transport.Sender;
 
 import java.util.Objects;
 
-//FIXMe can AbstractDirectMessage repace DirectMessage?
-public class AeronSender implements Sender<DirectMessage> {
+//FIXMe can AbstractDirectMessage repace Message?
+public class AeronSender implements Sender<Message> {
 
     private final Publication publication;
 
@@ -39,7 +39,7 @@ public class AeronSender implements Sender<DirectMessage> {
     }
 
     @Override
-    public long offer(final DirectMessage message) {
-        return publication.offer(message.buffer(), message.offset(), message.byteLength());
+    public long offer(final Message message) {
+        return publication.offer(message.bufferOrNull(), message.offset(), message.byteLength());
     }
 }

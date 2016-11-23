@@ -23,13 +23,13 @@
  */
 package org.tools4j.hoverraft.server;
 
+import org.tools4j.hoverraft.command.machine.StateMachine;
 import org.tools4j.hoverraft.config.ConsensusConfig;
 import org.tools4j.hoverraft.config.ServerConfig;
-import org.tools4j.hoverraft.machine.StateMachine;
+import org.tools4j.hoverraft.direct.DirectFactory;
+import org.tools4j.hoverraft.direct.RecyclingDirectFactory;
 import org.tools4j.hoverraft.message.CommandMessage;
 import org.tools4j.hoverraft.message.Message;
-import org.tools4j.hoverraft.message.MessageFactory;
-import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
 import org.tools4j.hoverraft.state.HoverRaftMachine;
 import org.tools4j.hoverraft.state.PersistentState;
 import org.tools4j.hoverraft.state.VolatileState;
@@ -47,7 +47,7 @@ public final class Server implements ServerContext {
     private final HoverRaftMachine hoverRaftMachine;
     private final StateMachine stateMachine;
     private final Connections<Message> connections;
-    private final DirectMessageFactory messageFactory;
+    private final RecyclingDirectFactory messageFactory;
     private final RoundRobinMessagePoller<Message> serverMessagePoller;
     private final RoundRobinMessagePoller<CommandMessage> sourceMessagePoller;
     private final Timer timer;
@@ -58,7 +58,7 @@ public final class Server implements ServerContext {
                   final VolatileState volatileState,
                   final StateMachine stateMachine,
                   final Connections<Message> connections,
-                  final DirectMessageFactory messageFactory) {
+                  final RecyclingDirectFactory messageFactory) {
         this.serverConfig = Objects.requireNonNull(consensusConfig.serverConfigByIdOrNull(serverId), "No server serverConfig found for ID " + serverId);
         this.consensusConfig = Objects.requireNonNull(consensusConfig);
         this.hoverRaftMachine = new HoverRaftMachine(Objects.requireNonNull(persistentState),
@@ -87,7 +87,7 @@ public final class Server implements ServerContext {
     }
 
     @Override
-    public MessageFactory messageFactory() {
+    public DirectFactory messageFactory() {
         return messageFactory;
     }
 

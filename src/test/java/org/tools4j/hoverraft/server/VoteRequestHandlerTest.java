@@ -33,9 +33,8 @@ import org.tools4j.hoverraft.event.VoteRequestHandler;
 import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.message.VoteRequest;
 import org.tools4j.hoverraft.message.VoteResponse;
-import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
-import org.tools4j.hoverraft.state.CommandLog;
-import org.tools4j.hoverraft.state.LogEntry;
+import org.tools4j.hoverraft.direct.RecyclingDirectFactory;
+import org.tools4j.hoverraft.command.log.CommandLog;
 import org.tools4j.hoverraft.state.PersistentState;
 import org.tools4j.hoverraft.state.Role;
 import org.tools4j.hoverraft.transport.Sender;
@@ -107,7 +106,7 @@ public class VoteRequestHandlerTest {
         final int lastLogTerm = term;
         final long lastLogIndex = 1234;
         final boolean granted = previouslyVotedFor == PersistentState.NOT_VOTED_YET || previouslyVotedFor == candidateId;
-        final VoteRequest voteRequest = DirectMessageFactory.createForWriting()
+        final VoteRequest voteRequest = RecyclingDirectFactory.createForWriting()
                 .voteRequest()
                 .term(term)
                 .candidateId(candidateId);
@@ -135,7 +134,7 @@ public class VoteRequestHandlerTest {
         final int lastLogTerm = term;
         final long lastLogIndex = 1234;
         final int newerLastLogTerm = lastLogTerm + 1;
-        final VoteRequest voteRequest = DirectMessageFactory.createForWriting()
+        final VoteRequest voteRequest = RecyclingDirectFactory.createForWriting()
                 .voteRequest()
                 .term(term)
                 .candidateId(candidateId);
@@ -161,7 +160,7 @@ public class VoteRequestHandlerTest {
         final int lastLogTerm = term;
         final long lastLogIndex = 1234;
         final long newerLastLogIndex = lastLogIndex + 1;
-        final VoteRequest voteRequest = DirectMessageFactory.createForWriting()
+        final VoteRequest voteRequest = RecyclingDirectFactory.createForWriting()
                 .voteRequest()
                 .term(term)
                 .candidateId(candidateId);
@@ -190,7 +189,7 @@ public class VoteRequestHandlerTest {
         final int serverId = serverContext.id();
         final int lastLogTerm = term;
         final long lastLogIndex = 1234;
-        final VoteRequest voteRequest = DirectMessageFactory.createForWriting()
+        final VoteRequest voteRequest = RecyclingDirectFactory.createForWriting()
                 .voteRequest()
                 .term(badTerm)
                 .candidateId(serverId);
@@ -216,7 +215,7 @@ public class VoteRequestHandlerTest {
         final int lastLogTerm = term;
         final long lastLogIndex = 1234;
         final int badLastLogTerm = lastLogTerm - 1;
-        final VoteRequest voteRequest = DirectMessageFactory.createForWriting()
+        final VoteRequest voteRequest = RecyclingDirectFactory.createForWriting()
                 .voteRequest()
                 .term(term)
                 .candidateId(serverId);
@@ -242,7 +241,7 @@ public class VoteRequestHandlerTest {
         final int lastLogTerm = term;
         final long lastLogIndex = 1234;
         final long badLastLogIndex = lastLogIndex - 1;
-        final VoteRequest voteRequest = DirectMessageFactory.createForWriting()
+        final VoteRequest voteRequest = RecyclingDirectFactory.createForWriting()
                 .voteRequest()
                 .term(term)
                 .candidateId(serverId);

@@ -25,8 +25,10 @@ package org.tools4j.hoverraft.message.direct;
 
 import org.agrona.DirectBuffer;
 import org.agrona.MutableDirectBuffer;
+import org.tools4j.hoverraft.direct.AbstractDirectPayload;
+import org.tools4j.hoverraft.message.Message;
 
-abstract public class AbstractDirectMessage extends AbstractDirectPayload implements DirectMessage {
+abstract public class AbstractDirectMessage extends AbstractDirectPayload implements Message {
 
     protected static final int TYPE_OFF = 0;
     protected static final int TYPE_LEN = 4;

@@ -27,7 +27,7 @@ import net.openhft.chronicle.Chronicle;
 import net.openhft.chronicle.ChronicleQueueBuilder;
 import net.openhft.chronicle.VanillaChronicle;
 import org.agrona.ExpandableArrayBuffer;
-import org.tools4j.hoverraft.message.direct.DirectCommandMessage;
+import org.tools4j.hoverraft.message.CommandMessage;
 import org.tools4j.hoverraft.transport.MessageLog;
 import org.tools4j.hoverraft.transport.chronicle.ChronicleMessageLog;
 
@@ -54,7 +54,7 @@ public class Files {
         return "hover-raft_" + serverId + "_" + name;
     }
 
-    public static final MessageLog<DirectCommandMessage> messageLog(final int serverId, final String name) throws IOException {
+    public static final MessageLog<CommandMessage> messageLog(final int serverId, final String name) throws IOException {
         final String path = Files.fileDirectory();
         final String child = Files.fileName(serverId, name);
         final Chronicle chronicle = ChronicleQueueBuilder.vanilla(path, child).build();

@@ -29,8 +29,8 @@ import net.openhft.chronicle.ExcerptAppender;
 import net.openhft.chronicle.VanillaChronicle;
 import org.agrona.DirectBuffer;
 import org.agrona.MutableDirectBuffer;
-import org.tools4j.hoverraft.message.direct.DirectCommandMessage;
-import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
+import org.tools4j.hoverraft.direct.RecyclingDirectFactory;
+import org.tools4j.hoverraft.message.CommandMessage;
 import org.tools4j.hoverraft.transport.MessageLog;
 
 import java.io.IOException;
@@ -41,14 +41,14 @@ import java.util.Objects;
 /**
  * AbstractDirectMessage log based on a chronicle queue.
  */
-public final class ChronicleMessageLog implements MessageLog<DirectCommandMessage> {
+public final class ChronicleMessageLog implements MessageLog<CommandMessage> {
 
     private final Chronicle chronicle;
     private final Excerpt excerpt;
     private final ExcerptAppender appender;
     private final Method setLastWrittenIndexMethod;
     private final MutableDirectBuffer mutableDirectBuffer;
-    private final DirectMessageFactory directMessageFactory;
+    private final RecyclingDirectFactory directFactory;
 
     public ChronicleMessageLog(final VanillaChronicle chronicle,
                                final MutableDirectBuffer mutableDirectBuffer) throws IOException {
@@ -57,11 +57,11 @@ public final class ChronicleMessageLog implements MessageLog<DirectCommandMessag
         this.appender = chronicle.createAppender();
         this.setLastWrittenIndexMethod = initLastWrittenIndexMethod();
         this.mutableDirectBuffer = Objects.requireNonNull(mutableDirectBuffer);
-        this.directMessageFactory = DirectMessageFactory.createForWriting(mutableDirectBuffer, 0);
+        this.directFactory = RecyclingDirectFactory.createForWriting(mutableDirectBuffer, 0);
     }
 
-    public DirectMessageFactory messageFactory() {
-        return directMessageFactory;
+    public RecyclingDirectFactory messageFactory() {
+        return directFactory;
     }
 
     @Override
@@ -92,7 +92,7 @@ public final class ChronicleMessageLog implements MessageLog<DirectCommandMessag
     }
 
     @Override
-    public DirectCommandMessage read() {
+    public CommandMessage read() {
         if (!excerpt.nextIndex()) {
             throw new IllegalStateException("end of message log, index=" + readIndex());
         }
@@ -106,12 +106,12 @@ public final class ChronicleMessageLog implements MessageLog<DirectCommandMessag
                 i++;
             }
         }
-        return directMessageFactory.commandMessage();
+        return directFactory.commandMessage();
     }
 
     @Override
-    public void append(final DirectCommandMessage message) {
-        final DirectBuffer buffer = Objects.requireNonNull(message.buffer());
+    public void append(final CommandMessage message) {
+        final DirectBuffer buffer = Objects.requireNonNull(message.bufferOrNull());
         final int len = message.byteLength();
         appender.startExcerpt(len + 4);
         appender.writeInt(len);

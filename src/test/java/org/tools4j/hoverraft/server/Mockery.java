@@ -23,12 +23,15 @@
  */
 package org.tools4j.hoverraft.server;
 
+import org.tools4j.hoverraft.command.log.CommandLog;
+import org.tools4j.hoverraft.command.log.LogEntry;
+import org.tools4j.hoverraft.command.log.LogEntryComparator;
 import org.tools4j.hoverraft.config.ConfigBuilder;
 import org.tools4j.hoverraft.config.ConsensusConfig;
 import org.tools4j.hoverraft.config.ThreadingMode;
-import org.tools4j.hoverraft.machine.StateMachine;
+import org.tools4j.hoverraft.command.machine.StateMachine;
 import org.tools4j.hoverraft.message.Message;
-import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
+import org.tools4j.hoverraft.direct.RecyclingDirectFactory;
 import org.tools4j.hoverraft.state.*;
 import org.tools4j.hoverraft.transport.Connections;
 import org.tools4j.hoverraft.transport.MessageLog;
@@ -52,15 +55,15 @@ public class Mockery {
     }
 
     public static ServerContext direct(final int servers, final int sources, final int connections) {
-        return server(servers, sources, connections, DirectMessageFactory.createForWriting());
+        return server(servers, sources, connections, RecyclingDirectFactory.createForWriting());
     }
 
     public static ServerContext simple(final int servers, final int sources, final int connections) {
-        return server(servers, sources, connections, DirectMessageFactory.createForWriting());
+        return server(servers, sources, connections, RecyclingDirectFactory.createForWriting());
     }
 
     private static ServerContext server(final int servers, final int sources, final int connections,
-                                        final DirectMessageFactory messageFactory) {
+                                        final RecyclingDirectFactory messageFactory) {
         final ConsensusConfig consensusConfig = consensusConfig(servers, sources);
         return new Server(SERVER_ID,
                 consensusConfig(servers, sources), persistentState(), volatileState(consensusConfig),

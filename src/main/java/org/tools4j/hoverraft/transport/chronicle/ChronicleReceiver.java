@@ -25,8 +25,8 @@ package org.tools4j.hoverraft.transport.chronicle;
 
 import net.openhft.chronicle.ExcerptTailer;
 import org.agrona.MutableDirectBuffer;
-import org.tools4j.hoverraft.message.direct.DirectMessage;
-import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
+import org.tools4j.hoverraft.direct.RecyclingDirectFactory;
+import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.transport.Receiver;
 
 import java.util.Objects;
@@ -35,20 +35,20 @@ import java.util.function.Consumer;
 /**
  * Subscription reading from a chronicle queue.
  */
-public class ChronicleReceiver implements Receiver<DirectMessage> {
+public class ChronicleReceiver implements Receiver<Message> {
 
     private final ExcerptTailer tailer;
     private final MutableDirectBuffer mutableDirectBuffer;
-    private final DirectMessageFactory directMessageFactory;
+    private final RecyclingDirectFactory directFactory;
 
     public ChronicleReceiver(final ExcerptTailer tailer, MutableDirectBuffer buffer) {
         this.tailer = Objects.requireNonNull(tailer);
         this.mutableDirectBuffer = Objects.requireNonNull(buffer);
-        this.directMessageFactory = DirectMessageFactory.createForWriting(buffer, 0);
+        this.directFactory = RecyclingDirectFactory.createForWriting(buffer, 0);
     }
 
     @Override
-    public int poll(final Consumer<? super DirectMessage> messageMandler, final int limit) {
+    public int poll(final Consumer<? super Message> messageMandler, final int limit) {
         int messagesRead = 0;
         while (messagesRead < limit && tailer.nextIndex()) {
             final int len = tailer.readInt();
@@ -67,8 +67,8 @@ public class ChronicleReceiver implements Receiver<DirectMessage> {
         return messagesRead;
     }
 
-    private void consume(final Consumer<? super DirectMessage> messageMandler) {
-        final DirectMessage message = directMessageFactory.wrapForReading(mutableDirectBuffer, 0);
+    private void consume(final Consumer<? super Message> messageMandler) {
+        final Message message = directFactory.wrapForReading(mutableDirectBuffer, 0);
         messageMandler.accept(message);
     }
 }

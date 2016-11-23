@@ -23,6 +23,7 @@
  */
 package org.tools4j.hoverraft.message;
 
+import org.tools4j.hoverraft.direct.DirectPayload;
 import org.tools4j.hoverraft.event.Event;
 import org.tools4j.hoverraft.transport.ResendStrategy;
 import org.tools4j.hoverraft.transport.Sender;
@@ -30,7 +31,7 @@ import org.tools4j.hoverraft.transport.Sender;
 /**
  * Base interface for all messages.
  */
-public interface Message extends Event {
+public interface Message extends DirectPayload, Event {
 
     MessageType type();
 

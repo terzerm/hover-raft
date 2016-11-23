@@ -23,18 +23,13 @@
  */
 package org.tools4j.hoverraft.server;
 
+import org.tools4j.hoverraft.command.machine.StateMachine;
 import org.tools4j.hoverraft.config.ConsensusConfig;
 import org.tools4j.hoverraft.config.ServerConfig;
-import org.tools4j.hoverraft.machine.StateMachine;
-import org.tools4j.hoverraft.message.CommandMessage;
+import org.tools4j.hoverraft.direct.DirectFactory;
 import org.tools4j.hoverraft.message.Message;
-import org.tools4j.hoverraft.message.MessageFactory;
-import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
-import org.tools4j.hoverraft.state.PersistentState;
-import org.tools4j.hoverraft.state.VolatileState;
 import org.tools4j.hoverraft.timer.Timer;
 import org.tools4j.hoverraft.transport.Connections;
-import org.tools4j.hoverraft.transport.MessageLog;
 import org.tools4j.hoverraft.transport.ResendStrategy;
 
 public interface ServerContext {
@@ -45,7 +40,7 @@ public interface ServerContext {
 
     Connections<Message> connections();
 
-    MessageFactory messageFactory();
+    DirectFactory messageFactory();
 
     StateMachine stateMachine();
 
