@@ -28,34 +28,42 @@ import org.tools4j.hoverraft.server.ServerContext;
 import org.tools4j.hoverraft.state.PersistentState;
 import org.tools4j.hoverraft.state.Transition;
 
+import java.util.Objects;
+
 public final class HigherTermHandler implements EventHandler {
+
+    private final PersistentState persistentState;
+
+    public HigherTermHandler(final PersistentState persistentState) {
+        this.persistentState = Objects.requireNonNull(persistentState);
+    }
 
     @Override
     public Transition onVoteRequest(final ServerContext serverContext, final VoteRequest voteRequest) {
-        return onTerm(serverContext.persistentState(), voteRequest.term());
+        return onTerm(voteRequest.term());
     }
 
     @Override
     public Transition onVoteResponse(final ServerContext serverContext, final VoteResponse voteResponse) {
-        return onTerm(serverContext.persistentState(), voteResponse.term());
+        return onTerm(voteResponse.term());
     }
 
     @Override
     public Transition onAppendRequest(final ServerContext serverContext, final AppendRequest appendRequest) {
-        return onTerm(serverContext.persistentState(), appendRequest.term());
+        return onTerm(appendRequest.term());
     }
 
     @Override
     public Transition onAppendResponse(final ServerContext serverContext, final AppendResponse appendResponse) {
-        return onTerm(serverContext.persistentState(), appendResponse.term());
+        return onTerm(appendResponse.term());
     }
 
     @Override
     public Transition onTimeoutNow(final ServerContext serverContext, final TimeoutNow timeoutRequest) {
-        return onTerm(serverContext.persistentState(), timeoutRequest.term());
+        return onTerm(timeoutRequest.term());
     }
 
-    private Transition onTerm(final PersistentState persistentState, final int term) {
+    private Transition onTerm(final int term) {
         if (term > persistentState.currentTerm()) {
             persistentState.clearVotedForAndSetCurrentTerm(term);
             return Transition.TO_FOLLOWER;

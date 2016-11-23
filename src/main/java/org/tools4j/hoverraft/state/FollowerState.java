@@ -32,8 +32,8 @@ import org.tools4j.hoverraft.timer.TimerEvent;
 
 public class FollowerState extends AbstractState {
 
-    public FollowerState() {
-        super(Role.FOLLOWER);
+    public FollowerState(final PersistentState persistentState, final VolatileState volatileState) {
+        super(Role.FOLLOWER, persistentState, volatileState);
     }
 
     @Override
@@ -68,8 +68,7 @@ public class FollowerState extends AbstractState {
     }
 
     private Transition onTimeoutNow(final ServerContext serverContext, final TimeoutNow timeoutNow) {
-        final int currentTerm = serverContext.persistentState().currentTerm();
-        if (timeoutNow.term() == currentTerm && timeoutNow.candidateId() == serverContext.id()) {
+        if (timeoutNow.term() == currentTerm() && timeoutNow.candidateId() == serverContext.id()) {
             return Transition.TO_CANDIDATE;
         }
         return Transition.STEADY;

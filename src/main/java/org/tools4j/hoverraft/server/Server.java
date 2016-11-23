@@ -36,7 +36,6 @@ import org.tools4j.hoverraft.state.VolatileState;
 import org.tools4j.hoverraft.timer.Timer;
 import org.tools4j.hoverraft.timer.TimerEvent;
 import org.tools4j.hoverraft.transport.Connections;
-import org.tools4j.hoverraft.transport.MessageLog;
 import org.tools4j.hoverraft.transport.ResendStrategy;
 
 import java.util.Objects;
@@ -46,8 +45,6 @@ public final class Server implements ServerContext {
     private final ServerConfig serverConfig;
     private final ConsensusConfig consensusConfig;
     private final HoverRaftMachine hoverRaftMachine;
-    private final PersistentState persistentState;
-    private final VolatileState volatileState;
     private final StateMachine stateMachine;
     private final Connections<Message> connections;
     private final DirectMessageFactory messageFactory;
@@ -64,9 +61,8 @@ public final class Server implements ServerContext {
                   final DirectMessageFactory messageFactory) {
         this.serverConfig = Objects.requireNonNull(consensusConfig.serverConfigByIdOrNull(serverId), "No server serverConfig found for ID " + serverId);
         this.consensusConfig = Objects.requireNonNull(consensusConfig);
-        this.persistentState = Objects.requireNonNull(persistentState);
-        this.volatileState = Objects.requireNonNull(volatileState);
-        this.hoverRaftMachine = new HoverRaftMachine();
+        this.hoverRaftMachine = new HoverRaftMachine(Objects.requireNonNull(persistentState),
+                Objects.requireNonNull(volatileState));
         this.stateMachine = Objects.requireNonNull(stateMachine);
         this.connections = Objects.requireNonNull(connections);
         this.messageFactory = Objects.requireNonNull(messageFactory);
@@ -88,16 +84,6 @@ public final class Server implements ServerContext {
     @Override
     public Connections<Message> connections() {
         return connections;
-    }
-
-    @Override
-    public PersistentState persistentState() {
-        return persistentState;
-    }
-
-    @Override
-    public VolatileState volatileState() {
-        return volatileState;
     }
 
     @Override

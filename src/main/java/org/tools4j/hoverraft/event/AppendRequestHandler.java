@@ -4,12 +4,21 @@ import org.tools4j.hoverraft.message.AppendRequest;
 import org.tools4j.hoverraft.server.ServerContext;
 import org.tools4j.hoverraft.state.*;
 
+import java.util.Objects;
+
 public class AppendRequestHandler {
+    private final PersistentState persistentState;
+    private final VolatileState volatileState;
+
+    public AppendRequestHandler(final PersistentState persistentState, final VolatileState volatileState) {
+        this.persistentState = Objects.requireNonNull(persistentState);
+        this.volatileState = Objects.requireNonNull(volatileState);
+    }
 
     public Transition onAppendRequest(final ServerContext serverContext, final AppendRequest appendRequest) {
         final int appendRequestTerm = appendRequest.term();
         final int leaderId = appendRequest.leaderId();
-        final int currentTerm = serverContext.persistentState().currentTerm();
+        final int currentTerm = persistentState.currentTerm();
         final Transition transition;
         final boolean successful;
 
@@ -37,8 +46,7 @@ public class AppendRequestHandler {
         final LogEntry prevLogEntry = appendRequest.prevLogEntry();
         final CommandLogEntry newCommandLogEntry = appendRequest.commandLogEntry();
 
-        final CommandLog commandLog = serverContext.persistentState().commandLog();
-        final VolatileState volatileState = serverContext.volatileState();
+        final CommandLog commandLog = persistentState.commandLog();
 
         final CommandLog.CONTAINMENT containment = commandLog.contains(prevLogEntry);
 

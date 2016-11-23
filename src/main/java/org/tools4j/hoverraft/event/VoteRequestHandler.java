@@ -29,10 +29,17 @@ import org.tools4j.hoverraft.state.CommandLog;
 import org.tools4j.hoverraft.state.PersistentState;
 import org.tools4j.hoverraft.state.Transition;
 
+import java.util.Objects;
+
 public final class VoteRequestHandler {
 
+    private final PersistentState persistentState;
+
+    public VoteRequestHandler(final PersistentState persistentState) {
+        this.persistentState = Objects.requireNonNull(persistentState);
+    }
+
     public Transition onVoteRequest(final ServerContext serverContext, final VoteRequest voteRequest) {
-        final PersistentState persistentState = serverContext.persistentState();
         final CommandLog commandLog = persistentState.commandLog();
         final int term = voteRequest.term();
         final int candidateId = voteRequest.candidateId();
@@ -46,7 +53,7 @@ public final class VoteRequestHandler {
                 transition = Transition.TO_FOLLOWER;
                 granted = true;
             } else {
-                granted = serverContext.persistentState().votedFor() == candidateId;
+                granted = persistentState.votedFor() == candidateId;
                 transition = Transition.STEADY;
             }
         } else {
@@ -54,7 +61,7 @@ public final class VoteRequestHandler {
             transition = Transition.STEADY;
         }
         serverContext.messageFactory().voteResponse()
-                .term(serverContext.persistentState().currentTerm())
+                .term(persistentState.currentTerm())
                 .voteGranted(granted)
                 .sendTo(serverContext.connections().serverSender(candidateId),
                         serverContext.resendStrategy());

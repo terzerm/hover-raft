@@ -35,8 +35,8 @@ public final class CandidateState extends AbstractState {
 
     private int voteCount;
 
-    public CandidateState() {
-        super(Role.CANDIDATE);
+    public CandidateState(final PersistentState persistentState, final VolatileState volatileState) {
+        super(Role.CANDIDATE, persistentState, volatileState);
     }
 
     @Override
@@ -75,9 +75,7 @@ public final class CandidateState extends AbstractState {
     }
 
     private Transition onVoteResponse(final ServerContext serverContext, final VoteResponse voteResponse) {
-        final int currentTerm = serverContext.persistentState().currentTerm();
-
-        if (voteResponse.term() == currentTerm && voteResponse.voteGranted()) {
+        if (voteResponse.term() == currentTerm() && voteResponse.voteGranted()) {
             return incVoteCount(serverContext);
         }
         return Transition.STEADY;
@@ -86,7 +84,7 @@ public final class CandidateState extends AbstractState {
 
     protected Transition onAppendRequest(final ServerContext serverContext, final AppendRequest appendRequest) {
         final int appendRequestTerm = appendRequest.term();
-        final int currentTerm = serverContext.persistentState().currentTerm();
+        final int currentTerm = currentTerm();
 
         if (appendRequestTerm >= currentTerm) {
             serverContext.timer().reset();
@@ -103,14 +101,14 @@ public final class CandidateState extends AbstractState {
 
     private void startNewElection(final ServerContext serverContext) {
         final ConsensusConfig config = serverContext.consensusConfig();
-        serverContext.persistentState().clearVotedForAndIncCurrentTerm();
+        persistentState().clearVotedForAndIncCurrentTerm();
         serverContext.timer().restart(config.minElectionTimeoutMillis(), config.maxElectionTimeoutMillis());
         voteForMyself(serverContext);
     }
 
 
     private void voteForMyself(final ServerContext serverContext) {
-        final PersistentState pstate = serverContext.persistentState();
+        final PersistentState pstate = persistentState();
         final int self = serverContext.serverConfig().id();
         pstate.votedFor(self);
         voteCount = 1;
@@ -118,9 +116,8 @@ public final class CandidateState extends AbstractState {
     }
 
     private void requestVoteFromAllServers(final ServerContext serverContext, final int self) {
-        final int currentTerm = serverContext.persistentState().currentTerm();
         serverContext.messageFactory().voteRequest()
-                .term(currentTerm)
+                .term(currentTerm())
                 .candidateId(self)
                 .sendTo(serverContext.connections().serverMulticastSender(),
                         serverContext.resendStrategy());

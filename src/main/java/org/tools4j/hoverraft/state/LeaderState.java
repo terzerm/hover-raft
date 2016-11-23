@@ -32,8 +32,8 @@ import org.tools4j.hoverraft.timer.TimerEvent;
 
 public class LeaderState extends AbstractState {
 
-    public LeaderState() {
-        super(Role.LEADER);
+    public LeaderState(final PersistentState persistentState, final VolatileState volatileState) {
+        super(Role.LEADER, persistentState, volatileState);
     }
 
     @Override
@@ -76,13 +76,13 @@ public class LeaderState extends AbstractState {
         CommandLogEntry newCommandLogEntry = serverContext.messageFactory().commandLogEntry();
 
         //set or copy commandMessage into newCommandLogEntry
-        newCommandLogEntry.term(serverContext.persistentState().currentTerm());
+        newCommandLogEntry.term(currentTerm());
         newCommandLogEntry.commandMessage().commandIndex(commandMessage.commandIndex());
         newCommandLogEntry.commandMessage().commandSourceId(commandMessage.commandSourceId());
         //FIXme
         //newCommandLogEntry.commandMessage().command().
 
-        serverContext.persistentState().commandLog().append(newCommandLogEntry);
+        persistentState().commandLog().append(newCommandLogEntry);
         sendAppendRequest(serverContext);//FIXME send command message in request
         return Transition.STEADY;
     }

@@ -45,10 +45,6 @@ public interface ServerContext {
 
     Connections<Message> connections();
 
-    PersistentState persistentState();
-
-    VolatileState volatileState();
-
     MessageFactory messageFactory();
 
     StateMachine stateMachine();

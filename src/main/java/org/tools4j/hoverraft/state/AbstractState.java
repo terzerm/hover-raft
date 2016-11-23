@@ -34,15 +34,19 @@ import java.util.Objects;
 abstract public class AbstractState implements State {
 
     private final Role role;
+    private final PersistentState persistentState;
+    private final VolatileState volatileState;
     private final HigherTermHandler higherTermHandler;
     private final VoteRequestHandler voteRequestHandler;
     private final AppendRequestHandler appendRequestHandler;
 
-    public AbstractState(final Role role) {
+    public AbstractState(final Role role, final PersistentState persistentState, final VolatileState volatileState) {
         this.role = Objects.requireNonNull(role);
-        this.higherTermHandler = new HigherTermHandler();
-        this.voteRequestHandler = new VoteRequestHandler();
-        this.appendRequestHandler = new AppendRequestHandler();
+        this.persistentState = Objects.requireNonNull(persistentState);
+        this.volatileState = Objects.requireNonNull(volatileState);
+        this.higherTermHandler = new HigherTermHandler(persistentState);
+        this.voteRequestHandler = new VoteRequestHandler(persistentState);
+        this.appendRequestHandler = new AppendRequestHandler(persistentState, volatileState);
     }
 
     abstract protected EventHandler eventHandler();
@@ -59,6 +63,18 @@ abstract public class AbstractState implements State {
                 .ifSteadyThen(serverContext, event, eventHandler());
     }
 
+    public int currentTerm() {
+        return persistentState.currentTerm();
+    }
+
+    protected PersistentState persistentState() {
+        return persistentState;
+    }
+
+    protected VolatileState volatileState() {
+        return volatileState;
+    }
+
     protected Transition onVoteRequest(final ServerContext serverContext, final VoteRequest voteRequest) {
         return voteRequestHandler.onVoteRequest(serverContext, voteRequest);
     }
@@ -68,9 +84,6 @@ abstract public class AbstractState implements State {
     }
 
     protected void invokeStateMachineWithCommittedLogEntries(final ServerContext serverContext) {
-        final VolatileState volatileState = serverContext.volatileState();
-        final PersistentState persistentState = serverContext.persistentState();
-
         final CommandLog commandLog = persistentState.commandLog();
         final StateMachine stateMachine = serverContext.stateMachine();
         long lastApplied = volatileState.lastApplied();
