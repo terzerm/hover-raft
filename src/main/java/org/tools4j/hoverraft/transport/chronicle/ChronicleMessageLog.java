@@ -140,11 +140,4 @@ public final class ChronicleMessageLog implements MessageLog<CommandMessage> {
             throw new RuntimeException(e);
         }
     }
-
-    @Override
-    public long truncateIncluding(long inclusiveIndex) {
-        final long size = size();
-        size(inclusiveIndex);
-        return size - size();
-    }
 }
