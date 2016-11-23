@@ -89,7 +89,7 @@ public class FollowerStateTest {
         final LogEntry prevLogEntry = appendRequest.prevLogEntry();
         final CommandLogEntry commandLogEntry = appendRequest.commandLogEntry();
 
-        when(commandLog.contains(prevLogEntry)).thenReturn(CommandLog.CONTAINMENT.IN);
+        when(commandLog.contains(prevLogEntry)).thenReturn(LogContainment.IN);
 
         when(serverContext.connections().serverSender(leaderId)).thenReturn(sender);
 

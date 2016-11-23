@@ -112,8 +112,9 @@ public class VoteRequestHandlerTest {
                 .term(term)
                 .candidateId(candidateId);
         //need LogEntry mutators to return parent object on done()
-        voteRequest.lastLogEntry().term(lastLogTerm)
-                                .index(lastLogIndex);
+        voteRequest.lastLogEntry()
+                .term(lastLogTerm)
+                .index(lastLogIndex);
 
         when(serverContext.connections().serverSender(candidateId)).thenReturn(sender);
         when(persistentState.votedFor()).thenReturn(previouslyVotedFor);
@@ -139,7 +140,8 @@ public class VoteRequestHandlerTest {
                 .term(term)
                 .candidateId(candidateId);
         //need LogEntry mutators to return parent object on done()
-        voteRequest.lastLogEntry().term(newerLastLogTerm)
+        voteRequest.lastLogEntry()
+                .term(newerLastLogTerm)
                 .index(lastLogIndex);
 
         when(serverContext.connections().serverSender(candidateId)).thenReturn(sender);
@@ -165,8 +167,11 @@ public class VoteRequestHandlerTest {
                 .candidateId(candidateId);
 
         //need LogEntry mutators to return parent object on done()
-        voteRequest.lastLogEntry().term(lastLogTerm)
-                .index(lastLogIndex);
+        voteRequest.lastLogEntry()
+                .term(lastLogTerm)
+                .index(newerLastLogIndex);
+
+        final CommandLog commandLog = persistentState.commandLog();
 
         when(serverContext.connections().serverSender(candidateId)).thenReturn(sender);
         when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
@@ -190,7 +195,8 @@ public class VoteRequestHandlerTest {
                 .term(badTerm)
                 .candidateId(serverId);
         //need LogEntry mutators to return parent object on done()
-        voteRequest.lastLogEntry().term(lastLogTerm)
+        voteRequest.lastLogEntry()
+                .term(lastLogTerm)
                 .index(lastLogIndex);
 
         when(serverContext.connections().serverSender(serverId)).thenReturn(sender);
@@ -215,12 +221,14 @@ public class VoteRequestHandlerTest {
                 .term(term)
                 .candidateId(serverId);
         //need LogEntry mutators to return parent object on done()
-        voteRequest.lastLogEntry().term(badLastLogTerm)
+        voteRequest.lastLogEntry()
+                .term(badLastLogTerm)
                 .index(lastLogIndex);
 
         when(serverContext.connections().serverSender(serverId)).thenReturn(sender);
         when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
-        when(persistentState.commandLog().lastEntry().compareTo(voteRequest.lastLogEntry())).thenReturn(1);
+        when(persistentState.commandLog().lastEntry().term()).thenReturn(lastLogTerm);
+        when(persistentState.commandLog().lastEntry().index()).thenReturn(lastLogIndex);
 
         //when + then
         onVoteRequest(term, voteRequest, REJECTED);
@@ -239,16 +247,14 @@ public class VoteRequestHandlerTest {
                 .term(term)
                 .candidateId(serverId);
         //need LogEntry mutators to return parent object on done()
-        voteRequest.lastLogEntry().term(lastLogTerm)
+        voteRequest.lastLogEntry()
+                .term(lastLogTerm)
                 .index(badLastLogIndex);
-
-        final CommandLog commandLog = persistentState.commandLog();
-        final LogEntry commandLoglastLogEntry = commandLog.lastEntry();
 
         when(serverContext.connections().serverSender(serverId)).thenReturn(sender);
         when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
-        when(commandLoglastLogEntry.compareTo(voteRequest.lastLogEntry())).thenReturn(1);
-
+        when(persistentState.commandLog().lastEntry().term()).thenReturn(lastLogTerm);
+        when(persistentState.commandLog().lastEntry().index()).thenReturn(lastLogIndex);
 
         //when + then
         onVoteRequest(term, voteRequest, REJECTED);

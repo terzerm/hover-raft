@@ -1,20 +1,38 @@
+/**
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2016 hover-raft (tools4j), Marco Terzer
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 package org.tools4j.hoverraft.state.inmemory;
 
-import org.jetbrains.annotations.NotNull;
 import org.tools4j.hoverraft.state.CommandLog;
 import org.tools4j.hoverraft.state.CommandLogEntry;
 import org.tools4j.hoverraft.state.LogEntry;
-import org.tools4j.hoverraft.state.LogEntryComparator;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class InMemoryCommandLog implements CommandLog {
-    private static final Comparator<LogEntry> LOG_ENTRY_COMPARATOR = new LogEntryComparator();
-
     private final List<CommandLogEntry> commandLogEntries = new ArrayList<>();
     private final AtomicInteger readIndex = new AtomicInteger(0);
 
@@ -22,7 +40,7 @@ public class InMemoryCommandLog implements CommandLog {
         @Override
         public int term() {
             readIndex(index());
-            return read().term();
+            return readTerm();
         }
 
         @Override
@@ -39,11 +57,6 @@ public class InMemoryCommandLog implements CommandLog {
         @Override
         public LogEntry index(final long index) {
             throw new UnsupportedOperationException("index update is not allowed");
-        }
-
-        @Override
-        public int compareTo(@NotNull final LogEntry logEntry) {
-            return LOG_ENTRY_COMPARATOR.compare(this, Objects.requireNonNull(logEntry));
         }
     };
 
@@ -67,7 +80,12 @@ public class InMemoryCommandLog implements CommandLog {
     }
 
     @Override
-    public synchronized CommandLogEntry read() {
+    public int readTerm() {
+        return read(null).term();
+    }
+
+    @Override
+    public synchronized CommandLogEntry read(final CommandLogEntry commandLogEntry) {
         if (readIndex.get() < commandLogEntries.size()) {
             return commandLogEntries.get(readIndex.getAndIncrement());
         }

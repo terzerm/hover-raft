@@ -23,28 +23,17 @@
  */
 package org.tools4j.hoverraft.state;
 
-import org.junit.Test;
-import org.tools4j.hoverraft.state.inmemory.InMemoryCommandLog;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import static org.assertj.core.api.Assertions.assertThat;
+public enum LogContainment {
+    IN, OUT, CONFLICT;
 
 
-public class InMemoryCommandLogTest {
-
-    @Test
-    public void append_should_add_new_logEntry() throws Exception {
-        CommandLogEntry commandLogEntry1 = mock(CommandLogEntry.class);
-
-        when(commandLogEntry1.term()).thenReturn(1);
-        when(commandLogEntry1.index()).thenReturn(1L);
-
-
-        InMemoryCommandLog commandLog = new InMemoryCommandLog();
-        commandLog.append(commandLogEntry1);
-
-        assertThat(commandLog.size()).isEqualTo(1);
+    public static LogContainment containmentFor(final LogEntry logEntry, final CommandLog commandLog) {
+        if (logEntry.index() > commandLog.lastEntry().index()) {
+            return OUT;
+        } else {
+            commandLog.readIndex(logEntry.index());
+            final int termAtLogEntryIndex = commandLog.readTerm();
+            return logEntry.term() == termAtLogEntryIndex ? IN : CONFLICT;
+        }
     }
 }

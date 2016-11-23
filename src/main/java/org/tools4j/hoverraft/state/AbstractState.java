@@ -28,6 +28,7 @@ import org.tools4j.hoverraft.machine.StateMachine;
 import org.tools4j.hoverraft.message.AppendRequest;
 import org.tools4j.hoverraft.message.VoteRequest;
 import org.tools4j.hoverraft.server.ServerContext;
+import org.tools4j.hoverraft.state.direct.DirectCommandLogEntry;
 
 import java.util.Objects;
 
@@ -90,7 +91,7 @@ abstract public class AbstractState implements State {
         while (volatileState.commitIndex() > lastApplied) {
             lastApplied++;
             commandLog.readIndex(lastApplied);
-            final CommandLogEntry commandLogEntry = commandLog.read();
+            final CommandLogEntry commandLogEntry = commandLog.read(new DirectCommandLogEntry() /*FIXME move to factory*/);
             stateMachine.onMessage(commandLogEntry.commandMessage());
             volatileState.lastApplied(lastApplied);
         }

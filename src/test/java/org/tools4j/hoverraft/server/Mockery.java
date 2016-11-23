@@ -29,13 +29,11 @@ import org.tools4j.hoverraft.config.ThreadingMode;
 import org.tools4j.hoverraft.machine.StateMachine;
 import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.message.direct.DirectMessageFactory;
-import org.tools4j.hoverraft.state.CommandLog;
-import org.tools4j.hoverraft.state.LogEntry;
-import org.tools4j.hoverraft.state.PersistentState;
-import org.tools4j.hoverraft.state.VolatileState;
+import org.tools4j.hoverraft.state.*;
 import org.tools4j.hoverraft.transport.Connections;
 import org.tools4j.hoverraft.transport.MessageLog;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -108,6 +106,11 @@ public class Mockery {
         when(commandLog.lastEntry()).thenReturn(lastLogEntry);
         when(lastLogEntry.term()).thenReturn(0);
         when(lastLogEntry.index()).thenReturn(-1L);
+        when(lastLogEntry.compareTo(any(LogEntry.class))).thenAnswer(inv -> {
+            final LogEntry self = (LogEntry)inv.getMock();
+            final LogEntry other = (LogEntry)inv.getArguments()[0];
+            return LogEntryComparator.INSTANCE.compare(self, other);
+        });
 
         when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
         return persistentState;
