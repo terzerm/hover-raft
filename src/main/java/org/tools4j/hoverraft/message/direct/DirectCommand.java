@@ -79,4 +79,9 @@ public class DirectCommand extends AbstractDirectPayload implements Command {
         readBuffer.getBytes(this.offset + COMMAND_OFF, bytes, offset, byteLength());
     }
 
+    @Override
+    public void copyFrom(final Command command) {
+        byteLength(command.byteLength());
+        command.bytesTo(writeBuffer, this.offset + COMMAND_OFF);
+    }
 }
