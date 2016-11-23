@@ -26,7 +26,7 @@ package org.tools4j.hoverraft.message.direct;
 import org.agrona.DirectBuffer;
 import org.agrona.MutableDirectBuffer;
 import org.tools4j.hoverraft.command.LogEntry;
-import org.tools4j.hoverraft.direct.PayloadType;
+import org.tools4j.hoverraft.message.MessageType;
 import org.tools4j.hoverraft.message.VoteRequest;
 
 public final class DirectVoteRequest extends AbstractDirectMessage implements VoteRequest {
@@ -43,8 +43,8 @@ public final class DirectVoteRequest extends AbstractDirectMessage implements Vo
     private final DirectLogEntry lastLogEntry = new DirectLogEntry() ;
 
     @Override
-    public PayloadType type() {
-        return PayloadType.VOTE_REQUEST;
+    public MessageType type() {
+        return MessageType.VOTE_REQUEST;
     }
 
     @Override

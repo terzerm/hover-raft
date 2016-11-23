@@ -23,7 +23,7 @@
  */
 package org.tools4j.hoverraft.message.direct;
 
-import org.tools4j.hoverraft.direct.PayloadType;
+import org.tools4j.hoverraft.message.MessageType;
 import org.tools4j.hoverraft.message.TimeoutNow;
 
 /**
@@ -39,8 +39,8 @@ public final class DirectTimeoutNow extends AbstractDirectMessage implements Tim
     public static final int BYTE_LENGTH = CANDIDATE_ID_OFF + CANDIDATE_ID_LEN;
 
     @Override
-    public PayloadType type() {
-        return PayloadType.TIMEOUT_NOW;
+    public MessageType type() {
+        return MessageType.TIMEOUT_NOW;
     }
 
     @Override

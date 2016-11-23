@@ -23,17 +23,13 @@
  */
 package org.tools4j.hoverraft.direct;
 
-import org.agrona.DirectBuffer;
-import org.agrona.ExpandableArrayBuffer;
-import org.agrona.MutableDirectBuffer;
 import org.tools4j.hoverraft.command.CommandLogEntry;
 import org.tools4j.hoverraft.command.DirectCommandLogEntry;
 import org.tools4j.hoverraft.message.*;
 import org.tools4j.hoverraft.message.direct.*;
 
 /**
- * Factory for messages writing data into an internal readBuffer. Messages and readBuffer are reused accross
- * multiple calls.
+ * Not a true factory since messages are recycled accross multiple calls.
  */
 public final class RecyclingDirectFactory implements DirectFactory {
 
@@ -44,10 +40,6 @@ public final class RecyclingDirectFactory implements DirectFactory {
     private final TimeoutNow timeoutNow = new DirectTimeoutNow();
     private final CommandMessage commandMessage = new DirectCommandMessage();
     private final CommandLogEntry commandLogEntry = new DirectCommandLogEntry();
-
-    private RecyclingDirectFactory() {
-        super();
-    }
 
     @Override
     public AppendRequest appendRequest() {
@@ -84,39 +76,4 @@ public final class RecyclingDirectFactory implements DirectFactory {
         return commandLogEntry;
     }
 
-    public static RecyclingDirectFactory create() {
-        return new RecyclingDirectFactory();
-    }
-
-    public static RecyclingDirectFactory createForWriting() {
-        return createForWriting(new ExpandableArrayBuffer(), 0);
-    }
-
-    public static RecyclingDirectFactory createForWriting(final MutableDirectBuffer buffer, final int offset) {
-        final RecyclingDirectFactory factory = new RecyclingDirectFactory();
-        factory.wrapForWriting(buffer, offset);
-        return factory;
-    }
-
-    public DirectPayload wrapForReading(final DirectBuffer directBuffer, final int offset) {
-        final int type = directBuffer.getInt(offset);
-        if (type >= 0 & type <= PayloadType.maxOrdinal()) {
-            final PayloadType messageType = PayloadType.valueByOrdinal(type);
-            final DirectPayload payload = messageType.create(this);
-            payload.wrap(directBuffer, offset);
-            return payload;
-        }
-        throw new IllegalArgumentException("Illegal message type: " + type);
-    }
-
-    public RecyclingDirectFactory wrapForWriting(final MutableDirectBuffer mutableDirectBuffer, final int offset) {
-        appendRequest.wrap(mutableDirectBuffer, offset);
-        appendResponse.wrap(mutableDirectBuffer, offset);
-        voteRequest.wrap(mutableDirectBuffer, offset);
-        voteResponse.wrap(mutableDirectBuffer, offset);
-        timeoutNow.wrap(mutableDirectBuffer, offset);
-        commandMessage.wrap(mutableDirectBuffer, offset);
-        commandLogEntry.wrap(mutableDirectBuffer, offset);
-        return this;
-    }
-}
+ }

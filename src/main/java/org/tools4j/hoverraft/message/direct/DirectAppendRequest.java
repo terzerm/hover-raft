@@ -29,7 +29,7 @@ import org.tools4j.hoverraft.command.CommandLogEntry;
 import org.tools4j.hoverraft.command.DirectCommandLogEntry;
 import org.tools4j.hoverraft.command.LogEntry;
 import org.tools4j.hoverraft.message.AppendRequest;
-import org.tools4j.hoverraft.direct.PayloadType;
+import org.tools4j.hoverraft.message.MessageType;
 
 public final class DirectAppendRequest extends AbstractDirectMessage implements AppendRequest {
 
@@ -53,8 +53,8 @@ public final class DirectAppendRequest extends AbstractDirectMessage implements 
     private final DirectCommandLogEntry directCommandLogEntry = new DirectCommandLogEntry();
 
     @Override
-    public PayloadType type() {
-        return PayloadType.APPEND_REQUEST;
+    public MessageType type() {
+        return MessageType.APPEND_REQUEST;
     }
 
     @Override

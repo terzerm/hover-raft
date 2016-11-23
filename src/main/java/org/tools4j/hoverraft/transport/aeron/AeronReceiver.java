@@ -27,14 +27,15 @@ import io.aeron.Subscription;
 import io.aeron.logbuffer.FragmentHandler;
 import io.aeron.logbuffer.Header;
 import org.agrona.DirectBuffer;
-import org.tools4j.hoverraft.direct.DirectPayload;
 import org.tools4j.hoverraft.direct.RecyclingDirectFactory;
+import org.tools4j.hoverraft.message.Message;
+import org.tools4j.hoverraft.message.MessageType;
 import org.tools4j.hoverraft.transport.Receiver;
 
 import java.util.Objects;
 import java.util.function.Consumer;
 
-public class AeronReceiver implements Receiver<DirectPayload> {
+public class AeronReceiver implements Receiver<Message> {
 
     private final RecyclingDirectFactory directFactory;
     private final Subscription subscription;
@@ -46,15 +47,11 @@ public class AeronReceiver implements Receiver<DirectPayload> {
     }
 
     @Override
-    public int poll(final Consumer<? super DirectPayload> messageMandler, final int limit) {
-        final FragmentHandler fragmentHandler = (buf, off, len, hdr) -> {
-            final DirectPayload message = directFactory.wrapForReading(buf, off);
-            messageMandler.accept(message);
-        };
+    public int poll(final Consumer<? super Message> messageMandler, final int limit) {
         for (int i = 0; i < limit; i++) {
             if (0 < subscription.poll(aeronHandler, 1)) {
-                messageMandler.accept(aeronHandler.message.get());
-                aeronHandler.message.set(null);
+                messageMandler.accept(aeronHandler.message);
+                aeronHandler.reset();
             } else {
                 return i;
             }
@@ -63,12 +60,20 @@ public class AeronReceiver implements Receiver<DirectPayload> {
     }
 
     private class AeronHandler implements FragmentHandler {
-        private final ThreadLocal<DirectPayload> message = ThreadLocal.withInitial(() -> null);
+        private Message message = null;
 
         @Override
-        public void onFragment(DirectBuffer buffer, int offset, int length, Header header) {
-            final DirectPayload message = directFactory.wrapForReading(buffer, offset);
-            this.message.set(message);
+        public void onFragment(final DirectBuffer buffer, final int offset, final int length, final Header header) {
+            final MessageType messageType = MessageType.readFrom(buffer, offset);
+            message = messageType.create(directFactory);
+            message.wrap(buffer, offset);
+        }
+
+        public void reset() {
+            if (message != null) {
+                message.unwrap();
+                message = null;
+            }
         }
     }
 }

@@ -33,11 +33,14 @@ import org.tools4j.hoverraft.command.CommandLog;
 import org.tools4j.hoverraft.command.CommandLogEntry;
 import org.tools4j.hoverraft.command.LogContainment;
 import org.tools4j.hoverraft.command.LogEntry;
+import org.tools4j.hoverraft.direct.AllocatingDirectFactory;
 import org.tools4j.hoverraft.message.AppendRequest;
 import org.tools4j.hoverraft.message.AppendResponse;
 import org.tools4j.hoverraft.message.Message;
-import org.tools4j.hoverraft.direct.RecyclingDirectFactory;
-import org.tools4j.hoverraft.state.*;
+import org.tools4j.hoverraft.state.FollowerState;
+import org.tools4j.hoverraft.state.PersistentState;
+import org.tools4j.hoverraft.state.Transition;
+import org.tools4j.hoverraft.state.VolatileState;
 import org.tools4j.hoverraft.transport.Sender;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -75,7 +78,7 @@ public class FollowerStateTest {
 
         volatileState.commitIndex(50);
 
-        final AppendRequest appendRequest = RecyclingDirectFactory.createForWriting()
+        final AppendRequest appendRequest = new AllocatingDirectFactory()
                 .appendRequest()
                 .term(term)
                 .leaderId(leaderId)
@@ -119,7 +122,7 @@ public class FollowerStateTest {
         final int badTerm = term - 1;
         final int serverId = serverContext.id();
         final int leaderId = serverId + 1;
-        final AppendRequest appendRequest = RecyclingDirectFactory.createForWriting()
+        final AppendRequest appendRequest = new AllocatingDirectFactory()
                 .appendRequest()
                 .term(badTerm)
                 .leaderId(leaderId);

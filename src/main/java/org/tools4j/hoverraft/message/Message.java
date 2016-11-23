@@ -24,7 +24,6 @@
 package org.tools4j.hoverraft.message;
 
 import org.tools4j.hoverraft.direct.DirectPayload;
-import org.tools4j.hoverraft.direct.PayloadType;
 import org.tools4j.hoverraft.event.Event;
 import org.tools4j.hoverraft.transport.ResendStrategy;
 import org.tools4j.hoverraft.transport.Sender;
@@ -34,7 +33,7 @@ import org.tools4j.hoverraft.transport.Sender;
  */
 public interface Message extends DirectPayload, Event {
 
-    PayloadType type();
+    MessageType type();
 
     default void sendTo(final Sender<? super Message> sender, final ResendStrategy resendStrategy) {
         final long res = sender.offer(this);

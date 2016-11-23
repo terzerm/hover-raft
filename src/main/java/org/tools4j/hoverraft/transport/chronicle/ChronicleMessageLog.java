@@ -57,7 +57,7 @@ public final class ChronicleMessageLog implements MessageLog<CommandMessage> {
         this.appender = chronicle.createAppender();
         this.setLastWrittenIndexMethod = initLastWrittenIndexMethod();
         this.mutableDirectBuffer = Objects.requireNonNull(mutableDirectBuffer);
-        this.directFactory = RecyclingDirectFactory.createForWriting(mutableDirectBuffer, 0);
+        this.directFactory = new RecyclingDirectFactory();
     }
 
     public RecyclingDirectFactory messageFactory() {
@@ -143,7 +143,8 @@ public final class ChronicleMessageLog implements MessageLog<CommandMessage> {
 
     @Override
     public long truncateIncluding(long inclusiveIndex) {
-        //FIXme implement it
-        throw new UnsupportedOperationException("not yet implemented");
+        final long size = size();
+        size(inclusiveIndex);
+        return size - size();
     }
 }

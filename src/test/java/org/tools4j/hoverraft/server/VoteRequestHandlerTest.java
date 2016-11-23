@@ -29,6 +29,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.tools4j.hoverraft.direct.AllocatingDirectFactory;
 import org.tools4j.hoverraft.event.VoteRequestHandler;
 import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.message.VoteRequest;
@@ -106,7 +107,7 @@ public class VoteRequestHandlerTest {
         final int lastLogTerm = term;
         final long lastLogIndex = 1234;
         final boolean granted = previouslyVotedFor == PersistentState.NOT_VOTED_YET || previouslyVotedFor == candidateId;
-        final VoteRequest voteRequest = RecyclingDirectFactory.createForWriting()
+        final VoteRequest voteRequest = new AllocatingDirectFactory()
                 .voteRequest()
                 .term(term)
                 .candidateId(candidateId);
@@ -134,7 +135,7 @@ public class VoteRequestHandlerTest {
         final int lastLogTerm = term;
         final long lastLogIndex = 1234;
         final int newerLastLogTerm = lastLogTerm + 1;
-        final VoteRequest voteRequest = RecyclingDirectFactory.createForWriting()
+        final VoteRequest voteRequest = new AllocatingDirectFactory()
                 .voteRequest()
                 .term(term)
                 .candidateId(candidateId);
@@ -160,7 +161,7 @@ public class VoteRequestHandlerTest {
         final int lastLogTerm = term;
         final long lastLogIndex = 1234;
         final long newerLastLogIndex = lastLogIndex + 1;
-        final VoteRequest voteRequest = RecyclingDirectFactory.createForWriting()
+        final VoteRequest voteRequest = new AllocatingDirectFactory()
                 .voteRequest()
                 .term(term)
                 .candidateId(candidateId);
@@ -189,7 +190,7 @@ public class VoteRequestHandlerTest {
         final int serverId = serverContext.id();
         final int lastLogTerm = term;
         final long lastLogIndex = 1234;
-        final VoteRequest voteRequest = RecyclingDirectFactory.createForWriting()
+        final VoteRequest voteRequest = new AllocatingDirectFactory()
                 .voteRequest()
                 .term(badTerm)
                 .candidateId(serverId);
@@ -215,7 +216,7 @@ public class VoteRequestHandlerTest {
         final int lastLogTerm = term;
         final long lastLogIndex = 1234;
         final int badLastLogTerm = lastLogTerm - 1;
-        final VoteRequest voteRequest = RecyclingDirectFactory.createForWriting()
+        final VoteRequest voteRequest = new AllocatingDirectFactory()
                 .voteRequest()
                 .term(term)
                 .candidateId(serverId);
@@ -241,7 +242,7 @@ public class VoteRequestHandlerTest {
         final int lastLogTerm = term;
         final long lastLogIndex = 1234;
         final long badLastLogIndex = lastLogIndex - 1;
-        final VoteRequest voteRequest = RecyclingDirectFactory.createForWriting()
+        final VoteRequest voteRequest = new AllocatingDirectFactory()
                 .voteRequest()
                 .term(term)
                 .candidateId(serverId);

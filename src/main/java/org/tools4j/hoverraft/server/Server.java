@@ -28,7 +28,6 @@ import org.tools4j.hoverraft.config.ConsensusConfig;
 import org.tools4j.hoverraft.config.ServerConfig;
 import org.tools4j.hoverraft.direct.DirectFactory;
 import org.tools4j.hoverraft.direct.DirectPayload;
-import org.tools4j.hoverraft.direct.RecyclingDirectFactory;
 import org.tools4j.hoverraft.message.CommandMessage;
 import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.state.HoverRaftMachine;
@@ -48,7 +47,7 @@ public final class Server implements ServerContext {
     private final HoverRaftMachine hoverRaftMachine;
     private final StateMachine stateMachine;
     private final Connections<Message> connections;
-    private final RecyclingDirectFactory messageFactory;
+    private final DirectFactory directFactory;
     private final RoundRobinMessagePoller<DirectPayload> serverMessagePoller;
     private final RoundRobinMessagePoller<CommandMessage> sourceMessagePoller;
     private final Timer timer;
@@ -59,14 +58,14 @@ public final class Server implements ServerContext {
                   final VolatileState volatileState,
                   final StateMachine stateMachine,
                   final Connections<Message> connections,
-                  final RecyclingDirectFactory messageFactory) {
+                  final DirectFactory directFactory) {
         this.serverConfig = Objects.requireNonNull(consensusConfig.serverConfigByIdOrNull(serverId), "No server serverConfig found for ID " + serverId);
         this.consensusConfig = Objects.requireNonNull(consensusConfig);
         this.hoverRaftMachine = new HoverRaftMachine(Objects.requireNonNull(persistentState),
                 Objects.requireNonNull(volatileState));
         this.stateMachine = Objects.requireNonNull(stateMachine);
         this.connections = Objects.requireNonNull(connections);
-        this.messageFactory = Objects.requireNonNull(messageFactory);
+        this.directFactory = Objects.requireNonNull(directFactory);
         this.serverMessagePoller = RoundRobinMessagePoller.forServerMessages(this, this::handlePayload);
         this.sourceMessagePoller = RoundRobinMessagePoller.forSourceMessages(this, this::handleMessage);
         this.timer = new Timer();
@@ -89,7 +88,7 @@ public final class Server implements ServerContext {
 
     @Override
     public DirectFactory directFactory() {
-        return messageFactory;
+        return directFactory;
     }
 
     @Override

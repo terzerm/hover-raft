@@ -21,56 +21,52 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.direct;
+package org.tools4j.hoverraft.message;
 
-public enum PayloadType {
+import org.agrona.DirectBuffer;
+import org.tools4j.hoverraft.direct.DirectFactory;
+
+public enum MessageType {
     VOTE_REQUEST {
         @Override
-        public DirectPayload create(final DirectFactory factory) {
+        public Message create(final DirectFactory factory) {
             return factory.voteRequest();
         }
     },
     VOTE_RESPONSE {
         @Override
-        public DirectPayload create(final DirectFactory factory) {
+        public Message create(final DirectFactory factory) {
             return factory.voteResponse();
         }
     },
     APPEND_REQUEST {
         @Override
-        public DirectPayload create(final DirectFactory factory) {
+        public Message create(final DirectFactory factory) {
             return factory.appendRequest();
         }
     },
     APPEND_RESPONSE {
         @Override
-        public DirectPayload create(final DirectFactory factory) {
+        public Message create(final DirectFactory factory) {
             return factory.appendResponse();
         }
     },
     TIMEOUT_NOW {
         @Override
-        public DirectPayload create(final DirectFactory factory) {
+        public Message create(final DirectFactory factory) {
             return factory.timeoutNow();
         }
     },
     COMMAND_MESSAGE {
         @Override
-        public DirectPayload create(final DirectFactory factory) {
+        public Message create(final DirectFactory factory) {
             return factory.commandMessage();
         }
-    },
-    COMMAND_LOG_ENTRY {
-        @Override
-        public DirectPayload create(final DirectFactory factory) {
-            return factory.commandLogEntry();
-        }
-    }
-    ;
+    };
 
-    private static final PayloadType[] VALUES = values();
+    private static final MessageType[] VALUES = values();
 
-    public static final PayloadType valueByOrdinal(final int ordinal) {
+    public static final MessageType valueByOrdinal(final int ordinal) {
         return VALUES[ordinal];
     }
 
@@ -78,23 +74,15 @@ public enum PayloadType {
         return VALUES.length - 1;
     }
 
-    abstract public DirectPayload create(DirectFactory factory);
+    abstract public Message create(DirectFactory factory);
 
-// It appears to be obsolete code, which requires ServerContext to provide DirectFactory
-// instead of DirectFactory.
-//    public static DirectPayload createOrNull(final ServerContext serverContext,
-//                                             final DirectBuffer buffer,
-//                                             final int offset,
-//                                             final int length) {
-//        if (length >= 4) {
-//            final int type = buffer.getInt(offset);
-//            if (0 <= type & type <= VALUES.length) {
-//                final DirectPayload message = valueByOrdinal(type).create(serverContext.messageFactory());
-//                message.wrap(buffer, offset + 4);
-//                return message;
-//            }
-//        }
-//        return null;
-//    }
+    public static MessageType readFrom(final DirectBuffer directBuffer, final int offset) {
+        final int type = directBuffer.getInt(offset);
+        if (type >= 0 & type <= MessageType.maxOrdinal()) {
+            return MessageType.valueByOrdinal(type);
+        }
+        throw new IllegalArgumentException("Illegal message type: " + type);
+    }
+
 
 }

@@ -26,13 +26,16 @@ package org.tools4j.hoverraft.server;
 import org.tools4j.hoverraft.command.CommandLog;
 import org.tools4j.hoverraft.command.LogEntry;
 import org.tools4j.hoverraft.command.LogEntryComparator;
+import org.tools4j.hoverraft.command.machine.StateMachine;
 import org.tools4j.hoverraft.config.ConfigBuilder;
 import org.tools4j.hoverraft.config.ConsensusConfig;
 import org.tools4j.hoverraft.config.ThreadingMode;
-import org.tools4j.hoverraft.command.machine.StateMachine;
-import org.tools4j.hoverraft.message.Message;
+import org.tools4j.hoverraft.direct.AllocatingDirectFactory;
+import org.tools4j.hoverraft.direct.DirectFactory;
 import org.tools4j.hoverraft.direct.RecyclingDirectFactory;
-import org.tools4j.hoverraft.state.*;
+import org.tools4j.hoverraft.message.Message;
+import org.tools4j.hoverraft.state.PersistentState;
+import org.tools4j.hoverraft.state.VolatileState;
 import org.tools4j.hoverraft.transport.Connections;
 import org.tools4j.hoverraft.transport.MessageLog;
 
@@ -46,28 +49,20 @@ public class Mockery {
     public static final long MIN_ELECTION_TIMEOUT_MILLIS = 50;
     public static final long MAX_ELECTION_TIMEOUT_MILLIS = 100;
 
-    public static ServerContext direct(final int servers) {
-        return direct(servers, 0, 0);
-    }
-
     public static ServerContext simple(final int servers) {
         return simple(servers, 0, 0);
     }
 
-    public static ServerContext direct(final int servers, final int sources, final int connections) {
-        return server(servers, sources, connections, RecyclingDirectFactory.createForWriting());
-    }
-
     public static ServerContext simple(final int servers, final int sources, final int connections) {
-        return server(servers, sources, connections, RecyclingDirectFactory.createForWriting());
+        return server(servers, sources, connections, new AllocatingDirectFactory());
     }
 
     private static ServerContext server(final int servers, final int sources, final int connections,
-                                        final RecyclingDirectFactory messageFactory) {
+                                        final DirectFactory directFactory) {
         final ConsensusConfig consensusConfig = consensusConfig(servers, sources);
         return new Server(SERVER_ID,
                 consensusConfig(servers, sources), persistentState(), volatileState(consensusConfig),
-                stateMachine(), connections(servers, sources), messageFactory);
+                stateMachine(), connections(servers, sources), directFactory);
     }
 
     public static ConsensusConfig consensusConfig(final int servers, final int sources) {
