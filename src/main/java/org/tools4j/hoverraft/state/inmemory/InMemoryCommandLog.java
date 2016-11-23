@@ -76,8 +76,10 @@ public class InMemoryCommandLog implements CommandLog {
 
     @Override
     public synchronized void append(final CommandLogEntry commandLogEntry) {
-        commandLogEntries.add(Objects.requireNonNull(commandLogEntry));
-    }
+        final long newIndex = lastEntry.index() + 1;
+        Objects.requireNonNull(commandLogEntry).index(newIndex);
+        commandLogEntries.add(commandLogEntry);
+     }
 
 
     @Override

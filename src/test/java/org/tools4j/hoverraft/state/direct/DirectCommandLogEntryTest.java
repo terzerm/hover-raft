@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.tools4j.hoverraft.message.CommandMessage;
 import org.tools4j.hoverraft.message.MessageType;
+import org.tools4j.hoverraft.message.direct.DirectCommand;
 import org.tools4j.hoverraft.message.direct.DirectCommandMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -63,5 +64,31 @@ public class DirectCommandLogEntryTest {
 
         assertThat(directCommandLogEntry.byteLength()).isEqualTo(expectedLogEntryBytesLength);
 
+    }
+
+    @Test
+    public void should_copy_command_from_other_command() throws Exception {
+        //given
+        final String myCommand = "Command: XXXXXX";
+        final byte[] commandBytes = myCommand.getBytes();
+        DirectCommand otherCommand = new DirectCommand();
+        final ExpandableArrayBuffer buffer = new ExpandableArrayBuffer();
+        otherCommand.wrap(buffer, 0);
+        otherCommand.bytesFrom(commandBytes, 0, commandBytes.length);
+
+
+        //when
+        directCommandLogEntry.commandMessage()
+                .command().copyFrom(otherCommand);
+
+        //then
+        final CommandMessage commandMessage = directCommandLogEntry.commandMessage();
+
+        assertThat(commandMessage.command().byteLength()).isEqualTo(commandBytes.length);
+
+        final byte[] retrievedCommandBytes = new byte[commandMessage.command().byteLength()];
+        commandMessage.command().bytesTo(retrievedCommandBytes, 0);
+
+        assertThat(new String(retrievedCommandBytes)).isEqualTo(myCommand);
     }
 }
