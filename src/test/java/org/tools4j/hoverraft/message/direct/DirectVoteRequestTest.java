@@ -6,7 +6,6 @@ import org.junit.Test;
 import org.tools4j.hoverraft.message.MessageType;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
 
 public class DirectVoteRequestTest {
     private final ExpandableArrayBuffer buffer = new ExpandableArrayBuffer(DirectVoteRequest.BYTE_LENGTH);
