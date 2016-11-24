@@ -1,4 +1,4 @@
-package org.tools4j.hoverraft.state.direct;
+package org.tools4j.hoverraft.command;
 
 import org.agrona.ExpandableArrayBuffer;
 import org.junit.Before;
@@ -9,7 +9,6 @@ import org.tools4j.hoverraft.message.direct.DirectCommand;
 import org.tools4j.hoverraft.message.direct.DirectCommandMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
 
 public class DirectCommandLogEntryTest {
     private final ExpandableArrayBuffer buffer = new ExpandableArrayBuffer(DirectCommandLogEntry.BYTE_LENGTH);
