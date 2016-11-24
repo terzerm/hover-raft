@@ -1,4 +1,4 @@
-package org.tools4j.hoverraft.message.inmemory;
+package org.tools4j.hoverraft.direct;
 
 import org.agrona.ExpandableArrayBuffer;
 import org.agrona.MutableDirectBuffer;
