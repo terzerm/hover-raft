@@ -64,6 +64,13 @@ public final class VolatileState {
         return trackedFollowerStates[index];
     }
 
+    public void resetFollowersState(final long nextIndex) {
+        for (final TrackedFollowerState fs : trackedFollowerStates) {
+            fs.nextIndex(nextIndex);
+            fs.matchIndex(0);
+        }
+    }
+
     public TrackedFollowerState followerStateById(int id) {
         for (final TrackedFollowerState fs : trackedFollowerStates) {
             if (fs.serverId() == id) {
