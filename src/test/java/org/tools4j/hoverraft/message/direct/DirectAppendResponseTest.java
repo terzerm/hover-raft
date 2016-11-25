@@ -23,14 +23,22 @@ public class DirectAppendResponseTest {
         //given
         final int term = 10;
         final boolean sucessful = true;
+        final int serverId = 5;
+        final long matchLogEntryIndex = 564564;
 
         //when
-        directAppendResponse.term(term).successful(sucessful);
+        directAppendResponse
+                .term(term)
+                .successful(sucessful)
+                .serverId(serverId)
+                .matchLogEntryIndex(matchLogEntryIndex);
 
         //then
         assertThat(directAppendResponse.type()).isEqualTo(MessageType.APPEND_RESPONSE);
         assertThat(directAppendResponse.term()).isEqualTo(term);
         assertThat(directAppendResponse.successful()).isEqualTo(sucessful);
+        assertThat(directAppendResponse.serverId()).isEqualTo(serverId);
+        assertThat(directAppendResponse.matchLogEntryIndex()).isEqualTo(matchLogEntryIndex);
         assertThat(directAppendResponse.byteLength()).isEqualTo(DirectAppendResponse.BYTE_LENGTH);
     }
 }

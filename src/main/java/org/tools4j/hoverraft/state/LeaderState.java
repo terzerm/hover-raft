@@ -70,6 +70,7 @@ public class LeaderState extends AbstractState {
     private Transition onTransition(final ServerContext serverContext, final Transition transition) {
         final long heartbeatMillis = serverContext.consensusConfig().heartbeatTimeoutMillis();
         serverContext.timer().restart(heartbeatMillis, heartbeatMillis);
+        volatileState().resetFollowersState(persistentState().commandLog().lastEntry().index() + 1);
         return Transition.STEADY;
     }
 
@@ -88,8 +89,15 @@ public class LeaderState extends AbstractState {
     }
 
     private Transition onAppendResponse(final ServerContext serverContext, final AppendResponse appendResponse) {
-        //FIXME impl
-        updateCommitIndex(serverContext);
+        if (!appendResponse.successful()) {
+            volatileState().followerState(appendResponse.serverId()).decrementNextIndex();
+            sendAppendRequest(serverContext);
+        } else {
+            volatileState().followerState(appendResponse.serverId()).matchIndex(appendResponse.matchLogEntryIndex());
+            volatileState().followerState(appendResponse.serverId()).nextIndex(appendResponse.matchLogEntryIndex() + 1);
+        }
+        updateCommitIndex();
+        invokeStateMachineWithCommittedLogEntries(serverContext);
         return Transition.STEADY;
     }
 
@@ -98,8 +106,40 @@ public class LeaderState extends AbstractState {
         return Transition.STEADY;
     }
 
-    private void updateCommitIndex(final ServerContext serverContext) {
-        //FIXME impl
+    //FIXme test it!!!
+    private void updateCommitIndex() {
+
+        long currentCommitIndex = volatileState().commitIndex();
+
+        int followerCount = volatileState().followerCount();
+
+        final int majority = (followerCount + 1) / 2;
+
+        long minIndexHigherThanCommitIndex = Long.MAX_VALUE;
+        int higherThanCommitCount = 0;
+
+        for(int idx = 0; idx < followerCount; idx++) {
+
+            final TrackedFollowerState followerState = volatileState().followerState(idx);
+            final long matchIndex = followerState.matchIndex();
+
+            if (matchIndex > currentCommitIndex) {
+
+                persistentState().commandLog().readIndex(matchIndex);
+                final int matchTerm = persistentState().commandLog().readTerm();
+
+                if (matchTerm == currentTerm()) {
+
+                    higherThanCommitCount++;
+                    if (matchIndex < minIndexHigherThanCommitIndex) {
+                        minIndexHigherThanCommitIndex = matchIndex;
+                    }
+                }
+            }
+        }
+        if (higherThanCommitCount >= majority) {
+            volatileState().commitIndex(minIndexHigherThanCommitIndex);
+        }
     }
 
     private void sendAppendRequest(final ServerContext serverContext) {
