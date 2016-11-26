@@ -50,20 +50,27 @@ public class AppendRequestHandler {
         final int currentTerm = persistentState.currentTerm();
         final Transition transition;
         final boolean successful;
+        final long matchLogEntryIndex;
 
         if (appendRequestTerm < currentTerm) {
             transition = Transition.STEADY;
             successful = false;
-
+            matchLogEntryIndex = 0;
         } else {
             //appendRequestTerm == currentTerm, as HigherTermHandler would
             transition = Transition.STEADY;
             successful = appendToLog(serverContext, appendRequest);
+
+            //assume that NULL command log entry will have 0 command log entry index
+            matchLogEntryIndex = successful ? Long.max(appendRequest.commandLogEntry().index(),
+                    appendRequest.prevLogEntry().index()) : 0;
         }
 
         serverContext.directFactory().appendResponse()
                 .term(currentTerm)
                 .successful(successful)
+                .serverId(serverContext.serverConfig().id())
+                .matchLogEntryIndex(matchLogEntryIndex)
                 .sendTo(serverContext.connections().serverSender(leaderId),
                         serverContext.resendStrategy());
 

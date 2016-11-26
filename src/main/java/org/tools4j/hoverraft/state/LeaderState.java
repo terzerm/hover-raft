@@ -25,6 +25,7 @@ package org.tools4j.hoverraft.state;
 
 import org.tools4j.hoverraft.command.CommandLogEntry;
 import org.tools4j.hoverraft.event.EventHandler;
+import org.tools4j.hoverraft.message.AppendRequest;
 import org.tools4j.hoverraft.message.AppendResponse;
 import org.tools4j.hoverraft.message.CommandMessage;
 import org.tools4j.hoverraft.message.VoteRequest;
@@ -70,18 +71,18 @@ public class LeaderState extends AbstractState {
     private Transition onTransition(final ServerContext serverContext, final Transition transition) {
         final long heartbeatMillis = serverContext.consensusConfig().heartbeatTimeoutMillis();
         serverContext.timer().restart(heartbeatMillis, heartbeatMillis);
+        volatileState().resetFollowersState(persistentState().commandLog().lastEntry().index() + 1);
         return Transition.STEADY;
     }
 
     private Transition onCommandMessage(final ServerContext serverContext, final CommandMessage commandMessage) {
         CommandLogEntry newCommandLogEntry = serverContext.directFactory().commandLogEntry();
 
-        //set or copy commandMessage into newCommandLogEntry
         newCommandLogEntry.term(currentTerm());
-        newCommandLogEntry.commandMessage().commandIndex(commandMessage.commandIndex());
-        newCommandLogEntry.commandMessage().commandSourceId(commandMessage.commandSourceId());
-        //FIXme
-        //newCommandLogEntry.commandMessage().log().
+        newCommandLogEntry.commandMessage()
+                .commandSourceId(commandMessage.commandSourceId())
+                .commandIndex(commandMessage.commandIndex())
+                .command().copyFrom(commandMessage.command());
 
         persistentState().commandLog().append(newCommandLogEntry);
         sendAppendRequest(serverContext);//FIXME send log message in request
@@ -89,8 +90,15 @@ public class LeaderState extends AbstractState {
     }
 
     private Transition onAppendResponse(final ServerContext serverContext, final AppendResponse appendResponse) {
-        //FIXME impl
-        updateCommitIndex(serverContext);
+        if (!appendResponse.successful()) {
+            volatileState().followerState(appendResponse.serverId()).decrementNextIndex();
+            sendAppendRequest(serverContext, appendResponse.serverId());
+        } else {
+            volatileState().followerState(appendResponse.serverId()).matchIndex(appendResponse.matchLogEntryIndex());
+            volatileState().followerState(appendResponse.serverId()).nextIndex(appendResponse.matchLogEntryIndex() + 1);
+        }
+        updateCommitIndex();
+        invokeStateMachineWithCommittedLogEntries(serverContext);
         return Transition.STEADY;
     }
 
@@ -99,13 +107,76 @@ public class LeaderState extends AbstractState {
         return Transition.STEADY;
     }
 
-    private void updateCommitIndex(final ServerContext serverContext) {
-        //FIXME impl
+    //FIXme test it!!!
+    private void updateCommitIndex() {
+
+        long currentCommitIndex = volatileState().commitIndex();
+
+        int followerCount = volatileState().followerCount();
+
+        final int majority = (followerCount + 1) / 2;
+
+        long minIndexHigherThanCommitIndex = Long.MAX_VALUE;
+        int higherThanCommitCount = 0;
+
+        for(int idx = 0; idx < followerCount; idx++) {
+
+            final TrackedFollowerState followerState = volatileState().followerState(idx);
+            final long matchIndex = followerState.matchIndex();
+
+            if (matchIndex > currentCommitIndex) {
+
+                persistentState().commandLog().readIndex(matchIndex);
+                final int matchTerm = persistentState().commandLog().readTerm();
+
+                if (matchTerm == currentTerm()) {
+
+                    higherThanCommitCount++;
+                    if (matchIndex < minIndexHigherThanCommitIndex) {
+                        minIndexHigherThanCommitIndex = matchIndex;
+                    }
+                }
+            }
+        }
+        if (higherThanCommitCount >= majority) {
+            volatileState().commitIndex(minIndexHigherThanCommitIndex);
+        }
     }
 
     private void sendAppendRequest(final ServerContext serverContext) {
         //FIXME impl
         serverContext.timer().reset();
+
+    }
+
+    private void sendAppendRequest(final ServerContext serverContext, final int serverId) {
+        //FIXME impl
+
+//        final TrackedFollowerState trackedFollowerState =  volatileState().followerStateById(serverId);
+//        final long prevLogEntryIndex = trackedFollowerState.nextIndex() - 1;
+//
+//        final AppendRequest appendRequest = serverContext.directFactory().appendRequest()
+//                .term(currentTerm())
+//                .leaderCommit(volatileState().commitIndex())
+//                .leaderId(serverContext.id());
+//
+//
+//        appendRequest.prevLogEntry().index(prevLogEntryIndex).term()
+//
+//        //here I realised that CommandLogEntry should have LogEntryKey instead of be a LogEntry
+//        appendRequest
+//                .prevLogEntry().index(44)
+//                .term(33);
+//
+//        persistentState().commandLog().readIndex(trackedFollowerState.nextIndex());
+//        persistentState().commandLog().readTo(appendRequest.commandLogEntry());
+//
+//
+//        appendRequest.commandLogEntry().term()
+//
+//                .sendTo(serverContext.connections().serverMulticastSender(),
+//                        serverContext.resendStrategy());
+
     }
 
 }

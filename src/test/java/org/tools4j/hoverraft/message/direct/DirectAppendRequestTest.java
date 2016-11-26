@@ -26,6 +26,7 @@ package org.tools4j.hoverraft.message.direct;
 import org.agrona.ExpandableArrayBuffer;
 import org.junit.Before;
 import org.junit.Test;
+import org.tools4j.hoverraft.message.MessageType;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -73,6 +74,7 @@ public class DirectAppendRequestTest {
                     .command().bytesFrom(commandBytes, 0, commandBytes.length);
 
         // then
+        assertThat(directAppendRequest.type()).isEqualTo(MessageType.APPEND_REQUEST);
         assertThat(directAppendRequest.term()).isEqualTo(term);
         assertThat(directAppendRequest.leaderId()).isEqualTo(leaderId);
         assertThat(directAppendRequest.leaderCommit()).isEqualTo(leaderCommit);
@@ -103,6 +105,12 @@ public class DirectAppendRequestTest {
         directAppendRequest.commandLogEntry().commandMessage().command().bytesTo(retrievedCommandBytes, 0);
 
         assertThat(new String(retrievedCommandBytes)).isEqualTo(myCommand);
+
+        final int extectedAppendRequestBytes = DirectAppendRequest.BYTE_LENGTH +
+                DirectLogEntry.BYTE_LENGTH + DirectCommandMessage.EMPTY_COMMAND_BYTE_LENGTH +
+                commandBytes.length;
+
+        assertThat(directAppendRequest.byteLength()).isEqualTo(extectedAppendRequestBytes);
 
 
     }

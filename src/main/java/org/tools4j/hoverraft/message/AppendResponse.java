@@ -37,6 +37,14 @@ public interface AppendResponse extends Message {
 
     AppendResponse successful(boolean successful);
 
+    AppendResponse serverId(int serverId);
+
+    int serverId();
+
+    AppendResponse matchLogEntryIndex(long matchLogEntryIndex);
+
+    long matchLogEntryIndex();
+
     @Override
     default Transition accept(final ServerContext serverContext, final EventHandler eventHandler) {
         return eventHandler.onAppendResponse(serverContext, this);
