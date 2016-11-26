@@ -28,7 +28,7 @@ public class DirectVoteRequestTest {
         directVoteRequest
                 .term(term)
                 .candidateId(candidateId)
-                .lastLogEntry()
+                .lastLogKey()
                     .term(lastLogTerm)
                     .index(lastLogIndex);
 
@@ -37,8 +37,8 @@ public class DirectVoteRequestTest {
         assertThat(directVoteRequest.term()).isEqualTo(term);
         assertThat(directVoteRequest.candidateId()).isEqualTo(candidateId);
 
-        final int retrievedLastLogTerm = directVoteRequest.lastLogEntry().term();
-        final long retrievedLastLogIndex = directVoteRequest.lastLogEntry().index();
+        final int retrievedLastLogTerm = directVoteRequest.lastLogKey().term();
+        final long retrievedLastLogIndex = directVoteRequest.lastLogKey().index();
 
         assertThat(retrievedLastLogTerm).isEqualTo(lastLogTerm);
         assertThat(retrievedLastLogIndex).isEqualTo(lastLogIndex);

@@ -30,9 +30,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.tools4j.hoverraft.command.CommandLog;
-import org.tools4j.hoverraft.command.CommandLogEntry;
-import org.tools4j.hoverraft.command.LogContainment;
 import org.tools4j.hoverraft.command.LogEntry;
+import org.tools4j.hoverraft.command.LogContainment;
+import org.tools4j.hoverraft.command.LogKey;
 import org.tools4j.hoverraft.direct.AllocatingDirectFactory;
 import org.tools4j.hoverraft.message.AppendRequest;
 import org.tools4j.hoverraft.message.AppendResponse;
@@ -85,16 +85,17 @@ public class FollowerStateTest {
                 .leaderCommit(50);
 
 
-        appendRequest.commandLogEntry().index(101L)
-                                       .term(term);
+        appendRequest.logEntry().logKey()
+                .index(101L)
+                .term(term);
 
-        //make appendRequest prevLogEntry to match the end of commandLog
-        appendRequest.prevLogEntry().term(term)
+        //make appendRequest prevLogKey to match the end of commandLog
+        appendRequest.prevLogKey().term(term)
                                     .index(100);
 
         final CommandLog commandLog = persistentState.commandLog();
-        final LogEntry prevLogEntry = appendRequest.prevLogEntry();
-        final CommandLogEntry commandLogEntry = appendRequest.commandLogEntry();
+        final LogKey prevLogEntry = appendRequest.prevLogKey();
+        final LogEntry logEntry = appendRequest.logEntry();
 
         when(commandLog.contains(prevLogEntry)).thenReturn(LogContainment.IN);
 
@@ -104,7 +105,7 @@ public class FollowerStateTest {
         final Transition transition = followerState.onEvent(serverContext, appendRequest);
 
         //then
-        verify(commandLog).append(commandLogEntry);
+        verify(commandLog).append(logEntry);
 
         final ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
         verify(sender).offer(captor.capture());

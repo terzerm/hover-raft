@@ -30,7 +30,5 @@ public class DirectTimeoutNowTest {
         assertThat(directTimeoutNow.term()).isEqualTo(term);
         assertThat(directTimeoutNow.candidateId()).isEqualTo(candidateId);
         assertThat(directTimeoutNow.byteLength()).isEqualTo(DirectTimeoutNow.BYTE_LENGTH);
-
-
     }
 }
