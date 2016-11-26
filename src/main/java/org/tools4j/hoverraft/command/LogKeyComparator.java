@@ -21,45 +21,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.message.direct;
+package org.tools4j.hoverraft.command;
 
-import org.tools4j.hoverraft.command.LogEntry;
-import org.tools4j.hoverraft.direct.AbstractDirectPayload;
+import java.util.Comparator;
 
-public class DirectLogEntry extends AbstractDirectPayload implements LogEntry {
-    protected static final int TERM_OFF = 0;
-    protected static final int TERM_LEN = 4;
-
-    protected static final int INDEX_OFF = TERM_OFF + TERM_LEN;
-    protected static final int INDEX_LEN = 8;
-
-    public static final int BYTE_LENGTH = INDEX_OFF + INDEX_LEN;
+public enum LogKeyComparator implements Comparator<LogKey> {
+    INSTANCE;
 
     @Override
-    public int byteLength() {
-        return BYTE_LENGTH;
+    public int compare(final LogKey logKey, final LogKey otherLogKey) {
+        final int termCompare = Integer.compare(logKey.term(), otherLogKey.term());
+        return termCompare == 0 ? Long.compare(logKey.index(), otherLogKey.index()) : termCompare;
     }
-
-    @Override
-    public int term() {
-        return readBuffer.getInt(offset + TERM_OFF);
-    }
-
-    @Override
-    public long index() {
-        return readBuffer.getLong(offset + INDEX_OFF);
-    }
-
-    @Override
-    public LogEntry term(int term) {
-        writeBuffer.putInt(offset + TERM_OFF, term);
-        return this;
-    }
-
-    @Override
-    public LogEntry index(long index) {
-        writeBuffer.putLong(offset + INDEX_OFF, index);
-        return this;
-    }
-
 }

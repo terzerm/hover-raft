@@ -24,7 +24,7 @@
 package org.tools4j.hoverraft.state;
 
 import org.tools4j.hoverraft.command.CommandLog;
-import org.tools4j.hoverraft.command.CommandLogEntry;
+import org.tools4j.hoverraft.command.LogEntry;
 import org.tools4j.hoverraft.command.machine.StateMachine;
 import org.tools4j.hoverraft.event.*;
 import org.tools4j.hoverraft.message.AppendRequest;
@@ -92,8 +92,8 @@ abstract public class AbstractState implements State {
         while (volatileState.commitIndex() > lastApplied) {
             lastApplied++;
             commandLog.readIndex(lastApplied);
-            final CommandLogEntry commandLogEntry = commandLog.read(serverContext.directFactory());
-            stateMachine.onMessage(commandLogEntry.commandMessage());
+            final LogEntry logEntry = commandLog.read(serverContext.directFactory());
+            stateMachine.onMessage(logEntry.commandMessage());
             volatileState.lastApplied(lastApplied);
         }
     }

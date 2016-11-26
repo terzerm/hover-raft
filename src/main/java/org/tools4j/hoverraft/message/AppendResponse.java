@@ -41,9 +41,9 @@ public interface AppendResponse extends Message {
 
     int serverId();
 
-    AppendResponse matchLogEntryIndex(long matchLogEntryIndex);
+    AppendResponse matchLogIndex(long matchLogIndex);
 
-    long matchLogEntryIndex();
+    long matchLogIndex();
 
     @Override
     default Transition accept(final ServerContext serverContext, final EventHandler eventHandler) {

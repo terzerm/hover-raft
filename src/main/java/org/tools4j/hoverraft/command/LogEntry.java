@@ -23,15 +23,10 @@
  */
 package org.tools4j.hoverraft.command;
 
-public interface LogEntry extends Comparable<LogEntry> {
-    int term();
-    LogEntry term(int term);
+import org.tools4j.hoverraft.direct.DirectPayload;
+import org.tools4j.hoverraft.message.CommandMessage;
 
-    long index();
-    LogEntry index(long index);
-
-    @Override
-    default int compareTo(final LogEntry other) {
-        return LogEntryComparator.INSTANCE.compare(this, other);
-    }
+public interface LogEntry extends DirectPayload {
+    LogKey logKey();
+    CommandMessage commandMessage();
 }

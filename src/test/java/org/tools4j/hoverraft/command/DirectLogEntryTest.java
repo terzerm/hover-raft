@@ -7,16 +7,17 @@ import org.tools4j.hoverraft.message.CommandMessage;
 import org.tools4j.hoverraft.message.MessageType;
 import org.tools4j.hoverraft.message.direct.DirectCommand;
 import org.tools4j.hoverraft.message.direct.DirectCommandMessage;
+import org.tools4j.hoverraft.message.direct.DirectLogKey;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class DirectCommandLogEntryTest {
-    private final ExpandableArrayBuffer buffer = new ExpandableArrayBuffer(DirectCommandLogEntry.BYTE_LENGTH);
-    private final DirectCommandLogEntry directCommandLogEntry = new DirectCommandLogEntry();
+public class DirectLogEntryTest {
+    private final ExpandableArrayBuffer buffer = new ExpandableArrayBuffer(DirectLogKey.BYTE_LENGTH);
+    private final DirectLogEntry directLogEntry = new DirectLogEntry();
 
     @Before
     public void init() {
-        directCommandLogEntry.wrap(buffer, 0);
+        directLogEntry.wrap(buffer, 0);
     }
 
     @Test
@@ -30,10 +31,10 @@ public class DirectCommandLogEntryTest {
         final byte[] commandBytes = myCommand.getBytes();
 
         //when
-        directCommandLogEntry
+        directLogEntry.logKey()
                 .term(term)
                 .index(index);
-        directCommandLogEntry.commandMessage()
+        directLogEntry.commandMessage()
                 .commandSourceId(sourceId)
                 .commandIndex(commandIndex)
                 .command().bytesFrom(commandBytes, 0, commandBytes.length);
@@ -41,10 +42,10 @@ public class DirectCommandLogEntryTest {
 
 
         //then
-        assertThat(directCommandLogEntry.term()).isEqualTo(term);
-        assertThat(directCommandLogEntry.index()).isEqualTo(index);
+        assertThat(directLogEntry.logKey().term()).isEqualTo(term);
+        assertThat(directLogEntry.logKey().index()).isEqualTo(index);
 
-        final CommandMessage commandMessage = directCommandLogEntry.commandMessage();
+        final CommandMessage commandMessage = directLogEntry.commandMessage();
 
         assertThat(commandMessage.type()).isEqualTo(MessageType.COMMAND_MESSAGE);
         assertThat(commandMessage.commandSourceId()).isEqualTo(sourceId);
@@ -57,11 +58,11 @@ public class DirectCommandLogEntryTest {
 
         assertThat(new String(retrievedCommandBytes)).isEqualTo(myCommand);
 
-        final int expectedLogEntryBytesLength = DirectCommandLogEntry.BYTE_LENGTH +
+        final int expectedLogEntryBytesLength = DirectLogKey.BYTE_LENGTH +
                 DirectCommandMessage.EMPTY_COMMAND_BYTE_LENGTH +
                 commandBytes.length;
 
-        assertThat(directCommandLogEntry.byteLength()).isEqualTo(expectedLogEntryBytesLength);
+        assertThat(directLogEntry.byteLength()).isEqualTo(expectedLogEntryBytesLength);
 
     }
 
@@ -77,11 +78,11 @@ public class DirectCommandLogEntryTest {
 
 
         //when
-        directCommandLogEntry.commandMessage()
+        directLogEntry.commandMessage()
                 .command().copyFrom(otherCommand);
 
         //then
-        final CommandMessage commandMessage = directCommandLogEntry.commandMessage();
+        final CommandMessage commandMessage = directLogEntry.commandMessage();
 
         assertThat(commandMessage.command().byteLength()).isEqualTo(commandBytes.length);
 

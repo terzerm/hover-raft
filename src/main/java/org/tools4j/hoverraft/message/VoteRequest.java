@@ -23,7 +23,7 @@
  */
 package org.tools4j.hoverraft.message;
 
-import org.tools4j.hoverraft.command.LogEntry;
+import org.tools4j.hoverraft.command.LogKey;
 import org.tools4j.hoverraft.event.EventHandler;
 import org.tools4j.hoverraft.server.ServerContext;
 import org.tools4j.hoverraft.state.Transition;
@@ -38,7 +38,7 @@ public interface VoteRequest extends Message {
 
     VoteRequest candidateId(int candidateId);
 
-    LogEntry lastLogEntry();
+    LogKey lastLogKey();
 
     @Override
     default Transition accept(final ServerContext serverContext, final EventHandler eventHandler) {

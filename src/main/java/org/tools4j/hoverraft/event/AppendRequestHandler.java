@@ -24,9 +24,9 @@
 package org.tools4j.hoverraft.event;
 
 import org.tools4j.hoverraft.command.CommandLog;
-import org.tools4j.hoverraft.command.CommandLogEntry;
-import org.tools4j.hoverraft.command.LogContainment;
 import org.tools4j.hoverraft.command.LogEntry;
+import org.tools4j.hoverraft.command.LogContainment;
+import org.tools4j.hoverraft.command.LogKey;
 import org.tools4j.hoverraft.message.AppendRequest;
 import org.tools4j.hoverraft.server.ServerContext;
 import org.tools4j.hoverraft.state.PersistentState;
@@ -62,15 +62,15 @@ public class AppendRequestHandler {
             successful = appendToLog(serverContext, appendRequest);
 
             //assume that NULL command log entry will have 0 command log entry index
-            matchLogEntryIndex = successful ? Long.max(appendRequest.commandLogEntry().index(),
-                    appendRequest.prevLogEntry().index()) : 0;
+            matchLogEntryIndex = successful ? Long.max(appendRequest.logEntry().logKey().index(),
+                    appendRequest.prevLogKey().index()) : 0;
         }
 
         serverContext.directFactory().appendResponse()
                 .term(currentTerm)
                 .successful(successful)
                 .serverId(serverContext.serverConfig().id())
-                .matchLogEntryIndex(matchLogEntryIndex)
+                .matchLogIndex(matchLogEntryIndex)
                 .sendTo(serverContext.connections().serverSender(leaderId),
                         serverContext.resendStrategy());
 
@@ -79,8 +79,8 @@ public class AppendRequestHandler {
 
     private boolean appendToLog(final ServerContext serverContext, final AppendRequest appendRequest) {
 
-        final LogEntry prevLogEntry = appendRequest.prevLogEntry();
-        final CommandLogEntry newCommandLogEntry = appendRequest.commandLogEntry();
+        final LogKey prevLogEntry = appendRequest.prevLogKey();
+        final LogEntry newLogEntry = appendRequest.logEntry();
 
         final CommandLog commandLog = persistentState.commandLog();
 
@@ -93,11 +93,11 @@ public class AppendRequestHandler {
                 return false;
             case IN:
                 //Append any new entries not already in the log
-                //FIXme need to enable null appendRequest.commandLogEntry()
-                commandLog.append(newCommandLogEntry);
+                //FIXme need to enable null appendRequest.logEntry()
+                commandLog.append(newLogEntry);
 
                 if (appendRequest.leaderCommit() > volatileState.commitIndex()) {
-                    volatileState.commitIndex(Long.min(appendRequest.leaderCommit(), newCommandLogEntry.index()));
+                    volatileState.commitIndex(Long.min(appendRequest.leaderCommit(), newLogEntry.logKey().index()));
                 }
                 return true;
             default:

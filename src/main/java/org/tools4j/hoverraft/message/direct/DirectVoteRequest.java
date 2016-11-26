@@ -25,7 +25,7 @@ package org.tools4j.hoverraft.message.direct;
 
 import org.agrona.DirectBuffer;
 import org.agrona.MutableDirectBuffer;
-import org.tools4j.hoverraft.command.LogEntry;
+import org.tools4j.hoverraft.command.LogKey;
 import org.tools4j.hoverraft.message.MessageType;
 import org.tools4j.hoverraft.message.VoteRequest;
 
@@ -35,12 +35,12 @@ public final class DirectVoteRequest extends AbstractDirectMessage implements Vo
     private static final int TERM_LEN = 4;
     private static final int CANDIDATE_ID_OFF = TERM_OFF + TERM_LEN;
     private static final int CANDIDATE_ID_LEN = 4;
-    private static final int LAST_LOG_ENTRY_OFF = CANDIDATE_ID_OFF + CANDIDATE_ID_LEN;
-    private static final int LAST_LOG_ENTRY_LEN = DirectLogEntry.BYTE_LENGTH;
+    private static final int LAST_LOG_KEY_OFF = CANDIDATE_ID_OFF + CANDIDATE_ID_LEN;
+    private static final int LAST_LOG_KEY_LEN = DirectLogKey.BYTE_LENGTH;
 
-    public static final int BYTE_LENGTH = LAST_LOG_ENTRY_OFF + LAST_LOG_ENTRY_LEN;
+    public static final int BYTE_LENGTH = LAST_LOG_KEY_OFF + LAST_LOG_KEY_LEN;
 
-    private final DirectLogEntry lastLogEntry = new DirectLogEntry() ;
+    private final DirectLogKey lastLogKey = new DirectLogKey() ;
 
     @Override
     public MessageType type() {
@@ -75,25 +75,25 @@ public final class DirectVoteRequest extends AbstractDirectMessage implements Vo
     }
 
     @Override
-    public LogEntry lastLogEntry() {
-        return lastLogEntry;
+    public LogKey lastLogKey() {
+        return lastLogKey;
     }
 
     @Override
     public void wrap(DirectBuffer buffer, int offset) {
         super.wrap(buffer, offset);
-        lastLogEntry.wrap(buffer, offset + LAST_LOG_ENTRY_OFF);
+        lastLogKey.wrap(buffer, offset + LAST_LOG_KEY_OFF);
     }
 
     @Override
     public void wrap(MutableDirectBuffer buffer, int offset) {
         super.wrap(buffer, offset);
-        lastLogEntry.wrap(buffer, offset + LAST_LOG_ENTRY_OFF);
+        lastLogKey.wrap(buffer, offset + LAST_LOG_KEY_OFF);
     }
 
     @Override
     public void unwrap() {
-        lastLogEntry.unwrap();
+        lastLogKey.unwrap();
         super.unwrap();
     }
 

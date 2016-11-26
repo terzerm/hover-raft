@@ -33,36 +33,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class InMemoryCommandLog implements CommandLog {
 
     private final DirectFactory directFactory = new AllocatingDirectFactory();
-    private final List<CommandLogEntry> commandLogEntries = new ArrayList<>();
+    private final List<LogEntry> entries = new ArrayList<>();
     private final AtomicInteger readIndex = new AtomicInteger(0);
-
-    private final LogEntry lastEntry = new LogEntry() {
-        @Override
-        public int term() {
-            readIndex(index());
-            return readTerm();
-        }
-
-        @Override
-        public long index() {
-            return commandLogEntries.size() - 1;
-        }
-
-
-        @Override
-        public LogEntry term(final int term) {
-            throw new UnsupportedOperationException("term update is not allowed");
-        }
-
-        @Override
-        public LogEntry index(final long index) {
-            throw new UnsupportedOperationException("index update is not allowed");
-        }
-    };
+    private final DirectLogEntry lastEntry = new DirectLogEntry();
 
     @Override
     public long size() {
-        return commandLogEntries.size();
+        return entries.size();
     }
 
     @Override
@@ -72,50 +49,50 @@ public class InMemoryCommandLog implements CommandLog {
 
     @Override
     public synchronized void readIndex(final long index) {
-        if (index < commandLogEntries.size()) {
+        if (index < entries.size()) {
             readIndex.set((int)index);
         } else {
-            throw new IllegalArgumentException("Invalid read index " + index + " for log entry with size " + commandLogEntries.size());
+            throw new IllegalArgumentException("Invalid read index " + index + " for log entry with size " + entries.size());
         }
     }
 
     @Override
     public synchronized int readTerm() {
-        return read(null).term();
+        return read(null).logKey().term();
     }
 
     @Override
-    public synchronized CommandLogEntry read(final DirectFactory directFactory) {
+    public synchronized LogEntry read(final DirectFactory directFactory) {
         return clone(read());
     }
 
     @Override
-    public void readTo(final CommandLogEntry commandLogEntry) {
-        final CommandLogEntry readLogEntry = read();
-        commandLogEntry.writeBufferOrNull().putBytes(0, readLogEntry.readBufferOrNull(), readLogEntry.offset(), readLogEntry.byteLength());
+    public void readTo(final LogEntry logEntry) {
+        final LogEntry readLogEntry = read();
+        logEntry.writeBufferOrNull().putBytes(0, readLogEntry.readBufferOrNull(), readLogEntry.offset(), readLogEntry.byteLength());
 
     }
 
-    private CommandLogEntry read() {
-        if (readIndex.get() < commandLogEntries.size()) {
-            return commandLogEntries.get(readIndex.getAndIncrement());
+    private LogEntry read() {
+        if (readIndex.get() < entries.size()) {
+            return entries.get(readIndex.getAndIncrement());
         }
-        throw new IllegalStateException("Read index " + readIndex + " has reached end of message log with size " + commandLogEntries.size());
+        throw new IllegalStateException("Read index " + readIndex + " has reached end of message log with size " + entries.size());
     }
 
     @Override
-    public synchronized void append(final CommandLogEntry commandLogEntry) {
-        commandLogEntries.add(clone(commandLogEntry));
+    public synchronized void append(final LogEntry logEntry) {
+        entries.add(clone(logEntry));
     }
 
 
     @Override
     public synchronized void truncateIncluding(long index) {
-        if (index >= commandLogEntries.size()) {
-            throw new IllegalArgumentException("Truncate index " + index + " must be less than the size " + commandLogEntries.size());
+        if (index >= entries.size()) {
+            throw new IllegalArgumentException("Truncate index " + index + " must be less than the size " + entries.size());
         }
-        for (long idx = lastEntry.index(); idx >= index; idx--) {
-            commandLogEntries.remove((int)idx);
+        for (long idx = lastKey().index(); idx >= index; idx--) {
+            entries.remove((int)idx);
         }
         if (readIndex() >= index) {
             readIndex(index - 1);
@@ -123,12 +100,14 @@ public class InMemoryCommandLog implements CommandLog {
     }
 
     @Override
-    public LogEntry lastEntry() {
-        return lastEntry;
+    public LogKey lastKey() {
+        readIndex(entries.size() - 1);
+        readTo(lastEntry);
+        return lastEntry.logKey();
     }
 
-    private CommandLogEntry clone(final CommandLogEntry e) {
-        final CommandLogEntry clone = directFactory.commandLogEntry();
+    private LogEntry clone(final LogEntry e) {
+        final LogEntry clone = directFactory.logEntry();
         clone.writeBufferOrNull().putBytes(0, e.readBufferOrNull(), e.offset(), e.byteLength());
         return clone;
     }

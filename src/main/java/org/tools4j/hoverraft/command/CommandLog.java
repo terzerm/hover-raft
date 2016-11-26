@@ -29,15 +29,15 @@ public interface CommandLog {
     long size();
     long readIndex();
     void readIndex(long index);
-    CommandLogEntry read(DirectFactory directFactory);
-    void readTo(CommandLogEntry commandLogEntry);
+    LogEntry read(DirectFactory directFactory);
+    void readTo(LogEntry logEntry);
     int readTerm();
-    void append(CommandLogEntry commandLogEntry);
+    void append(LogEntry logEntry);
     void truncateIncluding(long index);
-    LogEntry lastEntry();
+    LogKey lastKey();
 
-    default LogContainment contains(final LogEntry logEntry) {
-        return LogContainment.containmentFor(logEntry, this);
+    default LogContainment contains(final LogKey logKey) {
+        return LogContainment.containmentFor(logKey, this);
     }
 
 }

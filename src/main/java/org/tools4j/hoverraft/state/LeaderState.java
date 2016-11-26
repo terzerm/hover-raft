@@ -23,9 +23,8 @@
  */
 package org.tools4j.hoverraft.state;
 
-import org.tools4j.hoverraft.command.CommandLogEntry;
+import org.tools4j.hoverraft.command.LogEntry;
 import org.tools4j.hoverraft.event.EventHandler;
-import org.tools4j.hoverraft.message.AppendRequest;
 import org.tools4j.hoverraft.message.AppendResponse;
 import org.tools4j.hoverraft.message.CommandMessage;
 import org.tools4j.hoverraft.message.VoteRequest;
@@ -71,20 +70,20 @@ public class LeaderState extends AbstractState {
     private Transition onTransition(final ServerContext serverContext, final Transition transition) {
         final long heartbeatMillis = serverContext.consensusConfig().heartbeatTimeoutMillis();
         serverContext.timer().restart(heartbeatMillis, heartbeatMillis);
-        volatileState().resetFollowersState(persistentState().commandLog().lastEntry().index() + 1);
+        volatileState().resetFollowersState(persistentState().commandLog().lastKey().index() + 1);
         return Transition.STEADY;
     }
 
     private Transition onCommandMessage(final ServerContext serverContext, final CommandMessage commandMessage) {
-        CommandLogEntry newCommandLogEntry = serverContext.directFactory().commandLogEntry();
+        LogEntry newLogEntry = serverContext.directFactory().logEntry();
 
-        newCommandLogEntry.term(currentTerm());
-        newCommandLogEntry.commandMessage()
+        newLogEntry.logKey().term(currentTerm());
+        newLogEntry.commandMessage()
                 .commandSourceId(commandMessage.commandSourceId())
                 .commandIndex(commandMessage.commandIndex())
                 .command().copyFrom(commandMessage.command());
 
-        persistentState().commandLog().append(newCommandLogEntry);
+        persistentState().commandLog().append(newLogEntry);
         sendAppendRequest(serverContext);//FIXME send log message in request
         return Transition.STEADY;
     }
@@ -94,8 +93,8 @@ public class LeaderState extends AbstractState {
             volatileState().followerState(appendResponse.serverId()).decrementNextIndex();
             sendAppendRequest(serverContext, appendResponse.serverId());
         } else {
-            volatileState().followerState(appendResponse.serverId()).matchIndex(appendResponse.matchLogEntryIndex());
-            volatileState().followerState(appendResponse.serverId()).nextIndex(appendResponse.matchLogEntryIndex() + 1);
+            volatileState().followerState(appendResponse.serverId()).matchIndex(appendResponse.matchLogIndex());
+            volatileState().followerState(appendResponse.serverId()).nextIndex(appendResponse.matchLogIndex() + 1);
         }
         updateCommitIndex();
         invokeStateMachineWithCommittedLogEntries(serverContext);
@@ -161,18 +160,18 @@ public class LeaderState extends AbstractState {
 //                .leaderId(serverContext.id());
 //
 //
-//        appendRequest.prevLogEntry().index(prevLogEntryIndex).term()
+//        appendRequest.prevLogKey().index(prevLogEntryIndex).term()
 //
 //        //here I realised that CommandLogEntry should have LogEntryKey instead of be a LogEntry
 //        appendRequest
-//                .prevLogEntry().index(44)
+//                .prevLogKey().index(44)
 //                .term(33);
 //
 //        persistentState().commandLog().readIndex(trackedFollowerState.nextIndex());
-//        persistentState().commandLog().readTo(appendRequest.commandLogEntry());
+//        persistentState().commandLog().readTo(appendRequest.logEntry());
 //
 //
-//        appendRequest.commandLogEntry().term()
+//        appendRequest.logEntry().term()
 //
 //                .sendTo(serverContext.connections().serverMulticastSender(),
 //                        serverContext.resendStrategy());
