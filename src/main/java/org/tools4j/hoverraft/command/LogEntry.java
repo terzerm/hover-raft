@@ -29,4 +29,5 @@ import org.tools4j.hoverraft.message.CommandMessage;
 public interface LogEntry extends DirectPayload {
     LogKey logKey();
     CommandMessage commandMessage();
+    void copyFrom(LogEntry logEntry);
 }

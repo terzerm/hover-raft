@@ -116,10 +116,13 @@ public final class CandidateState extends AbstractState {
     }
 
     private void requestVoteFromAllServers(final ServerContext serverContext, final int self) {
-        serverContext.directFactory().voteRequest()
+        final VoteRequest voteRequest = serverContext.directFactory().voteRequest()
                 .term(currentTerm())
-                .candidateId(self)
-                .sendTo(serverContext.connections().serverMulticastSender(),
+                .candidateId(self);
+
+        voteRequest.lastLogKey().copyFrom(persistentState().commandLog().lastKey());
+
+        voteRequest.sendTo(serverContext.connections().serverMulticastSender(),
                         serverContext.resendStrategy());
     }
 

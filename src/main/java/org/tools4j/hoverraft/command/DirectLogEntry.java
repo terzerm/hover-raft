@@ -76,4 +76,8 @@ public class DirectLogEntry extends AbstractDirectPayload implements LogEntry {
         return COMMAND_MSG_OFF + directCommandMessage.byteLength();
     }
 
+    @Override
+    public void copyFrom(LogEntry logEntry) {
+        super.copyFrom(logEntry);
+    }
 }

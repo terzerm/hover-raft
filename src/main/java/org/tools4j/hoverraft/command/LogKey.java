@@ -32,6 +32,8 @@ public interface LogKey extends DirectPayload, Comparable<LogKey> {
     long index();
     LogKey index(long index);
 
+    void copyFrom(LogKey logKey);
+
     @Override
     default int compareTo(final LogKey other) {
         return LogKeyComparator.INSTANCE.compare(this, other);

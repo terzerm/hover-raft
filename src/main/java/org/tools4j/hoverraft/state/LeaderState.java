@@ -25,6 +25,7 @@ package org.tools4j.hoverraft.state;
 
 import org.tools4j.hoverraft.command.LogEntry;
 import org.tools4j.hoverraft.event.EventHandler;
+import org.tools4j.hoverraft.message.AppendRequest;
 import org.tools4j.hoverraft.message.AppendResponse;
 import org.tools4j.hoverraft.message.CommandMessage;
 import org.tools4j.hoverraft.message.VoteRequest;
@@ -78,10 +79,7 @@ public class LeaderState extends AbstractState {
         LogEntry newLogEntry = serverContext.directFactory().logEntry();
 
         newLogEntry.logKey().term(currentTerm());
-        newLogEntry.commandMessage()
-                .commandSourceId(commandMessage.commandSourceId())
-                .commandIndex(commandMessage.commandIndex())
-                .command().copyFrom(commandMessage.command());
+        newLogEntry.commandMessage().copyFrom(commandMessage);
 
         persistentState().commandLog().append(newLogEntry);
         sendAppendRequest(serverContext);//FIXME send log message in request
@@ -149,32 +147,26 @@ public class LeaderState extends AbstractState {
     }
 
     private void sendAppendRequest(final ServerContext serverContext, final int serverId) {
-        //FIXME impl
 
-//        final TrackedFollowerState trackedFollowerState =  volatileState().followerStateById(serverId);
-//        final long prevLogEntryIndex = trackedFollowerState.nextIndex() - 1;
-//
-//        final AppendRequest appendRequest = serverContext.directFactory().appendRequest()
-//                .term(currentTerm())
-//                .leaderCommit(volatileState().commitIndex())
-//                .leaderId(serverContext.id());
-//
-//
-//        appendRequest.prevLogKey().index(prevLogEntryIndex).term()
-//
-//        //here I realised that CommandLogEntry should have LogEntryKey instead of be a LogEntry
-//        appendRequest
-//                .prevLogKey().index(44)
-//                .term(33);
-//
-//        persistentState().commandLog().readIndex(trackedFollowerState.nextIndex());
-//        persistentState().commandLog().readTo(appendRequest.logEntry());
-//
-//
-//        appendRequest.logEntry().term()
-//
-//                .sendTo(serverContext.connections().serverMulticastSender(),
-//                        serverContext.resendStrategy());
+        final TrackedFollowerState trackedFollowerState =  volatileState().followerStateById(serverId);
+        final long nextLogIndex = trackedFollowerState.nextIndex();
+        final long prevLogIndex = trackedFollowerState.nextIndex() - 1;
+
+        final AppendRequest appendRequest = serverContext.directFactory().appendRequest()
+                .term(currentTerm())
+                .leaderCommit(volatileState().commitIndex())
+                .leaderId(serverContext.id());
+
+        persistentState().commandLog().readIndex(prevLogIndex);
+
+        appendRequest.prevLogKey().copyFrom(persistentState().commandLog().read(null).logKey());
+
+        persistentState().commandLog().readIndex(nextLogIndex);
+
+        appendRequest.logEntry().copyFrom(persistentState().commandLog().read(null));
+
+        appendRequest.sendTo(serverContext.connections().serverMulticastSender(),
+                        serverContext.resendStrategy());
 
     }
 

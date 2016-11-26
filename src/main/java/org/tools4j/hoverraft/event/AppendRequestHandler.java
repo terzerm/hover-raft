@@ -50,19 +50,19 @@ public class AppendRequestHandler {
         final int currentTerm = persistentState.currentTerm();
         final Transition transition;
         final boolean successful;
-        final long matchLogEntryIndex;
+        final long matchLogIndex;
 
         if (appendRequestTerm < currentTerm) {
             transition = Transition.STEADY;
             successful = false;
-            matchLogEntryIndex = 0;
+            matchLogIndex = 0;
         } else {
             //appendRequestTerm == currentTerm, as HigherTermHandler would
             transition = Transition.STEADY;
             successful = appendToLog(serverContext, appendRequest);
 
             //assume that NULL command log entry will have 0 command log entry index
-            matchLogEntryIndex = successful ? Long.max(appendRequest.logEntry().logKey().index(),
+            matchLogIndex = successful ? Long.max(appendRequest.logEntry().logKey().index(),
                     appendRequest.prevLogKey().index()) : 0;
         }
 
@@ -70,7 +70,7 @@ public class AppendRequestHandler {
                 .term(currentTerm)
                 .successful(successful)
                 .serverId(serverContext.serverConfig().id())
-                .matchLogIndex(matchLogEntryIndex)
+                .matchLogIndex(matchLogIndex)
                 .sendTo(serverContext.connections().serverSender(leaderId),
                         serverContext.resendStrategy());
 
@@ -79,17 +79,17 @@ public class AppendRequestHandler {
 
     private boolean appendToLog(final ServerContext serverContext, final AppendRequest appendRequest) {
 
-        final LogKey prevLogEntry = appendRequest.prevLogKey();
+        final LogKey prevLogKey = appendRequest.prevLogKey();
         final LogEntry newLogEntry = appendRequest.logEntry();
 
         final CommandLog commandLog = persistentState.commandLog();
 
-        final LogContainment containment = commandLog.contains(prevLogEntry);
+        final LogContainment containment = commandLog.contains(prevLogKey);
 
         switch(containment) {
             case OUT: return false;
             case CONFLICT:
-                commandLog.truncateIncluding(prevLogEntry.index());
+                commandLog.truncateIncluding(prevLogKey.index());
                 return false;
             case IN:
                 //Append any new entries not already in the log

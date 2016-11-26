@@ -96,4 +96,11 @@ public final class DirectCommandMessage extends AbstractDirectMessage implements
         command.unwrap();
         super.unwrap();
     }
+
+
+    @Override
+    public void copyFrom(final CommandMessage commandMessage) {
+        super.copyFrom(commandMessage);
+    }
+
 }

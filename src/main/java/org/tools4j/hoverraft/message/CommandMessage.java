@@ -40,6 +40,8 @@ public interface CommandMessage extends Message {
 
     Command command();
 
+    void copyFrom(CommandMessage commandMessage);
+
     @Override
     default Transition accept(final ServerContext serverContext, final EventHandler eventHandler) {
         return eventHandler.onCommandMessage(serverContext, this);
