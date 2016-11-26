@@ -77,7 +77,7 @@ public class DirectLogEntry extends AbstractDirectPayload implements LogEntry {
     }
 
     @Override
-    public void copyFrom(LogEntry logEntry) {
+    public void copyFrom(final LogEntry logEntry) {
         super.copyFrom(logEntry);
     }
 }

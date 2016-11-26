@@ -63,7 +63,7 @@ public class DirectLogKey extends AbstractDirectPayload implements LogKey {
     }
 
     @Override
-    public void copyFrom(LogKey logKey) {
+    public void copyFrom(final LogKey logKey) {
         super.copyFrom(logKey);
     }
 }
