@@ -54,7 +54,12 @@ public final class TrackedFollowerState {
         this.nextIndex--;
     }
 
+    void resetMatchIndex() {
+        this.matchIndex = 0;
+    }
     void matchIndex(final long index) {
-        this.matchIndex = index;
+        if (index > this.matchIndex) {
+            this.matchIndex = index;
+        }
     }
 }
