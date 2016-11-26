@@ -30,6 +30,7 @@ public interface CommandLog {
     long readIndex();
     void readIndex(long index);
     CommandLogEntry read(DirectFactory directFactory);
+    void readTo(CommandLogEntry commandLogEntry);
     int readTerm();
     void append(CommandLogEntry commandLogEntry);
     void truncateIncluding(long index);

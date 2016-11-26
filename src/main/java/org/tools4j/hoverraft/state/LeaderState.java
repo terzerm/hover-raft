@@ -25,6 +25,7 @@ package org.tools4j.hoverraft.state;
 
 import org.tools4j.hoverraft.command.CommandLogEntry;
 import org.tools4j.hoverraft.event.EventHandler;
+import org.tools4j.hoverraft.message.AppendRequest;
 import org.tools4j.hoverraft.message.AppendResponse;
 import org.tools4j.hoverraft.message.CommandMessage;
 import org.tools4j.hoverraft.message.VoteRequest;
@@ -91,7 +92,7 @@ public class LeaderState extends AbstractState {
     private Transition onAppendResponse(final ServerContext serverContext, final AppendResponse appendResponse) {
         if (!appendResponse.successful()) {
             volatileState().followerState(appendResponse.serverId()).decrementNextIndex();
-            sendAppendRequest(serverContext);
+            sendAppendRequest(serverContext, appendResponse.serverId());
         } else {
             volatileState().followerState(appendResponse.serverId()).matchIndex(appendResponse.matchLogEntryIndex());
             volatileState().followerState(appendResponse.serverId()).nextIndex(appendResponse.matchLogEntryIndex() + 1);
@@ -145,6 +146,37 @@ public class LeaderState extends AbstractState {
     private void sendAppendRequest(final ServerContext serverContext) {
         //FIXME impl
         serverContext.timer().reset();
+
+    }
+
+    private void sendAppendRequest(final ServerContext serverContext, final int serverId) {
+        //FIXME impl
+
+//        final TrackedFollowerState trackedFollowerState =  volatileState().followerStateById(serverId);
+//        final long prevLogEntryIndex = trackedFollowerState.nextIndex() - 1;
+//
+//        final AppendRequest appendRequest = serverContext.directFactory().appendRequest()
+//                .term(currentTerm())
+//                .leaderCommit(volatileState().commitIndex())
+//                .leaderId(serverContext.id());
+//
+//
+//        appendRequest.prevLogEntry().index(prevLogEntryIndex).term()
+//
+//        //here I realised that CommandLogEntry should have LogEntryKey instead of be a LogEntry
+//        appendRequest
+//                .prevLogEntry().index(44)
+//                .term(33);
+//
+//        persistentState().commandLog().readIndex(trackedFollowerState.nextIndex());
+//        persistentState().commandLog().readTo(appendRequest.commandLogEntry());
+//
+//
+//        appendRequest.commandLogEntry().term()
+//
+//                .sendTo(serverContext.connections().serverMulticastSender(),
+//                        serverContext.resendStrategy());
+
     }
 
 }

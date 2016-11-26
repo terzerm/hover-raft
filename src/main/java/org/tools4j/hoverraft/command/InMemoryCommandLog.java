@@ -89,6 +89,13 @@ public class InMemoryCommandLog implements CommandLog {
         return clone(read());
     }
 
+    @Override
+    public void readTo(final CommandLogEntry commandLogEntry) {
+        final CommandLogEntry readLogEntry = read();
+        commandLogEntry.writeBufferOrNull().putBytes(0, readLogEntry.readBufferOrNull(), readLogEntry.offset(), readLogEntry.byteLength());
+
+    }
+
     private CommandLogEntry read() {
         if (readIndex.get() < commandLogEntries.size()) {
             return commandLogEntries.get(readIndex.getAndIncrement());
