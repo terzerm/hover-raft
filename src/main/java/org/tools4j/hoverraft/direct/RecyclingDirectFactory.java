@@ -23,8 +23,8 @@
  */
 package org.tools4j.hoverraft.direct;
 
-import org.tools4j.hoverraft.command.CommandLogEntry;
-import org.tools4j.hoverraft.command.DirectCommandLogEntry;
+import org.tools4j.hoverraft.command.LogEntry;
+import org.tools4j.hoverraft.command.DirectLogEntry;
 import org.tools4j.hoverraft.message.*;
 import org.tools4j.hoverraft.message.direct.*;
 
@@ -39,7 +39,7 @@ public final class RecyclingDirectFactory implements DirectFactory {
     private final VoteResponse voteResponse = new DirectVoteResponse();
     private final TimeoutNow timeoutNow = new DirectTimeoutNow();
     private final CommandMessage commandMessage = new DirectCommandMessage();
-    private final CommandLogEntry commandLogEntry = new DirectCommandLogEntry();
+    private final LogEntry logEntry = new DirectLogEntry();
 
     @Override
     public AppendRequest appendRequest() {
@@ -72,8 +72,8 @@ public final class RecyclingDirectFactory implements DirectFactory {
     }
 
     @Override
-    public CommandLogEntry commandLogEntry() {
-        return commandLogEntry;
+    public LogEntry logEntry() {
+        return logEntry;
     }
 
  }

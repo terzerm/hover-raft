@@ -34,7 +34,6 @@ import org.tools4j.hoverraft.event.VoteRequestHandler;
 import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.message.VoteRequest;
 import org.tools4j.hoverraft.message.VoteResponse;
-import org.tools4j.hoverraft.direct.RecyclingDirectFactory;
 import org.tools4j.hoverraft.command.CommandLog;
 import org.tools4j.hoverraft.state.PersistentState;
 import org.tools4j.hoverraft.state.Role;
@@ -112,14 +111,14 @@ public class VoteRequestHandlerTest {
                 .term(term)
                 .candidateId(candidateId);
         //need LogEntry mutators to return parent object on done()
-        voteRequest.lastLogEntry()
+        voteRequest.lastLogKey()
                 .term(lastLogTerm)
                 .index(lastLogIndex);
 
         when(serverContext.connections().serverSender(candidateId)).thenReturn(sender);
         when(persistentState.votedFor()).thenReturn(previouslyVotedFor);
-        when(persistentState.commandLog().lastEntry().term()).thenReturn(lastLogTerm);
-        when(persistentState.commandLog().lastEntry().index()).thenReturn(lastLogIndex);
+        when(persistentState.commandLog().lastKey().term()).thenReturn(lastLogTerm);
+        when(persistentState.commandLog().lastKey().index()).thenReturn(lastLogIndex);
 
         //when + then
         onVoteRequest(term, voteRequest, granted);
@@ -140,14 +139,14 @@ public class VoteRequestHandlerTest {
                 .term(term)
                 .candidateId(candidateId);
         //need LogEntry mutators to return parent object on done()
-        voteRequest.lastLogEntry()
+        voteRequest.lastLogKey()
                 .term(newerLastLogTerm)
                 .index(lastLogIndex);
 
         when(serverContext.connections().serverSender(candidateId)).thenReturn(sender);
         when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
-        when(persistentState.commandLog().lastEntry().term()).thenReturn(lastLogTerm);
-        when(persistentState.commandLog().lastEntry().index()).thenReturn(lastLogIndex);
+        when(persistentState.commandLog().lastKey().term()).thenReturn(lastLogTerm);
+        when(persistentState.commandLog().lastKey().index()).thenReturn(lastLogIndex);
 
         //when + then
         onVoteRequest(term, voteRequest, GRANTED);
@@ -167,7 +166,7 @@ public class VoteRequestHandlerTest {
                 .candidateId(candidateId);
 
         //need LogEntry mutators to return parent object on done()
-        voteRequest.lastLogEntry()
+        voteRequest.lastLogKey()
                 .term(lastLogTerm)
                 .index(newerLastLogIndex);
 
@@ -175,8 +174,8 @@ public class VoteRequestHandlerTest {
 
         when(serverContext.connections().serverSender(candidateId)).thenReturn(sender);
         when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
-        when(persistentState.commandLog().lastEntry().term()).thenReturn(lastLogTerm);
-        when(persistentState.commandLog().lastEntry().index()).thenReturn(lastLogIndex);
+        when(persistentState.commandLog().lastKey().term()).thenReturn(lastLogTerm);
+        when(persistentState.commandLog().lastKey().index()).thenReturn(lastLogIndex);
 
         //when + then
         onVoteRequest(term, voteRequest, GRANTED);
@@ -195,14 +194,14 @@ public class VoteRequestHandlerTest {
                 .term(badTerm)
                 .candidateId(serverId);
         //need LogEntry mutators to return parent object on done()
-        voteRequest.lastLogEntry()
+        voteRequest.lastLogKey()
                 .term(lastLogTerm)
                 .index(lastLogIndex);
 
         when(serverContext.connections().serverSender(serverId)).thenReturn(sender);
         when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
-        when(persistentState.commandLog().lastEntry().term()).thenReturn(lastLogTerm);
-        when(persistentState.commandLog().lastEntry().index()).thenReturn(lastLogIndex);
+        when(persistentState.commandLog().lastKey().term()).thenReturn(lastLogTerm);
+        when(persistentState.commandLog().lastKey().index()).thenReturn(lastLogIndex);
 
         //when + then
         onVoteRequest(term, voteRequest, REJECTED);
@@ -221,14 +220,14 @@ public class VoteRequestHandlerTest {
                 .term(term)
                 .candidateId(serverId);
         //need LogEntry mutators to return parent object on done()
-        voteRequest.lastLogEntry()
+        voteRequest.lastLogKey()
                 .term(badLastLogTerm)
                 .index(lastLogIndex);
 
         when(serverContext.connections().serverSender(serverId)).thenReturn(sender);
         when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
-        when(persistentState.commandLog().lastEntry().term()).thenReturn(lastLogTerm);
-        when(persistentState.commandLog().lastEntry().index()).thenReturn(lastLogIndex);
+        when(persistentState.commandLog().lastKey().term()).thenReturn(lastLogTerm);
+        when(persistentState.commandLog().lastKey().index()).thenReturn(lastLogIndex);
 
         //when + then
         onVoteRequest(term, voteRequest, REJECTED);
@@ -247,14 +246,14 @@ public class VoteRequestHandlerTest {
                 .term(term)
                 .candidateId(serverId);
         //need LogEntry mutators to return parent object on done()
-        voteRequest.lastLogEntry()
+        voteRequest.lastLogKey()
                 .term(lastLogTerm)
                 .index(badLastLogIndex);
 
         when(serverContext.connections().serverSender(serverId)).thenReturn(sender);
         when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
-        when(persistentState.commandLog().lastEntry().term()).thenReturn(lastLogTerm);
-        when(persistentState.commandLog().lastEntry().index()).thenReturn(lastLogIndex);
+        when(persistentState.commandLog().lastKey().term()).thenReturn(lastLogTerm);
+        when(persistentState.commandLog().lastKey().index()).thenReturn(lastLogIndex);
 
         //when + then
         onVoteRequest(term, voteRequest, REJECTED);

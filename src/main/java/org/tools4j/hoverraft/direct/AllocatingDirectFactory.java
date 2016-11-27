@@ -25,8 +25,8 @@ package org.tools4j.hoverraft.direct;
 
 import org.agrona.ExpandableArrayBuffer;
 import org.agrona.MutableDirectBuffer;
-import org.tools4j.hoverraft.command.CommandLogEntry;
-import org.tools4j.hoverraft.command.DirectCommandLogEntry;
+import org.tools4j.hoverraft.command.LogEntry;
+import org.tools4j.hoverraft.command.DirectLogEntry;
 import org.tools4j.hoverraft.message.*;
 import org.tools4j.hoverraft.message.direct.*;
 
@@ -79,9 +79,9 @@ public class AllocatingDirectFactory implements DirectFactory {
     }
 
     @Override
-    public CommandLogEntry commandLogEntry() {
-        final DirectCommandLogEntry directCommandLogEntry = new DirectCommandLogEntry();
-        directCommandLogEntry.wrap(newBuffer(DirectLogEntry.BYTE_LENGTH), 0);
+    public LogEntry logEntry() {
+        final DirectLogEntry directCommandLogEntry = new DirectLogEntry();
+        directCommandLogEntry.wrap(newBuffer(DirectLogKey.BYTE_LENGTH), 0);
         return directCommandLogEntry;
     }
 }

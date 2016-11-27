@@ -66,4 +66,8 @@ abstract public class AbstractDirectPayload implements DirectPayload {
         this.writeBuffer = null;
         this.offset = 0;
     }
+
+    protected void copyFrom(final DirectPayload directPayload) {
+        this.writeBuffer.putBytes(offset, directPayload.readBufferOrNull(), directPayload.offset(), directPayload.byteLength());
+    }
 }

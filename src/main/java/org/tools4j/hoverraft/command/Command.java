@@ -36,4 +36,5 @@ public interface Command {
     void bytesTo(byte[] bytes, int offset);
     void bytesTo(ByteBuffer bytes, int offset);
     void bytesTo(MutableDirectBuffer bytes, int offset);
+    void copyFrom(Command command);
 }

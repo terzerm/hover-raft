@@ -21,47 +21,49 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.command;
+package org.tools4j.hoverraft.message.direct;
 
-import org.agrona.DirectBuffer;
-import org.agrona.MutableDirectBuffer;
-import org.tools4j.hoverraft.command.CommandLogEntry;
-import org.tools4j.hoverraft.message.CommandMessage;
-import org.tools4j.hoverraft.message.direct.DirectCommandMessage;
-import org.tools4j.hoverraft.message.direct.DirectLogEntry;
+import org.tools4j.hoverraft.command.LogKey;
+import org.tools4j.hoverraft.direct.AbstractDirectPayload;
 
-public class DirectCommandLogEntry extends DirectLogEntry implements CommandLogEntry {
-    private static final int COMMAND_MSG_OFF = DirectLogEntry.BYTE_LENGTH;
+public class DirectLogKey extends AbstractDirectPayload implements LogKey {
+    protected static final int TERM_OFF = 0;
+    protected static final int TERM_LEN = 4;
 
-    private DirectCommandMessage directCommandMessage = new DirectCommandMessage();
+    protected static final int INDEX_OFF = TERM_OFF + TERM_LEN;
+    protected static final int INDEX_LEN = 8;
 
-    @Override
-    public void wrap(final DirectBuffer buffer, final int offset) {
-        super.wrap(buffer, offset);
-        directCommandMessage.wrap(buffer, offset + COMMAND_MSG_OFF);
-    }
-
-    @Override
-    public void wrap(final MutableDirectBuffer buffer, final int offset) {
-        super.wrap(buffer, offset);
-        directCommandMessage.wrap(buffer, offset + COMMAND_MSG_OFF);
-    }
-
-    @Override
-    public void unwrap() {
-        directCommandMessage.unwrap();
-        super.unwrap();
-    }
-
-
-    @Override
-    public CommandMessage commandMessage() {
-        return directCommandMessage;
-    }
+    public static final int BYTE_LENGTH = INDEX_OFF + INDEX_LEN;
 
     @Override
     public int byteLength() {
-        return COMMAND_MSG_OFF + directCommandMessage.byteLength();
+        return BYTE_LENGTH;
     }
 
+    @Override
+    public int term() {
+        return readBuffer.getInt(offset + TERM_OFF);
+    }
+
+    @Override
+    public long index() {
+        return readBuffer.getLong(offset + INDEX_OFF);
+    }
+
+    @Override
+    public LogKey term(int term) {
+        writeBuffer.putInt(offset + TERM_OFF, term);
+        return this;
+    }
+
+    @Override
+    public LogKey index(long index) {
+        writeBuffer.putLong(offset + INDEX_OFF, index);
+        return this;
+    }
+
+    @Override
+    public void copyFrom(final LogKey logKey) {
+        super.copyFrom(logKey);
+    }
 }

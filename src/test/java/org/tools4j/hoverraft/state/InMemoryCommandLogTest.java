@@ -24,12 +24,11 @@
 package org.tools4j.hoverraft.state;
 
 import org.junit.Test;
-import org.tools4j.hoverraft.command.CommandLogEntry;
+import org.tools4j.hoverraft.command.LogEntry;
 import org.tools4j.hoverraft.command.InMemoryCommandLog;
 import org.tools4j.hoverraft.direct.AllocatingDirectFactory;
 
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -39,14 +38,14 @@ public class InMemoryCommandLogTest {
     @Test
     public void append_should_add_new_logEntry() throws Exception {
         final AllocatingDirectFactory factory = new AllocatingDirectFactory();
-        CommandLogEntry commandLogEntry1 = factory.commandLogEntry();
+        LogEntry logEntry1 = factory.logEntry();
 
-        commandLogEntry1.term(1);
-        commandLogEntry1.index(1L);
-        commandLogEntry1.commandMessage().command().bytesFrom(new byte[] {}, 0, 0);
+        logEntry1.logKey().term(1);
+        logEntry1.logKey().index(1L);
+        logEntry1.commandMessage().command().bytesFrom(new byte[] {}, 0, 0);
 
         InMemoryCommandLog commandLog = new InMemoryCommandLog();
-        commandLog.append(commandLogEntry1);
+        commandLog.append(logEntry1);
 
         assertThat(commandLog.size()).isEqualTo(1);
     }

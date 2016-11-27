@@ -24,12 +24,23 @@
 package org.tools4j.hoverraft.command;
 
 import org.tools4j.hoverraft.direct.DirectPayload;
-import org.tools4j.hoverraft.message.CommandMessage;
 
-public interface CommandLogEntry extends DirectPayload, LogEntry {
-    CommandMessage commandMessage();
+public interface LogKey extends DirectPayload, Comparable<LogKey> {
+    int term();
+    LogKey term(int term);
+
+    long index();
+    LogKey index(long index);
+
+    void copyFrom(LogKey logKey);
+
+    @Override
+    default int compareTo(final LogKey other) {
+        return LogKeyComparator.INSTANCE.compare(this, other);
+    }
 
     default LogContainment containedIn(final CommandLog commandLog) {
         return LogContainment.containmentFor(this, commandLog);
     }
+
 }

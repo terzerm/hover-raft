@@ -24,15 +24,14 @@
 package org.tools4j.hoverraft.server;
 
 import org.tools4j.hoverraft.command.CommandLog;
-import org.tools4j.hoverraft.command.LogEntry;
-import org.tools4j.hoverraft.command.LogEntryComparator;
+import org.tools4j.hoverraft.command.LogKey;
+import org.tools4j.hoverraft.command.LogKeyComparator;
 import org.tools4j.hoverraft.command.machine.StateMachine;
 import org.tools4j.hoverraft.config.ConfigBuilder;
 import org.tools4j.hoverraft.config.ConsensusConfig;
 import org.tools4j.hoverraft.config.ThreadingMode;
 import org.tools4j.hoverraft.direct.AllocatingDirectFactory;
 import org.tools4j.hoverraft.direct.DirectFactory;
-import org.tools4j.hoverraft.direct.RecyclingDirectFactory;
 import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.state.PersistentState;
 import org.tools4j.hoverraft.state.VolatileState;
@@ -95,19 +94,19 @@ public class Mockery {
 
     public static PersistentState persistentState() {
         final PersistentState persistentState = mock(PersistentState.class);
-        final LogEntry lastLogEntry = mock(LogEntry.class);
+        final LogKey lastLogEntry = mock(LogKey.class);
         final CommandLog commandLog = mock(CommandLog.class);
 
         when(persistentState.currentTerm()).thenReturn(1);
         when(persistentState.commandLog()).thenReturn(commandLog);
 
-        when(commandLog.lastEntry()).thenReturn(lastLogEntry);
+        when(commandLog.lastKey()).thenReturn(lastLogEntry);
         when(lastLogEntry.term()).thenReturn(0);
         when(lastLogEntry.index()).thenReturn(-1L);
-        when(lastLogEntry.compareTo(any(LogEntry.class))).thenAnswer(inv -> {
-            final LogEntry self = (LogEntry)inv.getMock();
-            final LogEntry other = (LogEntry)inv.getArguments()[0];
-            return LogEntryComparator.INSTANCE.compare(self, other);
+        when(lastLogEntry.compareTo(any(LogKey.class))).thenAnswer(inv -> {
+            final LogKey self = (LogKey)inv.getMock();
+            final LogKey other = (LogKey)inv.getArguments()[0];
+            return LogKeyComparator.INSTANCE.compare(self, other);
         });
 
         when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);

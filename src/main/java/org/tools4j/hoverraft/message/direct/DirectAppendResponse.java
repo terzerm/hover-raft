@@ -36,7 +36,13 @@ public final class DirectAppendResponse extends AbstractDirectMessage implements
     private static final int SUCCESSFUL_OFF = TERM_OFF + TERM_LEN;
     private static final int SUCCESSFUL_LEN = 1;
 
-    public static final int BYTE_LENGTH = SUCCESSFUL_OFF + SUCCESSFUL_LEN;
+    private static final int SERVER_ID_OFF = SUCCESSFUL_OFF + SUCCESSFUL_LEN;
+    private static final int SERVER_ID_LEN = 4;
+
+    private static final int MATCH_LOG_INDEX_OFF = SERVER_ID_OFF + SERVER_ID_LEN;
+    private static final int MATCH_LOG_INDEX__LEN = 8;
+
+    public static final int BYTE_LENGTH = MATCH_LOG_INDEX_OFF + MATCH_LOG_INDEX__LEN;
 
     @Override
     public MessageType type() {
@@ -70,4 +76,23 @@ public final class DirectAppendResponse extends AbstractDirectMessage implements
         return this;
     }
 
+    public int serverId() {
+        return readBuffer.getInt(offset + SERVER_ID_OFF);
+    }
+
+    @Override
+    public DirectAppendResponse serverId(final int serverId) {
+        writeBuffer.putInt(offset + SERVER_ID_OFF, serverId);
+        return this;
+    }
+
+    public long matchLogIndex() {
+        return readBuffer.getLong(offset + MATCH_LOG_INDEX_OFF);
+    }
+
+    @Override
+    public DirectAppendResponse matchLogIndex(final long matchLogIndex) {
+        writeBuffer.putLong(offset + MATCH_LOG_INDEX_OFF, matchLogIndex);
+        return this;
+    }
 }

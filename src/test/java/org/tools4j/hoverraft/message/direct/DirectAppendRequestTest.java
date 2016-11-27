@@ -26,6 +26,7 @@ package org.tools4j.hoverraft.message.direct;
 import org.agrona.ExpandableArrayBuffer;
 import org.junit.Before;
 import org.junit.Test;
+import org.tools4j.hoverraft.message.MessageType;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -61,48 +62,55 @@ public class DirectAppendRequestTest {
                 .term(term)
                 .leaderId(leaderId)
                 .leaderCommit(leaderCommit)
-                .prevLogEntry().term(prevLogEntryTerm)
+                .prevLogKey().term(prevLogEntryTerm)
                                 .index(prevLogEntryIndex);
-        directAppendRequest.commandLogEntry()
+        directAppendRequest.logEntry().logKey()
                 .term(newEntryTerm)
                 .index(newEntryIndex);
-        directAppendRequest.commandLogEntry()
+        directAppendRequest.logEntry()
                 .commandMessage()
                     .commandIndex(newEntryCommandIndex)
                     .commandSourceId(newEntryCommandSourceId)
                     .command().bytesFrom(commandBytes, 0, commandBytes.length);
 
         // then
+        assertThat(directAppendRequest.type()).isEqualTo(MessageType.APPEND_REQUEST);
         assertThat(directAppendRequest.term()).isEqualTo(term);
         assertThat(directAppendRequest.leaderId()).isEqualTo(leaderId);
         assertThat(directAppendRequest.leaderCommit()).isEqualTo(leaderCommit);
 
 
-        final int retrievedPrevLogEntryTerm = directAppendRequest.prevLogEntry().term();
-        final long retrievedPrevLogEntryIndex = directAppendRequest.prevLogEntry().index();
+        final int retrievedPrevLogEntryTerm = directAppendRequest.prevLogKey().term();
+        final long retrievedPrevLogEntryIndex = directAppendRequest.prevLogKey().index();
 
         assertThat(retrievedPrevLogEntryTerm).isEqualTo(prevLogEntryTerm);
         assertThat(retrievedPrevLogEntryIndex).isEqualTo(prevLogEntryIndex);
 
 
-        final int retrievedCommandLogEntryTerm = directAppendRequest.commandLogEntry().term();
-        final long retrievedCommandLogEntryIndex = directAppendRequest.commandLogEntry().index();
+        final int retrievedCommandLogEntryTerm = directAppendRequest.logEntry().logKey().term();
+        final long retrievedCommandLogEntryIndex = directAppendRequest.logEntry().logKey().index();
 
         assertThat(retrievedCommandLogEntryTerm).isEqualTo(newEntryTerm);
         assertThat(retrievedCommandLogEntryIndex).isEqualTo(newEntryIndex);
 
-        final int retrievedCommandSourceId = directAppendRequest.commandLogEntry().commandMessage().commandSourceId();
-        final long retrieveCommandIndex = directAppendRequest.commandLogEntry().commandMessage().commandIndex();
-        final int retrievedCommandByteLength = directAppendRequest.commandLogEntry().commandMessage().command().byteLength();
+        final int retrievedCommandSourceId = directAppendRequest.logEntry().commandMessage().commandSourceId();
+        final long retrieveCommandIndex = directAppendRequest.logEntry().commandMessage().commandIndex();
+        final int retrievedCommandByteLength = directAppendRequest.logEntry().commandMessage().command().byteLength();
 
         assertThat(retrievedCommandSourceId).isEqualTo(newEntryCommandSourceId);
         assertThat(retrieveCommandIndex).isEqualTo(newEntryCommandIndex);
         assertThat(retrievedCommandByteLength).isEqualTo(commandBytes.length);
 
         final byte[] retrievedCommandBytes = new byte[retrievedCommandByteLength];
-        directAppendRequest.commandLogEntry().commandMessage().command().bytesTo(retrievedCommandBytes, 0);
+        directAppendRequest.logEntry().commandMessage().command().bytesTo(retrievedCommandBytes, 0);
 
         assertThat(new String(retrievedCommandBytes)).isEqualTo(myCommand);
+
+        final int extectedAppendRequestBytes = DirectAppendRequest.BYTE_LENGTH +
+                DirectLogKey.BYTE_LENGTH + DirectCommandMessage.EMPTY_COMMAND_BYTE_LENGTH +
+                commandBytes.length;
+
+        assertThat(directAppendRequest.byteLength()).isEqualTo(extectedAppendRequestBytes);
 
 
     }
