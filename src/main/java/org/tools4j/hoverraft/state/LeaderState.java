@@ -23,6 +23,7 @@
  */
 package org.tools4j.hoverraft.state;
 
+import org.tools4j.hoverraft.command.CommandLog;
 import org.tools4j.hoverraft.command.LogEntry;
 import org.tools4j.hoverraft.event.EventHandler;
 import org.tools4j.hoverraft.message.AppendRequest;
@@ -71,7 +72,7 @@ public class LeaderState extends AbstractState {
     private Transition onTransition(final ServerContext serverContext, final Transition transition) {
         final long heartbeatMillis = serverContext.consensusConfig().heartbeatTimeoutMillis();
         serverContext.timer().restart(heartbeatMillis, heartbeatMillis);
-        volatileState().resetFollowersState(persistentState().commandLog().lastKey().index() + 1);
+        volatileState().resetFollowersState(persistentState().commandLog().lastIndex() + 1);
         return Transition.STEADY;
     }
 
@@ -123,8 +124,7 @@ public class LeaderState extends AbstractState {
 
             if (matchIndex > currentCommitIndex) {
 
-                persistentState().commandLog().readIndex(matchIndex);
-                final int matchTerm = persistentState().commandLog().readTerm();
+                final int matchTerm = persistentState().commandLog().readTerm(matchIndex);
 
                 if (matchTerm == currentTerm()) {
 
@@ -149,6 +149,7 @@ public class LeaderState extends AbstractState {
     private void sendAppendRequest(final ServerContext serverContext, final int serverId) {
 
         final TrackedFollowerState trackedFollowerState =  volatileState().followerStateById(serverId);
+        final CommandLog commandLog = persistentState().commandLog();
         final long nextLogIndex = trackedFollowerState.nextIndex();
         final long prevLogIndex = trackedFollowerState.nextIndex() - 1;
 
@@ -157,13 +158,8 @@ public class LeaderState extends AbstractState {
                 .leaderCommit(volatileState().commitIndex())
                 .leaderId(serverContext.id());
 
-        persistentState().commandLog().readIndex(prevLogIndex);
-
-        appendRequest.prevLogKey().copyFrom(persistentState().commandLog().read(null).logKey());
-
-        persistentState().commandLog().readIndex(nextLogIndex);
-
-        appendRequest.logEntry().copyFrom(persistentState().commandLog().read(null));
+        commandLog.readKeyTo(prevLogIndex, appendRequest.prevLogKey());
+        commandLog.readTo(nextLogIndex, appendRequest.logEntry());
 
         appendRequest.sendTo(serverContext.connections().serverMulticastSender(),
                         serverContext.resendStrategy());

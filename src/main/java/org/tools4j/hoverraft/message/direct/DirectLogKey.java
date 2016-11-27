@@ -64,6 +64,6 @@ public class DirectLogKey extends AbstractDirectPayload implements LogKey {
 
     @Override
     public void copyFrom(final LogKey logKey) {
-        super.copyFrom(logKey);
+        this.term(logKey.term()).index(logKey.index());
     }
 }

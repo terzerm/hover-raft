@@ -25,7 +25,7 @@ package org.tools4j.hoverraft.command;
 
 import org.tools4j.hoverraft.direct.DirectPayload;
 
-public interface LogKey extends DirectPayload, Comparable<LogKey> {
+public interface LogKey extends Comparable<LogKey> {
     int term();
     LogKey term(int term);
 

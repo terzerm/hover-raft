@@ -28,11 +28,10 @@ public enum LogContainment {
 
 
     public static LogContainment containmentFor(final LogKey logKey, final CommandLog commandLog) {
-        if (logKey.index() > commandLog.lastKey().index()) {
+        if (logKey.index() > commandLog.lastIndex()) {
             return OUT;
         } else {
-            commandLog.readIndex(logKey.index());
-            final int termAtLogEntryIndex = commandLog.readTerm();
+            final int termAtLogEntryIndex = commandLog.readTerm(logKey.index());
             return logKey.term() == termAtLogEntryIndex ? IN : CONFLICT;
         }
     }

@@ -27,14 +27,15 @@ import org.tools4j.hoverraft.direct.DirectFactory;
 
 public interface CommandLog {
     long size();
-    long readIndex();
-    void readIndex(long index);
-    LogEntry read(DirectFactory directFactory);
-    void readTo(LogEntry logEntry);
-    int readTerm();
+    LogEntry read(long position, DirectFactory directFactory);
+    void readTo(long position, LogEntry logEntry);
+    void readKeyTo(long position, LogKey logKey);
+    int readTerm(long position);
     void append(LogEntry logEntry);
     void truncateIncluding(long index);
-    LogKey lastKey();
+    long lastIndex();
+    void lastKeyTo(LogKey logKey);
+    int lastKeyCompareTo(LogKey logKey);
 
     default LogContainment contains(final LogKey logKey) {
         return LogContainment.containmentFor(logKey, this);

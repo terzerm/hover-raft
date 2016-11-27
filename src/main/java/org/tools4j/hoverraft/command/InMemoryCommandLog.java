@@ -28,14 +28,11 @@ import org.tools4j.hoverraft.direct.DirectFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class InMemoryCommandLog implements CommandLog {
 
     private final DirectFactory directFactory = new AllocatingDirectFactory();
     private final List<LogEntry> entries = new ArrayList<>();
-    private final AtomicInteger readIndex = new AtomicInteger(0);
-    private final DirectLogEntry lastEntry = new DirectLogEntry();
 
     @Override
     public long size() {
@@ -43,41 +40,31 @@ public class InMemoryCommandLog implements CommandLog {
     }
 
     @Override
-    public long readIndex() {
-        return readIndex.get();
+    public synchronized int readTerm(final long position) {
+        return read(position, null).logKey().term();
     }
 
     @Override
-    public synchronized void readIndex(final long index) {
-        if (index < entries.size()) {
-            readIndex.set((int)index);
-        } else {
-            throw new IllegalArgumentException("Invalid read index " + index + " for log entry with size " + entries.size());
+    public synchronized LogEntry read(final long position, final DirectFactory directFactory) {
+        return clone(read(position));
+    }
+
+    @Override
+    public void readTo(final long position, final LogEntry logEntry) {
+        logEntry.copyFrom(read(position));
+    }
+
+    @Override
+    public void readKeyTo(final long position, final LogKey logKey) {
+        final LogKey readKey = read(position).logKey();
+        logKey.term(readKey.term()).index(readKey.index());
+    }
+
+    private LogEntry read(final long position) {
+        if (position < entries.size()) {
+            return entries.get((int)position);
         }
-    }
-
-    @Override
-    public synchronized int readTerm() {
-        return read(null).logKey().term();
-    }
-
-    @Override
-    public synchronized LogEntry read(final DirectFactory directFactory) {
-        return clone(read());
-    }
-
-    @Override
-    public void readTo(final LogEntry logEntry) {
-        final LogEntry readLogEntry = read();
-        logEntry.writeBufferOrNull().putBytes(0, readLogEntry.readBufferOrNull(), readLogEntry.offset(), readLogEntry.byteLength());
-
-    }
-
-    private LogEntry read() {
-        if (readIndex.get() < entries.size()) {
-            return entries.get(readIndex.getAndIncrement());
-        }
-        throw new IllegalStateException("Read index " + readIndex + " has reached end of message log with size " + entries.size());
+        throw new IllegalArgumentException("Position " + position + " is out of bounds for size=" + entries.size());
     }
 
     @Override
@@ -87,23 +74,28 @@ public class InMemoryCommandLog implements CommandLog {
 
 
     @Override
-    public synchronized void truncateIncluding(long index) {
+    public synchronized void truncateIncluding(final long index) {
         if (index >= entries.size()) {
             throw new IllegalArgumentException("Truncate index " + index + " must be less than the size " + entries.size());
         }
-        for (long idx = lastKey().index(); idx >= index; idx--) {
+        for (long idx = lastIndex(); idx >= index; idx--) {
             entries.remove((int)idx);
-        }
-        if (readIndex() >= index) {
-            readIndex(index - 1);
         }
     }
 
     @Override
-    public LogKey lastKey() {
-        readIndex(entries.size() - 1);
-        readTo(lastEntry);
-        return lastEntry.logKey();
+    public long lastIndex() {
+        return read(entries.size() - 1).logKey().index();
+    }
+
+    @Override
+    public void lastKeyTo(final LogKey logKey) {
+        readKeyTo(entries.size() - 1, logKey);
+    }
+
+    @Override
+    public int lastKeyCompareTo(final LogKey logKey) {
+        return read(entries.size() - 1).logKey().compareTo(logKey);
     }
 
     private LogEntry clone(final LogEntry e) {
