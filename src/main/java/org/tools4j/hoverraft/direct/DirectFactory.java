@@ -24,6 +24,7 @@
 package org.tools4j.hoverraft.direct;
 
 import org.tools4j.hoverraft.command.Command;
+import org.tools4j.hoverraft.command.CommandKey;
 import org.tools4j.hoverraft.command.LogEntry;
 import org.tools4j.hoverraft.message.*;
 
@@ -41,6 +42,8 @@ public interface DirectFactory {
     VoteResponse voteResponse();
 
     TimeoutNow timeoutNow();
+
+    CommandKey commandKey();
 
     Command command();
 

@@ -24,8 +24,7 @@
 package org.tools4j.hoverraft.command;
 
 import org.agrona.collections.Long2LongHashMap;
-import org.agrona.concurrent.UnsafeBuffer;
-import org.tools4j.hoverraft.message.direct.DirectCommandKey;
+import org.tools4j.hoverraft.direct.AllocatingDirectFactory;
 
 import java.util.Objects;
 
@@ -37,12 +36,11 @@ import java.util.Objects;
 public final class CommandKeyLookup {
 
     private final Long2LongHashMap maxCommandIndexBySourceId = new Long2LongHashMap(-1);
-    private final DirectCommandKey commandKey = new DirectCommandKey();
+    private final CommandKey commandKey = new AllocatingDirectFactory().commandKey();
     private final CommandLog commandLog;
 
     public CommandKeyLookup(final CommandLog commandLog) {
         this.commandLog = Objects.requireNonNull(commandLog);
-        this.commandKey.wrap(new UnsafeBuffer(new byte[DirectCommandKey.BYTE_LENGTH]), 0);
     }
 
     public void append(final CommandKey commandKey) {
@@ -57,10 +55,11 @@ public final class CommandKeyLookup {
         final int sourceId = commandKey.sourceId();
         long maxCommandIndex = maxCommandIndexBySourceId.get(sourceId);
         if (maxCommandIndex < 0) {
+            final CommandKey tempKey = this.commandKey;
             for (long idx = commandLog.size() - 1; idx >= 0; idx--) {
-                commandLog.readTo(idx, commandKey);
-                if (commandKey.sourceId() == sourceId) {
-                    maxCommandIndex = commandKey.commandIndex();
+                commandLog.readTo(idx, tempKey);
+                if (tempKey.sourceId() == sourceId) {
+                    maxCommandIndex = tempKey.commandIndex();
                     maxCommandIndexBySourceId.put(sourceId, maxCommandIndex);
                     break;
                 }
