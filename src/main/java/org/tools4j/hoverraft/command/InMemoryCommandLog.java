@@ -90,7 +90,7 @@ public class InMemoryCommandLog implements CommandLog {
     public synchronized void truncateIncluding(final long index) {
         for (int idx = entries.size() - 1; idx >= index; idx--) {
             final LogEntry removed = entries.remove(idx);
-            commandKeyLookup.append(removed.command().commandKey());
+            commandKeyLookup.remove(removed.command().commandKey());
         }
     }
 
