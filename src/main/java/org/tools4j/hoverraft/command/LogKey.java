@@ -23,16 +23,12 @@
  */
 package org.tools4j.hoverraft.command;
 
-import org.tools4j.hoverraft.direct.DirectPayload;
-
 public interface LogKey extends Comparable<LogKey> {
     int term();
     LogKey term(int term);
 
     long index();
     LogKey index(long index);
-
-    void copyFrom(LogKey logKey);
 
     @Override
     default int compareTo(final LogKey other) {

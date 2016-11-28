@@ -30,8 +30,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.tools4j.hoverraft.command.CommandLog;
-import org.tools4j.hoverraft.command.LogEntry;
 import org.tools4j.hoverraft.command.LogContainment;
+import org.tools4j.hoverraft.command.LogEntry;
 import org.tools4j.hoverraft.command.LogKey;
 import org.tools4j.hoverraft.direct.AllocatingDirectFactory;
 import org.tools4j.hoverraft.message.AppendRequest;
@@ -105,7 +105,7 @@ public class FollowerStateTest {
         final Transition transition = followerState.onEvent(serverContext, appendRequest);
 
         //then
-        verify(commandLog).append(logEntry);
+        verify(commandLog).append(logEntry.logKey().term(), logEntry.command());
 
         final ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
         verify(sender).offer(captor.capture());

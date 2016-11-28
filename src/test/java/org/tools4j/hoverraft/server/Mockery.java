@@ -34,7 +34,6 @@ import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.state.PersistentState;
 import org.tools4j.hoverraft.state.VolatileState;
 import org.tools4j.hoverraft.transport.Connections;
-import org.tools4j.hoverraft.transport.MessageLog;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -79,8 +78,8 @@ public class Mockery {
         return mock(StateMachine.class);
     }
 
-    public static <M extends Message> MessageLog<M> messageLog() {
-        return mock(MessageLog.class);
+    public static CommandLog commandLog() {
+        return mock(CommandLog.class);
     }
 
     public static <M extends Message> Connections<M> connections(final int servers, final int sources) {

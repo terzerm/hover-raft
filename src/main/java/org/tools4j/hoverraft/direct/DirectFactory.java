@@ -23,6 +23,7 @@
  */
 package org.tools4j.hoverraft.direct;
 
+import org.tools4j.hoverraft.command.Command;
 import org.tools4j.hoverraft.command.LogEntry;
 import org.tools4j.hoverraft.message.*;
 
@@ -41,7 +42,7 @@ public interface DirectFactory {
 
     TimeoutNow timeoutNow();
 
-    CommandMessage commandMessage();
+    Command commandMessage();
 
     LogEntry logEntry();
 }

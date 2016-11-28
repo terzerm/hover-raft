@@ -23,12 +23,11 @@
  */
 package org.tools4j.hoverraft.server;
 
+import org.tools4j.hoverraft.command.Command;
 import org.tools4j.hoverraft.command.machine.StateMachine;
 import org.tools4j.hoverraft.config.ConsensusConfig;
 import org.tools4j.hoverraft.config.ServerConfig;
 import org.tools4j.hoverraft.direct.DirectFactory;
-import org.tools4j.hoverraft.direct.DirectPayload;
-import org.tools4j.hoverraft.message.CommandMessage;
 import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.state.HoverRaftMachine;
 import org.tools4j.hoverraft.state.PersistentState;
@@ -48,8 +47,8 @@ public final class Server implements ServerContext {
     private final StateMachine stateMachine;
     private final Connections<Message> connections;
     private final DirectFactory directFactory;
-    private final RoundRobinMessagePoller<DirectPayload> serverMessagePoller;
-    private final RoundRobinMessagePoller<CommandMessage> sourceMessagePoller;
+    private final RoundRobinMessagePoller<Message> serverMessagePoller;
+    private final RoundRobinMessagePoller<Command> sourceMessagePoller;
     private final Timer timer;
 
     public Server(final int serverId,
@@ -66,8 +65,8 @@ public final class Server implements ServerContext {
         this.stateMachine = Objects.requireNonNull(stateMachine);
         this.connections = Objects.requireNonNull(connections);
         this.directFactory = Objects.requireNonNull(directFactory);
-        this.serverMessagePoller = RoundRobinMessagePoller.forServerMessages(this, this::handlePayload);
-        this.sourceMessagePoller = RoundRobinMessagePoller.forSourceMessages(this, this::handleMessage);
+        this.serverMessagePoller = RoundRobinMessagePoller.forServerMessages(this, this::handleMessage);
+        this.sourceMessagePoller = RoundRobinMessagePoller.forSourceMessages(this, this::handleCommand);
         this.timer = new Timer();
     }
 
@@ -103,12 +102,8 @@ public final class Server implements ServerContext {
         sourceMessagePoller.pollNextMessage();
     }
 
-    private void handlePayload(final DirectPayload message) {
-        if (message instanceof Message) {
-            handleMessage((Message)message);
-        } else {
-            throw new IllegalArgumentException("Message expected but found " + message);
-        }
+    private void handleCommand(final Command command) {
+        hoverRaftMachine.onEvent(this, command);
     }
 
     private void handleMessage(final Message message) {

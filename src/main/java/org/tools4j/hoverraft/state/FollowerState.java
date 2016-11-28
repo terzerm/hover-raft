@@ -41,7 +41,7 @@ public class FollowerState extends AbstractState {
         return new EventHandler() {
             @Override
             public Transition onVoteRequest(final ServerContext serverContext, final VoteRequest voteRequest) {
-                return onVoteRequest(serverContext, voteRequest);
+                return FollowerState.this.onVoteRequest(serverContext, voteRequest);
             }
 
             @Override

@@ -28,7 +28,7 @@ public enum LogContainment {
 
 
     public static LogContainment containmentFor(final LogKey logKey, final CommandLog commandLog) {
-        if (logKey.index() > commandLog.lastIndex()) {
+        if (logKey.index() >= commandLog.size()) {
             return OUT;
         } else {
             final int termAtLogEntryIndex = commandLog.readTerm(logKey.index());

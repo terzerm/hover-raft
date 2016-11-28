@@ -21,15 +21,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.transport;
+package org.tools4j.hoverraft.command;
 
-import org.tools4j.hoverraft.message.Message;
+import org.agrona.DirectBuffer;
+import org.agrona.MutableDirectBuffer;
 
-public interface MessageLog<M extends Message> {
-    long size();
-    void size(long size);
-    long readIndex();
-    void readIndex(long index);
-    M read();
-    void append(M message);
+import java.nio.ByteBuffer;
+
+public interface CommandPayload {
+    int byteLength();
+    void bytesFrom(byte[] bytes, int offset, int length);
+    void bytesFrom(ByteBuffer bytes, int offset, int length);
+    void bytesFrom(DirectBuffer bytes, int offset, int length);
+    void bytesTo(byte[] bytes, int offset);
+    void bytesTo(ByteBuffer bytes, int offset);
+    void bytesTo(MutableDirectBuffer bytes, int offset);
+    void copyFrom(CommandPayload commandPayload);
 }

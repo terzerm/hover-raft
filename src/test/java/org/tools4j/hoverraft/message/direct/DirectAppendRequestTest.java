@@ -64,14 +64,13 @@ public class DirectAppendRequestTest {
                 .leaderCommit(leaderCommit)
                 .prevLogKey().term(prevLogEntryTerm)
                                 .index(prevLogEntryIndex);
-        directAppendRequest.logEntry().logKey()
-                .term(newEntryTerm)
-                .index(newEntryIndex);
         directAppendRequest.logEntry()
-                .commandMessage()
+                .term(newEntryTerm)
+                .index(newEntryIndex)
+                .command()
                     .commandIndex(newEntryCommandIndex)
-                    .commandSourceId(newEntryCommandSourceId)
-                    .command().bytesFrom(commandBytes, 0, commandBytes.length);
+                    .sourceId(newEntryCommandSourceId)
+                    .commandPayload().bytesFrom(commandBytes, 0, commandBytes.length);
 
         // then
         assertThat(directAppendRequest.type()).isEqualTo(MessageType.APPEND_REQUEST);
@@ -93,21 +92,21 @@ public class DirectAppendRequestTest {
         assertThat(retrievedCommandLogEntryTerm).isEqualTo(newEntryTerm);
         assertThat(retrievedCommandLogEntryIndex).isEqualTo(newEntryIndex);
 
-        final int retrievedCommandSourceId = directAppendRequest.logEntry().commandMessage().commandSourceId();
-        final long retrieveCommandIndex = directAppendRequest.logEntry().commandMessage().commandIndex();
-        final int retrievedCommandByteLength = directAppendRequest.logEntry().commandMessage().command().byteLength();
+        final int retrievedCommandSourceId = directAppendRequest.logEntry().command().commandKey().sourceId();
+        final long retrieveCommandIndex = directAppendRequest.logEntry().command().commandKey().commandIndex();
+        final int retrievedCommandByteLength = directAppendRequest.logEntry().command().commandPayload().byteLength();
 
         assertThat(retrievedCommandSourceId).isEqualTo(newEntryCommandSourceId);
         assertThat(retrieveCommandIndex).isEqualTo(newEntryCommandIndex);
         assertThat(retrievedCommandByteLength).isEqualTo(commandBytes.length);
 
         final byte[] retrievedCommandBytes = new byte[retrievedCommandByteLength];
-        directAppendRequest.logEntry().commandMessage().command().bytesTo(retrievedCommandBytes, 0);
+        directAppendRequest.logEntry().command().commandPayload().bytesTo(retrievedCommandBytes, 0);
 
         assertThat(new String(retrievedCommandBytes)).isEqualTo(myCommand);
 
         final int extectedAppendRequestBytes = DirectAppendRequest.BYTE_LENGTH +
-                DirectLogKey.BYTE_LENGTH + DirectCommandMessage.EMPTY_COMMAND_BYTE_LENGTH +
+                DirectLogKey.BYTE_LENGTH + DirectCommand.EMPTY_COMMAND_BYTE_LENGTH +
                 commandBytes.length;
 
         assertThat(directAppendRequest.byteLength()).isEqualTo(extectedAppendRequestBytes);

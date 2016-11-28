@@ -21,29 +21,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.message;
+package org.tools4j.hoverraft.command;
 
-import org.tools4j.hoverraft.command.Command;
-import org.tools4j.hoverraft.event.EventHandler;
-import org.tools4j.hoverraft.server.ServerContext;
-import org.tools4j.hoverraft.state.Transition;
+import java.util.Comparator;
 
-public interface CommandMessage extends Message {
-
-    int commandSourceId();
-
-    CommandMessage commandSourceId(int sourceId);
-
-    long commandIndex();
-
-    CommandMessage commandIndex(long commandIndex);
-
-    Command command();
-
-    void copyFrom(CommandMessage commandMessage);
+public enum CommandKeyComparator implements Comparator<CommandKey> {
+    INSTANCE;
 
     @Override
-    default Transition accept(final ServerContext serverContext, final EventHandler eventHandler) {
-        return eventHandler.onCommandMessage(serverContext, this);
+    public int compare(final CommandKey commandKey, final CommandKey otherCommandKey) {
+        final int termCompare = Integer.compare(commandKey.sourceId(), otherCommandKey.sourceId());
+        return termCompare == 0 ? Long.compare(commandKey.commandIndex(), otherCommandKey.commandIndex()) : termCompare;
     }
 }

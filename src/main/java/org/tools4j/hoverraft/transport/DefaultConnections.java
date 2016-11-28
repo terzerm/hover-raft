@@ -23,7 +23,8 @@
  */
 package org.tools4j.hoverraft.transport;
 
-import org.tools4j.hoverraft.message.CommandMessage;
+import org.tools4j.hoverraft.command.Command;
+import org.tools4j.hoverraft.direct.DirectPayload;
 import org.tools4j.hoverraft.message.Message;
 
 import java.util.List;
@@ -31,11 +32,11 @@ import java.util.Objects;
 
 public class DefaultConnections<M extends Message> implements Connections<M> {
 
-    private final Receiver<CommandMessage>[] sourceReceivers;
+    private final Receiver<Command>[] sourceReceivers;
     private final Receiver<M>[] serverReceivers;
     private final Sender<M> serverMulticastSender;
 
-    public DefaultConnections(final List<Receiver<? extends CommandMessage>> sourceReceivers,
+    public DefaultConnections(final List<Receiver<? extends Command>> sourceReceivers,
                               final List<Receiver<? extends M>> serverReceivers,
                               final Sender<? super M> serverMulticastSender) {
         Objects.requireNonNull(serverMulticastSender);
@@ -45,7 +46,7 @@ public class DefaultConnections<M extends Message> implements Connections<M> {
     }
 
     //safely wraps Receiver<? super M> to Receiver<M> and converts List to array
-    private static <M extends Message> Receiver<M>[] receivers(final List<Receiver<? extends M>> receivers) {
+    private static <M extends DirectPayload> Receiver<M>[] receivers(final List<Receiver<? extends M>> receivers) {
         final Receiver<M>[] arr = (Receiver<M>[])new Receiver<?>[receivers.size()];
         for (int i = 0; i < arr.length; i++) {
             final int index = i;
@@ -55,7 +56,7 @@ public class DefaultConnections<M extends Message> implements Connections<M> {
     }
 
     @Override
-    public Receiver<CommandMessage> sourceReceiver(int sourceId) {
+    public Receiver<Command> sourceReceiver(int sourceId) {
         return sourceReceivers[sourceId];
     }
 

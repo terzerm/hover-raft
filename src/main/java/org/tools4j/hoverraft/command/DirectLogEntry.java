@@ -26,44 +26,43 @@ package org.tools4j.hoverraft.command;
 import org.agrona.DirectBuffer;
 import org.agrona.MutableDirectBuffer;
 import org.tools4j.hoverraft.direct.AbstractDirectPayload;
-import org.tools4j.hoverraft.message.CommandMessage;
-import org.tools4j.hoverraft.message.direct.DirectCommandMessage;
+import org.tools4j.hoverraft.message.direct.DirectCommand;
 import org.tools4j.hoverraft.message.direct.DirectLogKey;
 
 public class DirectLogEntry extends AbstractDirectPayload implements LogEntry {
     private static final int LOG_KEY_OFF = 0;
     private static final int LOG_KEY_LEN = DirectLogKey.BYTE_LENGTH;
 
-    private static final int COMMAND_MSG_OFF = LOG_KEY_OFF + LOG_KEY_LEN;
+    private static final int COMMAND_OFF = LOG_KEY_OFF + LOG_KEY_LEN;
 
     private DirectLogKey directLogKey = new DirectLogKey();
-    private DirectCommandMessage directCommandMessage = new DirectCommandMessage();
+    private DirectCommand directCommand = new DirectCommand();
 
     @Override
     public void wrap(final DirectBuffer buffer, final int offset) {
         super.wrap(buffer, offset);
         directLogKey.wrap(buffer, offset + LOG_KEY_OFF);
-        directCommandMessage.wrap(buffer, offset + COMMAND_MSG_OFF);
+        directCommand.wrap(buffer, offset + COMMAND_OFF);
     }
 
     @Override
     public void wrap(final MutableDirectBuffer buffer, final int offset) {
         super.wrap(buffer, offset);
         directLogKey.wrap(buffer, offset + LOG_KEY_OFF);
-        directCommandMessage.wrap(buffer, offset + COMMAND_MSG_OFF);
+        directCommand.wrap(buffer, offset + COMMAND_OFF);
     }
 
     @Override
     public void unwrap() {
         directLogKey.unwrap();
-        directCommandMessage.unwrap();
+        directCommand.unwrap();
         super.unwrap();
     }
 
 
     @Override
-    public CommandMessage commandMessage() {
-        return directCommandMessage;
+    public Command command() {
+        return directCommand;
     }
 
     @Override
@@ -73,11 +72,6 @@ public class DirectLogEntry extends AbstractDirectPayload implements LogEntry {
 
     @Override
     public int byteLength() {
-        return COMMAND_MSG_OFF + directCommandMessage.byteLength();
-    }
-
-    @Override
-    public void copyFrom(final LogEntry logEntry) {
-        super.copyFrom(logEntry);
+        return COMMAND_OFF + directCommand.byteLength();
     }
 }

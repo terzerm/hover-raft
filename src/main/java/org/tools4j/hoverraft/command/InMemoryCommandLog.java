@@ -23,6 +23,7 @@
  */
 package org.tools4j.hoverraft.command;
 
+import org.agrona.collections.Long2LongHashMap;
 import org.tools4j.hoverraft.direct.AllocatingDirectFactory;
 import org.tools4j.hoverraft.direct.DirectFactory;
 
@@ -32,76 +33,88 @@ import java.util.List;
 public class InMemoryCommandLog implements CommandLog {
 
     private final DirectFactory directFactory = new AllocatingDirectFactory();
+
     private final List<LogEntry> entries = new ArrayList<>();
+    private final Long2LongHashMap maxCommandIndexBySourceId = new Long2LongHashMap(-1);
 
     @Override
-    public long size() {
+    public synchronized long size() {
         return entries.size();
     }
 
     @Override
-    public synchronized int readTerm(final long position) {
-        return read(position, null).logKey().term();
+    public synchronized int readTerm(final long index) {
+        return read(index).logKey().term();
     }
 
     @Override
-    public synchronized LogEntry read(final long position, final DirectFactory directFactory) {
-        return clone(read(position));
-    }
-
-    @Override
-    public void readTo(final long position, final LogEntry logEntry) {
-        logEntry.copyFrom(read(position));
-    }
-
-    @Override
-    public void readKeyTo(final long position, final LogKey logKey) {
-        final LogKey readKey = read(position).logKey();
+    public synchronized void readKeyTo(final long index, final LogKey logKey) {
+        final LogKey readKey = read(index).logKey();
         logKey.term(readKey.term()).index(readKey.index());
     }
 
-    private LogEntry read(final long position) {
-        if (position < entries.size()) {
-            return entries.get((int)position);
+    @Override
+    public synchronized void readTo(final long index, final LogEntry target) {
+        final LogEntry source = read(index);
+        target.writeBufferOrNull()
+                .putBytes(0, source.readBufferOrNull(), source.offset(), source.byteLength());
+    }
+
+    private LogEntry read(final long index) {
+        if (index < entries.size()) {
+            return entries.get((int)index);
         }
-        throw new IllegalArgumentException("Position " + position + " is out of bounds for size=" + entries.size());
+        throw new IllegalArgumentException("Index " + index + " is not in [0, " + (entries.size() - 1) + "]");
     }
 
     @Override
-    public synchronized void append(final LogEntry logEntry) {
-        entries.add(clone(logEntry));
+    public void append(final int term, final Command command) {
+        final LogEntry logEntry = directFactory.logEntry();
+        logEntry.logKey().term(term);
+        logEntry.command()
+                .writeBufferOrNull()
+                .putBytes(0, command.readBufferOrNull(), command.offset(), command.byteLength());
+        synchronized (this) {
+            final long index = entries.size();
+            logEntry.logKey().index(index);//TODO this is redundant, do we need this?
+            entries.add(logEntry);
+            maxCommandIndexBySourceId.put(command.commandKey().sourceId(), command.commandKey().commandIndex());
+        }
     }
 
 
     @Override
     public synchronized void truncateIncluding(final long index) {
-        if (index >= entries.size()) {
-            throw new IllegalArgumentException("Truncate index " + index + " must be less than the size " + entries.size());
-        }
-        for (long idx = lastIndex(); idx >= index; idx--) {
-            entries.remove((int)idx);
+        for (int idx = entries.size() - 1; idx >= index; idx--) {
+            final LogEntry removed = entries.remove(idx);
+            maxCommandIndexBySourceId.remove(removed.command().commandKey().sourceId());
         }
     }
 
     @Override
-    public long lastIndex() {
-        return read(entries.size() - 1).logKey().index();
+    public synchronized int lastTerm() {
+        return readTerm(entries.size() - 1);
     }
 
     @Override
-    public void lastKeyTo(final LogKey logKey) {
-        readKeyTo(entries.size() - 1, logKey);
+    public synchronized void lastKeyTo(final LogKey target) {
+        readKeyTo(entries.size() - 1, target);
     }
 
     @Override
-    public int lastKeyCompareTo(final LogKey logKey) {
-        return read(entries.size() - 1).logKey().compareTo(logKey);
+    public synchronized boolean contains(final CommandKey commandKey) {
+        final int sourceId = commandKey.sourceId();
+        long maxCommandIndex = maxCommandIndexBySourceId.get(sourceId);
+        if (maxCommandIndex < 0) {
+            for (int idx = entries.size() - 1; idx >= 0; idx--) {
+                final CommandKey ckey = entries.get(idx).command().commandKey();
+                if (ckey.sourceId() == sourceId) {
+                    maxCommandIndex = ckey.commandIndex();
+                    maxCommandIndexBySourceId.put(sourceId, maxCommandIndex);
+                    break;
+                }
+            }
+        }
+        return maxCommandIndex >= commandKey.commandIndex();
     }
-
-    private LogEntry clone(final LogEntry e) {
-        final LogEntry clone = directFactory.logEntry();
-        clone.writeBufferOrNull().putBytes(0, e.readBufferOrNull(), e.offset(), e.byteLength());
-        return clone;
-    }
-
 }

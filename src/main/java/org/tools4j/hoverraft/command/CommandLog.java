@@ -23,20 +23,23 @@
  */
 package org.tools4j.hoverraft.command;
 
-import org.tools4j.hoverraft.direct.DirectFactory;
-
 public interface CommandLog {
     long size();
-    LogEntry read(long position, DirectFactory directFactory);
-    void readTo(long position, LogEntry logEntry);
-    void readKeyTo(long position, LogKey logKey);
-    int readTerm(long position);
-    void append(LogEntry logEntry);
-    void truncateIncluding(long index);
-    long lastIndex();
-    void lastKeyTo(LogKey logKey);
-    int lastKeyCompareTo(LogKey logKey);
+    int readTerm(long index);
+    void readKeyTo(long index, LogKey target);
+    void readTo(long index, LogEntry target);
 
+    void append(int term, Command command);
+    void truncateIncluding(long index);
+    int lastTerm();
+    void lastKeyTo(LogKey target);
+
+    default int lastKeyCompareTo(final LogKey logKey) {
+        final int termCompare = Integer.compare(lastTerm(), logKey.term());
+        return termCompare == 0 ? Long.compare(size() - 1, logKey.index()) : termCompare;
+    }
+
+    boolean contains(CommandKey commandKey);
     default LogContainment contains(final LogKey logKey) {
         return LogContainment.containmentFor(logKey, this);
     }

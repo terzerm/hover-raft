@@ -24,10 +24,18 @@
 package org.tools4j.hoverraft.command;
 
 import org.tools4j.hoverraft.direct.DirectPayload;
-import org.tools4j.hoverraft.message.CommandMessage;
 
 public interface LogEntry extends DirectPayload {
     LogKey logKey();
-    CommandMessage commandMessage();
-    void copyFrom(LogEntry logEntry);
+
+    default LogEntry term(final int term) {
+        logKey().term(term);
+        return this;
+    }
+    default LogEntry index(final long index) {
+        logKey().index(index);
+        return this;
+    }
+
+    Command command();
 }

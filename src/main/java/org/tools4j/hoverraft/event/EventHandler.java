@@ -23,6 +23,7 @@
  */
 package org.tools4j.hoverraft.event;
 
+import org.tools4j.hoverraft.command.Command;
 import org.tools4j.hoverraft.message.*;
 import org.tools4j.hoverraft.server.ServerContext;
 import org.tools4j.hoverraft.state.Transition;
@@ -34,11 +35,11 @@ import org.tools4j.hoverraft.timer.TimerEvent;
  */
 public interface EventHandler {
     default Transition onTransition(ServerContext serverContext, Transition transition) {return Transition.STEADY;}
+    default Transition onCommand(ServerContext serverContext, Command command) {return Transition.STEADY;}
     default Transition onVoteRequest(ServerContext serverContext, VoteRequest voteRequest) {return Transition.STEADY;}
     default Transition onVoteResponse(ServerContext serverContext, VoteResponse voteResponse) {return Transition.STEADY;}
     default Transition onAppendRequest(ServerContext serverContext, AppendRequest appendRequest) {return Transition.STEADY;}
     default Transition onAppendResponse(ServerContext serverContext, AppendResponse appendResponse) {return Transition.STEADY;}
     default Transition onTimeoutNow(ServerContext serverContext, TimeoutNow timeoutNow) {return Transition.STEADY;}
-    default Transition onCommandMessage(ServerContext serverContext, CommandMessage commandMessage) {return Transition.STEADY;};
     default Transition onTimerEvent(ServerContext serverContext, TimerEvent timerEvent) {return Transition.STEADY;};
 }

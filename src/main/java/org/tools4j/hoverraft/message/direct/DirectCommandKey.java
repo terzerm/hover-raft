@@ -23,17 +23,17 @@
  */
 package org.tools4j.hoverraft.message.direct;
 
-import org.tools4j.hoverraft.command.LogKey;
+import org.tools4j.hoverraft.command.CommandKey;
 import org.tools4j.hoverraft.direct.AbstractDirectPayload;
 
-public class DirectLogKey extends AbstractDirectPayload implements LogKey {
-    private static final int TERM_OFF = 0;
-    private static final int TERM_LEN = 4;
+public class DirectCommandKey extends AbstractDirectPayload implements CommandKey {
+    private static final int SOURCE_ID_OFF = 0;
+    private static final int SOURCE_ID_LEN = 4;
 
-    private static final int INDEX_OFF = TERM_OFF + TERM_LEN;
-    private static final int INDEX_LEN = 8;
+    private static final int COMMAND_INDEX_OFF = SOURCE_ID_OFF + SOURCE_ID_LEN;
+    private static final int COMMAND_INDEX_LEN = 8;
 
-    public static final int BYTE_LENGTH = INDEX_OFF + INDEX_LEN;
+    public static final int BYTE_LENGTH = COMMAND_INDEX_OFF + COMMAND_INDEX_LEN;
 
     @Override
     public int byteLength() {
@@ -41,24 +41,24 @@ public class DirectLogKey extends AbstractDirectPayload implements LogKey {
     }
 
     @Override
-    public int term() {
-        return readBuffer.getInt(offset + TERM_OFF);
+    public int sourceId() {
+        return readBuffer.getInt(offset + SOURCE_ID_OFF);
     }
 
     @Override
-    public long index() {
-        return readBuffer.getLong(offset + INDEX_OFF);
+    public long commandIndex() {
+        return readBuffer.getLong(offset + COMMAND_INDEX_OFF);
     }
 
     @Override
-    public LogKey term(int term) {
-        writeBuffer.putInt(offset + TERM_OFF, term);
+    public DirectCommandKey sourceId(final int sourceId) {
+        writeBuffer.putInt(offset + SOURCE_ID_OFF, sourceId);
         return this;
     }
 
     @Override
-    public LogKey index(long index) {
-        writeBuffer.putLong(offset + INDEX_OFF, index);
+    public DirectCommandKey commandIndex(final long commandIndex) {
+        writeBuffer.putLong(offset + COMMAND_INDEX_OFF, commandIndex);
         return this;
     }
 }

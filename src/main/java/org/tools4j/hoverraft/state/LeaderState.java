@@ -23,12 +23,11 @@
  */
 package org.tools4j.hoverraft.state;
 
+import org.tools4j.hoverraft.command.Command;
 import org.tools4j.hoverraft.command.CommandLog;
-import org.tools4j.hoverraft.command.LogEntry;
 import org.tools4j.hoverraft.event.EventHandler;
 import org.tools4j.hoverraft.message.AppendRequest;
 import org.tools4j.hoverraft.message.AppendResponse;
-import org.tools4j.hoverraft.message.CommandMessage;
 import org.tools4j.hoverraft.message.VoteRequest;
 import org.tools4j.hoverraft.server.ServerContext;
 import org.tools4j.hoverraft.timer.TimerEvent;
@@ -48,6 +47,11 @@ public class LeaderState extends AbstractState {
             }
 
             @Override
+            public Transition onCommand(final ServerContext serverContext, final Command command) {
+                return LeaderState.this.onCommand(serverContext, command);
+            }
+
+            @Override
             public Transition onVoteRequest(final ServerContext serverContext, final VoteRequest voteRequest) {
                 return LeaderState.this.onVoteRequest(serverContext, voteRequest);
             }
@@ -55,11 +59,6 @@ public class LeaderState extends AbstractState {
             @Override
             public Transition onAppendResponse(final ServerContext serverContext, final AppendResponse appendResponse) {
                 return LeaderState.this.onAppendResponse(serverContext, appendResponse);
-            }
-
-            @Override
-            public Transition onCommandMessage(final ServerContext serverContext, final CommandMessage commandMessage) {
-                return LeaderState.this.onCommandMessage(serverContext, commandMessage);
             }
 
             @Override
@@ -72,17 +71,12 @@ public class LeaderState extends AbstractState {
     private Transition onTransition(final ServerContext serverContext, final Transition transition) {
         final long heartbeatMillis = serverContext.consensusConfig().heartbeatTimeoutMillis();
         serverContext.timer().restart(heartbeatMillis, heartbeatMillis);
-        volatileState().resetFollowersState(persistentState().commandLog().lastIndex() + 1);
+        volatileState().resetFollowersState(persistentState().commandLog().size());
         return Transition.STEADY;
     }
 
-    private Transition onCommandMessage(final ServerContext serverContext, final CommandMessage commandMessage) {
-        LogEntry newLogEntry = serverContext.directFactory().logEntry();
-
-        newLogEntry.logKey().term(currentTerm());
-        newLogEntry.commandMessage().copyFrom(commandMessage);
-
-        persistentState().commandLog().append(newLogEntry);
+    private Transition onCommand(final ServerContext serverContext, final Command command) {
+        persistentState().commandLog().append(currentTerm(), command);
         sendAppendRequest(serverContext);//FIXME send log message in request
         return Transition.STEADY;
     }
