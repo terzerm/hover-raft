@@ -23,7 +23,14 @@
  */
 package org.tools4j.hoverraft.command;
 
+import java.util.Comparator;
+
 public interface CommandKey extends Comparable<CommandKey> {
+    Comparator<CommandKey> COMPARATOR = (k1, k2) -> {
+        final int sourceCompare = Integer.compare(k1.sourceId(), k2.sourceId());
+        return sourceCompare == 0 ? Long.compare(k1.commandIndex(), k2.commandIndex()) : sourceCompare;
+    };
+
     int sourceId();
     CommandKey sourceId(int sourceId);
 
@@ -32,7 +39,7 @@ public interface CommandKey extends Comparable<CommandKey> {
 
     @Override
     default int compareTo(final CommandKey other) {
-        return CommandKeyComparator.INSTANCE.compare(this, other);
+        return COMPARATOR.compare(this, other);
     }
 
     default boolean containedIn(final CommandLog commandLog) {

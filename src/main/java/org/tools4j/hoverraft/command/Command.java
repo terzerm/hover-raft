@@ -45,8 +45,13 @@ public interface Command extends DirectPayload, Event {
         return this;
     }
 
+    default void copyFrom(final Command command) {
+        writeBufferOrNull().putBytes(offset(), command.readBufferOrNull(), command.offset(), command.byteLength());
+    }
+
     @Override
     default Transition accept(final ServerContext serverContext, final EventHandler eventHandler) {
         return eventHandler.onCommand(serverContext, this);
     }
+
 }

@@ -73,10 +73,10 @@ public class AllocatingDirectFactory implements DirectFactory {
     }
 
     @Override
-    public Command commandMessage() {
-        final DirectCommand directCommandMessage = new DirectCommand();
-        directCommandMessage.wrap(newBuffer(DirectCommand.EMPTY_COMMAND_BYTE_LENGTH), 0);
-        return directCommandMessage;
+    public Command command() {
+        final DirectCommand directCommand = new DirectCommand();
+        directCommand.wrap(newBuffer(DirectCommand.EMPTY_COMMAND_BYTE_LENGTH), 0);
+        return directCommand;
     }
 
     @Override

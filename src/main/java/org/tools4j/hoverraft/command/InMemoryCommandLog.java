@@ -23,7 +23,6 @@
  */
 package org.tools4j.hoverraft.command;
 
-import org.agrona.collections.Long2LongHashMap;
 import org.tools4j.hoverraft.direct.AllocatingDirectFactory;
 import org.tools4j.hoverraft.direct.DirectFactory;
 
@@ -35,7 +34,7 @@ public class InMemoryCommandLog implements CommandLog {
     private final DirectFactory directFactory = new AllocatingDirectFactory();
 
     private final List<LogEntry> entries = new ArrayList<>();
-    private final Long2LongHashMap maxCommandIndexBySourceId = new Long2LongHashMap(-1);
+    private final CommandKeyLookup commandKeyLookup = new CommandKeyLookup(this);
 
     @Override
     public synchronized long size() {
@@ -48,9 +47,15 @@ public class InMemoryCommandLog implements CommandLog {
     }
 
     @Override
-    public synchronized void readKeyTo(final long index, final LogKey logKey) {
+    public synchronized void readTo(final long index, final LogKey logKey) {
         final LogKey readKey = read(index).logKey();
         logKey.term(readKey.term()).index(readKey.index());
+    }
+
+    @Override
+    public synchronized void readTo(final long index, final CommandKey commandKey) {
+        final CommandKey readKey = read(index).command().commandKey();
+        commandKey.sourceId(readKey.sourceId()).commandIndex(readKey.commandIndex());
     }
 
     @Override
@@ -71,14 +76,12 @@ public class InMemoryCommandLog implements CommandLog {
     public void append(final int term, final Command command) {
         final LogEntry logEntry = directFactory.logEntry();
         logEntry.logKey().term(term);
-        logEntry.command()
-                .writeBufferOrNull()
-                .putBytes(0, command.readBufferOrNull(), command.offset(), command.byteLength());
+        logEntry.command().copyFrom(command);
         synchronized (this) {
             final long index = entries.size();
             logEntry.logKey().index(index);//TODO this is redundant, do we need this?
             entries.add(logEntry);
-            maxCommandIndexBySourceId.put(command.commandKey().sourceId(), command.commandKey().commandIndex());
+            commandKeyLookup.append(command.commandKey());
         }
     }
 
@@ -87,7 +90,7 @@ public class InMemoryCommandLog implements CommandLog {
     public synchronized void truncateIncluding(final long index) {
         for (int idx = entries.size() - 1; idx >= index; idx--) {
             final LogEntry removed = entries.remove(idx);
-            maxCommandIndexBySourceId.remove(removed.command().commandKey().sourceId());
+            commandKeyLookup.append(removed.command().commandKey());
         }
     }
 
@@ -98,23 +101,11 @@ public class InMemoryCommandLog implements CommandLog {
 
     @Override
     public synchronized void lastKeyTo(final LogKey target) {
-        readKeyTo(entries.size() - 1, target);
+        readTo(entries.size() - 1, target);
     }
 
     @Override
     public synchronized boolean contains(final CommandKey commandKey) {
-        final int sourceId = commandKey.sourceId();
-        long maxCommandIndex = maxCommandIndexBySourceId.get(sourceId);
-        if (maxCommandIndex < 0) {
-            for (int idx = entries.size() - 1; idx >= 0; idx--) {
-                final CommandKey ckey = entries.get(idx).command().commandKey();
-                if (ckey.sourceId() == sourceId) {
-                    maxCommandIndex = ckey.commandIndex();
-                    maxCommandIndexBySourceId.put(sourceId, maxCommandIndex);
-                    break;
-                }
-            }
-        }
-        return maxCommandIndex >= commandKey.commandIndex();
+        return commandKeyLookup.contains(commandKey);
     }
 }

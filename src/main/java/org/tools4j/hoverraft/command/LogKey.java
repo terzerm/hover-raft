@@ -23,7 +23,14 @@
  */
 package org.tools4j.hoverraft.command;
 
+import java.util.Comparator;
+
 public interface LogKey extends Comparable<LogKey> {
+    Comparator<LogKey> COMPARATOR = (k1, k2) -> {
+        final int termCompare = Integer.compare(k1.term(), k2.term());
+        return termCompare == 0 ? Long.compare(k1.index(), k2.index()) : termCompare;
+    };
+
     int term();
     LogKey term(int term);
 
@@ -32,7 +39,7 @@ public interface LogKey extends Comparable<LogKey> {
 
     @Override
     default int compareTo(final LogKey other) {
-        return LogKeyComparator.INSTANCE.compare(this, other);
+        return COMPARATOR.compare(this, other);
     }
 
     default LogContainment containedIn(final CommandLog commandLog) {

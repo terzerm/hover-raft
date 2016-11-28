@@ -152,7 +152,7 @@ public class LeaderState extends AbstractState {
                 .leaderCommit(volatileState().commitIndex())
                 .leaderId(serverContext.id());
 
-        commandLog.readKeyTo(prevLogIndex, appendRequest.prevLogKey());
+        commandLog.readTo(prevLogIndex, appendRequest.prevLogKey());
         commandLog.readTo(nextLogIndex, appendRequest.logEntry());
 
         appendRequest.sendTo(serverContext.connections().serverMulticastSender(),

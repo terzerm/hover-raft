@@ -43,7 +43,7 @@ public final class DirectCommand extends AbstractDirectPayload implements Comman
 
     @Override
     public int byteLength() {
-        return EMPTY_COMMAND_BYTE_LENGTH + commandPayload.byteLength();
+        return EMPTY_COMMAND_BYTE_LENGTH + commandPayload.commandByteLength();
     }
 
     @Override

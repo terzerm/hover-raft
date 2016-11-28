@@ -70,9 +70,9 @@ public class DirectLogEntryTest {
 
         assertThat(command.commandKey().sourceId()).isEqualTo(sourceId);
         assertThat(command.commandKey().commandIndex()).isEqualTo(commandIndex);
-        assertThat(command.commandPayload().byteLength()).isEqualTo(commandBytes.length);
+        assertThat(command.commandPayload().commandByteLength()).isEqualTo(commandBytes.length);
 
-        final byte[] retrievedCommandBytes = new byte[command.commandPayload().byteLength()];
+        final byte[] retrievedCommandBytes = new byte[command.commandPayload().commandByteLength()];
         command.commandPayload().bytesTo(retrievedCommandBytes, 0);
 
 
@@ -104,9 +104,9 @@ public class DirectLogEntryTest {
         //then
         final Command command = directLogEntry.command();
 
-        assertThat(command.commandPayload().byteLength()).isEqualTo(commandBytes.length);
+        assertThat(command.commandPayload().commandByteLength()).isEqualTo(commandBytes.length);
 
-        final byte[] retrievedCommandBytes = new byte[command.commandPayload().byteLength()];
+        final byte[] retrievedCommandBytes = new byte[command.commandPayload().commandByteLength()];
         command.commandPayload().bytesTo(retrievedCommandBytes, 0);
 
         assertThat(new String(retrievedCommandBytes)).isEqualTo(myCommand);

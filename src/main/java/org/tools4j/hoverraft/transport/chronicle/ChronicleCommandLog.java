@@ -44,7 +44,11 @@ public final class ChronicleCommandLog implements CommandLog {
 
     private static final int TERM_OFF = 0;
     private static final int TERM_LEN = 4;
-    private static final int LENGTH_OFF = TERM_OFF + TERM_LEN;
+    private static final int SOURCE_ID_OFF = TERM_OFF + TERM_LEN;
+    private static final int SOURCE_ID_LEN = 4;
+    private static final int COMMAND_INDEX_OFF = SOURCE_ID_OFF + SOURCE_ID_LEN;
+    private static final int COMMAND_INDEX_LEN = 8;
+    private static final int LENGTH_OFF = COMMAND_INDEX_OFF + COMMAND_INDEX_LEN;
     private static final int LENGTH_LEN = 4;
     private static final int COMMAND_OFF = LENGTH_OFF + LENGTH_LEN;
 
@@ -54,6 +58,7 @@ public final class ChronicleCommandLog implements CommandLog {
     private final Method setLastWrittenIndexMethod;
     private final MutableDirectBuffer mutableDirectBuffer;
     private final RecyclingDirectFactory directFactory;
+    private final CommandKeyLookup commandKeyLookup = new CommandKeyLookup(this);
 
     public ChronicleCommandLog(final VanillaChronicle chronicle,
                                final MutableDirectBuffer mutableDirectBuffer) throws IOException {
@@ -79,6 +84,7 @@ public final class ChronicleCommandLog implements CommandLog {
         try {
             excerpt.index(size - 1);
             setLastWrittenIndexMethod.invoke(appender, size - 1);
+            commandKeyLookup.clear();
         } catch (final IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
@@ -98,8 +104,17 @@ public final class ChronicleCommandLog implements CommandLog {
     }
 
     @Override
-    public void readKeyTo(final long index, final LogKey target) {
+    public void readTo(final long index, final LogKey target) {
         target.term(readTerm(index)).index(index);
+    }
+
+    @Override
+    public void readTo(final long index, final CommandKey target) {
+        readIndex(index);
+        excerpt.skipBytes(SOURCE_ID_OFF);
+        final int sourceId = excerpt.readInt();
+        final long commandIndex = excerpt.readLong();
+        target.sourceId(sourceId).commandIndex(commandIndex);
     }
 
     @Override
@@ -109,7 +124,7 @@ public final class ChronicleCommandLog implements CommandLog {
 
     @Override
     public void lastKeyTo(final LogKey target) {
-        readKeyTo(appender.index(), target);
+        readTo(appender.index(), target);
     }
 
     @Override
@@ -117,10 +132,11 @@ public final class ChronicleCommandLog implements CommandLog {
         final MutableDirectBuffer mutableDirectBuffer = Objects.requireNonNull(target.writeBufferOrNull(), "target write buffer must be initialised");
         readIndex(index);
         final int term = excerpt.readInt();
+        final int sourceId = excerpt.readInt();
+        final long commandIndex = excerpt.readLong();
         final int len = excerpt.readInt();
-        target.logKey().term(term).index(index);
         final int offset = target.command().offset();
-        for (int i = 0; i < len; ) {
+        for (int i = SOURCE_ID_LEN + COMMAND_INDEX_LEN; i < len; ) {
             if (i + 8 <= len) {
                 mutableDirectBuffer.putLong(offset + i, excerpt.readLong());
                 i += 8;
@@ -129,17 +145,25 @@ public final class ChronicleCommandLog implements CommandLog {
                 i += 1;
             }
         }
+        target.logKey()
+                .term(term)
+                .index(index);
+        target.command().commandKey()
+                .sourceId(sourceId)
+                .commandIndex(commandIndex);
     }
 
     @Override
-    public void append(final int term, final Command message) {
-        final DirectBuffer buffer = Objects.requireNonNull(message.readBufferOrNull());
-        final int len = message.byteLength();
+    public void append(final int term, final Command command) {
+        final DirectBuffer buffer = Objects.requireNonNull(command.readBufferOrNull());
+        final int len = command.byteLength();
         appender.startExcerpt(len + TERM_LEN + LENGTH_LEN);
         appender.writeInt(term);
+        appender.writeInt(command.commandKey().sourceId());
+        appender.writeLong(command.commandKey().commandIndex());
         appender.writeInt(len);
-        final int offset = message.offset();
-        for (int i = 0; i < len; ) {
+        final int offset = command.offset();
+        for (int i = SOURCE_ID_LEN + COMMAND_INDEX_LEN; i < len; ) {
             if (i + 8 <= len) {
                 appender.writeLong(buffer.getLong(offset + i));
                 i += 8;
@@ -149,11 +173,12 @@ public final class ChronicleCommandLog implements CommandLog {
             }
         }
         appender.finish();
+        commandKeyLookup.append(command.commandKey());
     }
 
     @Override
-    public boolean contains(CommandKey commandKey) {
-        throw new IllegalStateException("not implemented");
+    public boolean contains(final CommandKey commandKey) {
+        return commandKeyLookup.contains(commandKey);
     }
 
     @Override

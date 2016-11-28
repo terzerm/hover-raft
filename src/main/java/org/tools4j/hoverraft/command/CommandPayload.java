@@ -29,7 +29,7 @@ import org.agrona.MutableDirectBuffer;
 import java.nio.ByteBuffer;
 
 public interface CommandPayload {
-    int byteLength();
+    int commandByteLength();
     void bytesFrom(byte[] bytes, int offset, int length);
     void bytesFrom(ByteBuffer bytes, int offset, int length);
     void bytesFrom(DirectBuffer bytes, int offset, int length);

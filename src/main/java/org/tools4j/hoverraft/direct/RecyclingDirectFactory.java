@@ -68,7 +68,7 @@ public final class RecyclingDirectFactory implements DirectFactory {
     }
 
     @Override
-    public Command commandMessage() {
+    public Command command() {
         return command;
     }
 

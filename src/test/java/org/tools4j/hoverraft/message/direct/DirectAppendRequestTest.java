@@ -94,7 +94,7 @@ public class DirectAppendRequestTest {
 
         final int retrievedCommandSourceId = directAppendRequest.logEntry().command().commandKey().sourceId();
         final long retrieveCommandIndex = directAppendRequest.logEntry().command().commandKey().commandIndex();
-        final int retrievedCommandByteLength = directAppendRequest.logEntry().command().commandPayload().byteLength();
+        final int retrievedCommandByteLength = directAppendRequest.logEntry().command().commandPayload().commandByteLength();
 
         assertThat(retrievedCommandSourceId).isEqualTo(newEntryCommandSourceId);
         assertThat(retrieveCommandIndex).isEqualTo(newEntryCommandIndex);

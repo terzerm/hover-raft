@@ -38,6 +38,11 @@ public class DirectCommandPayload extends AbstractDirectPayload implements Comma
 
     @Override
     public int byteLength() {
+        return BYTES_OFF + commandByteLength();
+    }
+
+    @Override
+    public int commandByteLength() {
         return readBuffer.getInt(offset + BYTE_LENGTH_OFF);
     }
 
@@ -66,22 +71,22 @@ public class DirectCommandPayload extends AbstractDirectPayload implements Comma
 
     @Override
     public void bytesTo(final byte[] bytes, final int offset) {
-        readBuffer.getBytes(this.offset + BYTES_OFF, bytes, offset, byteLength());
+        readBuffer.getBytes(this.offset + BYTES_OFF, bytes, offset, commandByteLength());
     }
 
     @Override
     public void bytesTo(final ByteBuffer bytes, final int offset) {
-        readBuffer.getBytes(this.offset + BYTES_OFF, bytes, offset, byteLength());
+        readBuffer.getBytes(this.offset + BYTES_OFF, bytes, offset, commandByteLength());
     }
 
     @Override
     public void bytesTo(final MutableDirectBuffer bytes, final int offset) {
-        readBuffer.getBytes(this.offset + BYTES_OFF, bytes, offset, byteLength());
+        readBuffer.getBytes(this.offset + BYTES_OFF, bytes, offset, commandByteLength());
     }
 
     @Override
     public void copyFrom(final CommandPayload commandPayload) {
-        byteLength(commandPayload.byteLength());
+        byteLength(commandPayload.commandByteLength());
         commandPayload.bytesTo(writeBuffer, this.offset + BYTES_OFF);
     }
 }

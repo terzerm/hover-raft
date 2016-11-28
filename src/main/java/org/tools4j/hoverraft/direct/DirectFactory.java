@@ -42,7 +42,7 @@ public interface DirectFactory {
 
     TimeoutNow timeoutNow();
 
-    Command commandMessage();
+    Command command();
 
     LogEntry logEntry();
 }

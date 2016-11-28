@@ -55,9 +55,9 @@ public class DirectCommandTest {
         //then
         assertThat(directCommandMessage.commandKey().sourceId()).isEqualTo(sourceId);
         assertThat(directCommandMessage.commandKey().commandIndex()).isEqualTo(commandIndex);
-        assertThat(directCommandMessage.commandPayload().byteLength()).isEqualTo(commandBytes.length);
+        assertThat(directCommandMessage.commandPayload().commandByteLength()).isEqualTo(commandBytes.length);
 
-        final byte[] retrievedCommandBytes = new byte[directCommandMessage.commandPayload().byteLength()];
+        final byte[] retrievedCommandBytes = new byte[directCommandMessage.commandPayload().commandByteLength()];
         directCommandMessage.commandPayload().bytesTo(retrievedCommandBytes, 0);
 
 
