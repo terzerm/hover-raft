@@ -30,7 +30,6 @@ import net.openhft.chronicle.VanillaChronicle;
 import org.agrona.DirectBuffer;
 import org.agrona.MutableDirectBuffer;
 import org.tools4j.hoverraft.command.*;
-import org.tools4j.hoverraft.direct.RecyclingDirectFactory;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -57,7 +56,7 @@ public final class ChronicleCommandLog implements CommandLog {
     private final ExcerptAppender appender;
     private final Method setLastWrittenIndexMethod;
     private final MutableDirectBuffer mutableDirectBuffer;
-    private final RecyclingDirectFactory directFactory;
+//    private final DirectFactory directFactory;
     private final CommandKeyLookup commandKeyLookup = new CommandKeyLookup(this);
 
     public ChronicleCommandLog(final VanillaChronicle chronicle,
@@ -67,11 +66,6 @@ public final class ChronicleCommandLog implements CommandLog {
         this.appender = chronicle.createAppender();
         this.setLastWrittenIndexMethod = initLastWrittenIndexMethod();
         this.mutableDirectBuffer = Objects.requireNonNull(mutableDirectBuffer);
-        this.directFactory = new RecyclingDirectFactory();
-    }
-
-    public RecyclingDirectFactory messageFactory() {
-        return directFactory;
     }
 
     @Override
