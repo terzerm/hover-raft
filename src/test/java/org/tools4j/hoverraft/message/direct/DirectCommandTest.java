@@ -26,13 +26,12 @@ package org.tools4j.hoverraft.message.direct;
 import org.agrona.ExpandableArrayBuffer;
 import org.junit.Before;
 import org.junit.Test;
-import org.tools4j.hoverraft.message.MessageType;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class DirectCommandMessageTest {
-    private final ExpandableArrayBuffer buffer = new ExpandableArrayBuffer(DirectCommandMessage.EMPTY_COMMAND_BYTE_LENGTH);
-    private final DirectCommandMessage directCommandMessage = new DirectCommandMessage();
+public class DirectCommandTest {
+    private final ExpandableArrayBuffer buffer = new ExpandableArrayBuffer(DirectCommand.EMPTY_COMMAND_BYTE_LENGTH);
+    private final DirectCommand directCommandMessage = new DirectCommand();
 
     @Before
     public void init() {
@@ -42,30 +41,29 @@ public class DirectCommandMessageTest {
     @Test
     public void should_get_the_data_that_has_been_set() throws Exception {
         //given
-        final String myCommand = "Command: XXXXXX";
+        final String myCommand = "CommandPayload: XXXXXX";
         final int sourceId = 2342434;
         final long commandIndex = 234234353;
         final byte[] commandBytes = myCommand.getBytes();
 
         //when
         directCommandMessage
-                .commandSourceId(sourceId)
+                .sourceId(sourceId)
                 .commandIndex(commandIndex)
-                .command().bytesFrom(commandBytes, 0, commandBytes.length);
+                .commandPayload().bytesFrom(commandBytes, 0, commandBytes.length);
 
         //then
-        assertThat(directCommandMessage.type()).isEqualTo(MessageType.COMMAND_MESSAGE);
-        assertThat(directCommandMessage.commandSourceId()).isEqualTo(sourceId);
-        assertThat(directCommandMessage.commandIndex()).isEqualTo(commandIndex);
-        assertThat(directCommandMessage.command().byteLength()).isEqualTo(commandBytes.length);
+        assertThat(directCommandMessage.commandKey().sourceId()).isEqualTo(sourceId);
+        assertThat(directCommandMessage.commandKey().commandIndex()).isEqualTo(commandIndex);
+        assertThat(directCommandMessage.commandPayload().commandByteLength()).isEqualTo(commandBytes.length);
 
-        final byte[] retrievedCommandBytes = new byte[directCommandMessage.command().byteLength()];
-        directCommandMessage.command().bytesTo(retrievedCommandBytes, 0);
+        final byte[] retrievedCommandBytes = new byte[directCommandMessage.commandPayload().commandByteLength()];
+        directCommandMessage.commandPayload().bytesTo(retrievedCommandBytes, 0);
 
 
         assertThat(new String(retrievedCommandBytes)).isEqualTo(myCommand);
 
-        final int expectedCommandMessageBytesLength = DirectCommandMessage.EMPTY_COMMAND_BYTE_LENGTH + commandBytes.length;
+        final int expectedCommandMessageBytesLength = DirectCommand.EMPTY_COMMAND_BYTE_LENGTH + commandBytes.length;
         assertThat(directCommandMessage.byteLength()).isEqualTo(expectedCommandMessageBytesLength);
 
     }

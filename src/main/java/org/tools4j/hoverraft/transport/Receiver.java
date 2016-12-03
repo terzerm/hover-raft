@@ -24,7 +24,6 @@
 package org.tools4j.hoverraft.transport;
 
 import org.tools4j.hoverraft.direct.DirectPayload;
-import org.tools4j.hoverraft.message.Message;
 
 import java.util.function.Consumer;
 

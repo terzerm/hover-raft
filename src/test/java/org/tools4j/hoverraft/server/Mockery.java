@@ -24,8 +24,6 @@
 package org.tools4j.hoverraft.server;
 
 import org.tools4j.hoverraft.command.CommandLog;
-import org.tools4j.hoverraft.command.LogKey;
-import org.tools4j.hoverraft.command.LogKeyComparator;
 import org.tools4j.hoverraft.command.machine.StateMachine;
 import org.tools4j.hoverraft.config.ConfigBuilder;
 import org.tools4j.hoverraft.config.ConsensusConfig;
@@ -36,9 +34,7 @@ import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.state.PersistentState;
 import org.tools4j.hoverraft.state.VolatileState;
 import org.tools4j.hoverraft.transport.Connections;
-import org.tools4j.hoverraft.transport.MessageLog;
 
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -82,8 +78,8 @@ public class Mockery {
         return mock(StateMachine.class);
     }
 
-    public static <M extends Message> MessageLog<M> messageLog() {
-        return mock(MessageLog.class);
+    public static CommandLog commandLog() {
+        return mock(CommandLog.class);
     }
 
     public static <M extends Message> Connections<M> connections(final int servers, final int sources) {
@@ -94,20 +90,10 @@ public class Mockery {
 
     public static PersistentState persistentState() {
         final PersistentState persistentState = mock(PersistentState.class);
-        final LogKey lastLogEntry = mock(LogKey.class);
         final CommandLog commandLog = mock(CommandLog.class);
 
         when(persistentState.currentTerm()).thenReturn(1);
         when(persistentState.commandLog()).thenReturn(commandLog);
-
-        when(commandLog.lastKey()).thenReturn(lastLogEntry);
-        when(lastLogEntry.term()).thenReturn(0);
-        when(lastLogEntry.index()).thenReturn(-1L);
-        when(lastLogEntry.compareTo(any(LogKey.class))).thenAnswer(inv -> {
-            final LogKey self = (LogKey)inv.getMock();
-            final LogKey other = (LogKey)inv.getArguments()[0];
-            return LogKeyComparator.INSTANCE.compare(self, other);
-        });
 
         when(persistentState.votedFor()).thenReturn(PersistentState.NOT_VOTED_YET);
         return persistentState;

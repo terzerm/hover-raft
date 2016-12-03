@@ -26,62 +26,55 @@ package org.tools4j.hoverraft.message.direct;
 import org.agrona.DirectBuffer;
 import org.agrona.MutableDirectBuffer;
 import org.tools4j.hoverraft.command.Command;
+import org.tools4j.hoverraft.command.CommandKey;
+import org.tools4j.hoverraft.command.CommandPayload;
 import org.tools4j.hoverraft.direct.AbstractDirectPayload;
 
-import java.nio.ByteBuffer;
+public final class DirectCommand extends AbstractDirectPayload implements Command {
 
-public class DirectCommand extends AbstractDirectPayload implements Command {
+    private static final int COMMAND_KEY_OFF = 0;
+    private static final int COMMAND_KEY_LEN = DirectCommandKey.BYTE_LENGTH;
+    private static final int COMMAND_PAYLOAD_OFF = COMMAND_KEY_OFF + COMMAND_KEY_LEN;
 
-    private static final int BYTE_LENGTH_OFF  = 0;
-    private static final int BYTE_LENGTH_LEN  = 4;
-    private static final int COMMAND_OFF      = BYTE_LENGTH_OFF + BYTE_LENGTH_LEN;
+    public static final int EMPTY_COMMAND_BYTE_LENGTH = COMMAND_KEY_LEN + DirectCommandPayload.EMPTY_PAYLOAD_BYTE_LENGTH;
+
+    private final DirectCommandKey commandKey = new DirectCommandKey();
+    private final DirectCommandPayload commandPayload = new DirectCommandPayload();
 
     @Override
     public int byteLength() {
-        return readBuffer.getInt(offset + BYTE_LENGTH_OFF);
-    }
-
-    private Command byteLength(final int length) {
-        writeBuffer.putInt(this.offset + BYTE_LENGTH_OFF, length);
-        return this;
+        return COMMAND_KEY_LEN + commandPayload.byteLength();
     }
 
     @Override
-    public void bytesFrom(final byte[] bytes, final int offset, final int length) {
-        byteLength(length);
-        writeBuffer.putBytes(this.offset + COMMAND_OFF, bytes, offset, length);
+    public CommandKey commandKey() {
+        return commandKey;
     }
 
     @Override
-    public void bytesFrom(final ByteBuffer bytes, final int offset, final int length) {
-        byteLength(length);
-        writeBuffer.putBytes(this.offset + COMMAND_OFF, bytes, offset, length);
+    public CommandPayload commandPayload() {
+        return commandPayload;
     }
 
     @Override
-    public void bytesFrom(final DirectBuffer bytes, final int offset, final int length) {
-        byteLength(length);
-        writeBuffer.putBytes(this.offset + COMMAND_OFF, bytes, offset, length);
+    public void wrap(final DirectBuffer buffer, final int offset) {
+        super.wrap(buffer, offset);
+        commandKey.wrap(buffer, offset + COMMAND_KEY_OFF);
+        commandPayload.wrap(buffer, offset + COMMAND_PAYLOAD_OFF);
     }
 
     @Override
-    public void bytesTo(final byte[] bytes, final int offset) {
-        readBuffer.getBytes(this.offset + COMMAND_OFF, bytes, offset, byteLength());
+    public void wrap(final MutableDirectBuffer buffer, final int offset) {
+        super.wrap(buffer, offset);
+        commandKey.wrap(buffer, offset + COMMAND_KEY_OFF);
+        commandPayload.wrap(buffer, offset + COMMAND_PAYLOAD_OFF);
     }
 
     @Override
-    public void bytesTo(final ByteBuffer bytes, final int offset) {
-        readBuffer.getBytes(this.offset + COMMAND_OFF, bytes, offset, byteLength());
+    public void unwrap() {
+        commandPayload.unwrap();
+        commandKey.unwrap();
+        super.unwrap();
     }
 
-    @Override
-    public void bytesTo(final MutableDirectBuffer bytes, final int offset) {
-        readBuffer.getBytes(this.offset + COMMAND_OFF, bytes, offset, byteLength());
-    }
-
-    @Override
-    public void copyFrom(final Command command) {
-        byteLength(command.byteLength());
-        command.bytesTo(writeBuffer, this.offset + COMMAND_OFF);
-    }
 }

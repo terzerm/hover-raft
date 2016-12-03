@@ -23,18 +23,35 @@
  */
 package org.tools4j.hoverraft.command;
 
-import org.agrona.DirectBuffer;
-import org.agrona.MutableDirectBuffer;
+import org.tools4j.hoverraft.direct.DirectPayload;
+import org.tools4j.hoverraft.event.Event;
+import org.tools4j.hoverraft.event.EventHandler;
+import org.tools4j.hoverraft.server.ServerContext;
+import org.tools4j.hoverraft.state.Transition;
 
-import java.nio.ByteBuffer;
+public interface Command extends DirectPayload, Event {
 
-public interface Command {
-    int byteLength();
-    void bytesFrom(byte[] bytes, int offset, int length);
-    void bytesFrom(ByteBuffer bytes, int offset, int length);
-    void bytesFrom(DirectBuffer bytes, int offset, int length);
-    void bytesTo(byte[] bytes, int offset);
-    void bytesTo(ByteBuffer bytes, int offset);
-    void bytesTo(MutableDirectBuffer bytes, int offset);
-    void copyFrom(Command command);
+    CommandKey commandKey();
+
+    CommandPayload commandPayload();
+
+    default Command sourceId(final int sourceId) {
+        commandKey().sourceId(sourceId);
+        return this;
+    }
+
+    default Command commandIndex(final long commandIndex) {
+        commandKey().commandIndex(commandIndex);
+        return this;
+    }
+
+    default void copyFrom(final Command command) {
+        writeBufferOrNull().putBytes(offset(), command.readBufferOrNull(), command.offset(), command.byteLength());
+    }
+
+    @Override
+    default Transition accept(final ServerContext serverContext, final EventHandler eventHandler) {
+        return eventHandler.onCommand(serverContext, this);
+    }
+
 }

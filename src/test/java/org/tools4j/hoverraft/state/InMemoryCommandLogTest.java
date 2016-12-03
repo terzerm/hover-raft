@@ -24,11 +24,9 @@
 package org.tools4j.hoverraft.state;
 
 import org.junit.Test;
-import org.tools4j.hoverraft.command.LogEntry;
 import org.tools4j.hoverraft.command.InMemoryCommandLog;
+import org.tools4j.hoverraft.command.LogEntry;
 import org.tools4j.hoverraft.direct.AllocatingDirectFactory;
-
-import static org.mockito.Mockito.mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -42,10 +40,10 @@ public class InMemoryCommandLogTest {
 
         logEntry1.logKey().term(1);
         logEntry1.logKey().index(1L);
-        logEntry1.commandMessage().command().bytesFrom(new byte[] {}, 0, 0);
+        logEntry1.command().commandPayload().bytesFrom(new byte[] {}, 0, 0);
 
         InMemoryCommandLog commandLog = new InMemoryCommandLog();
-        commandLog.append(logEntry1);
+        commandLog.append(1, logEntry1.command());
 
         assertThat(commandLog.size()).isEqualTo(1);
     }

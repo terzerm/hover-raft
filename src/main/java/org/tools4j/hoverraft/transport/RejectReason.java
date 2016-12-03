@@ -24,10 +24,10 @@
 package org.tools4j.hoverraft.transport;
 
 import io.aeron.Publication;
-import org.tools4j.hoverraft.message.Message;
+import org.tools4j.hoverraft.direct.DirectPayload;
 
 /**
- * Reject reasons that may be returned by {@link Sender#offer(Message)}.
+ * Reject reasons that may be returned by {@link Sender#offer(DirectPayload)}.
  */
 public interface RejectReason {
     /**

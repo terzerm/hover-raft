@@ -24,14 +24,10 @@
 package org.tools4j.hoverraft.state;
 
 import org.agrona.MutableDirectBuffer;
-import org.agrona.collections.Int2ObjectHashMap;
 import org.agrona.concurrent.UnsafeBuffer;
 import org.tools4j.hoverraft.command.CommandLog;
 import org.tools4j.hoverraft.config.ConsensusConfig;
 import org.tools4j.hoverraft.config.ServerConfig;
-import org.tools4j.hoverraft.message.CommandMessage;
-import org.tools4j.hoverraft.message.direct.DirectCommandMessage;
-import org.tools4j.hoverraft.transport.MessageLog;
 import org.tools4j.hoverraft.util.Files;
 
 import java.io.File;
@@ -44,15 +40,12 @@ public final class DirectPersistentState implements PersistentState {
 
     private static final int STATE_SIZE = 4 + 4;
 
-    private final Int2ObjectHashMap<MessageLog<CommandMessage>> messageLogsBySourceId;
-    private final CommandMessage commandMessage = new DirectCommandMessage();
     private final MutableDirectBuffer state;
-    private final MessageLog<CommandMessage> commandLog;
+    private final CommandLog commandLog;
 
     public DirectPersistentState(final ServerConfig serverConfig, final ConsensusConfig consensusConfig) throws IOException {
         this.state = initState(serverConfig, consensusConfig);
         this.commandLog = initCommandLog(serverConfig, consensusConfig);
-        this.messageLogsBySourceId = initSourceLogs(serverConfig, consensusConfig);
     }
 
     public int currentTerm() {
@@ -65,12 +58,7 @@ public final class DirectPersistentState implements PersistentState {
 
     @Override
     public CommandLog commandLog() {
-        //FIXme
-        throw new UnsupportedOperationException("not yet implemented");
-    }
-
-    public MessageLog<CommandMessage> sourceLog(int sourceId) {
-        return messageLogsBySourceId.get(sourceId);
+        return commandLog;
     }
 
     public int clearVotedForAndSetCurrentTerm(int term) {
@@ -99,18 +87,8 @@ public final class DirectPersistentState implements PersistentState {
         return new UnsafeBuffer(byteBuffer);
     }
 
-    private static MessageLog<CommandMessage> initCommandLog(final ServerConfig serverConfig, final ConsensusConfig consensusConfig) throws IOException {
-        return Files.messageLog(serverConfig.id(), "commandlog");
-    }
-
-    private static Int2ObjectHashMap<MessageLog<CommandMessage>> initSourceLogs(final ServerConfig serverConfig, final ConsensusConfig consensusConfig) throws IOException {
-        final int n = consensusConfig.sourceCount();
-        final Int2ObjectHashMap<MessageLog<CommandMessage>> messageLogsById = new Int2ObjectHashMap<>(1 + (n * 3) / 2, 0.66f);
-        for (int i = 0; i < n; i++) {
-            final int id = consensusConfig.sourceConfig(i).id();
-            messageLogsById.put(id, Files.messageLog(serverConfig.id(), "sourceLog-" + id));
-        }
-        return messageLogsById;
+    private static CommandLog initCommandLog(final ServerConfig serverConfig, final ConsensusConfig consensusConfig) throws IOException {
+        return Files.commandLog(serverConfig.id(), "commandlog");
     }
 
 }

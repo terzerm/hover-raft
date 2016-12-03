@@ -120,7 +120,7 @@ public final class CandidateState extends AbstractState {
                 .term(currentTerm())
                 .candidateId(self);
 
-        voteRequest.lastLogKey().copyFrom(persistentState().commandLog().lastKey());
+        persistentState().commandLog().lastKeyTo(voteRequest.lastLogKey());
 
         voteRequest.sendTo(serverContext.connections().serverMulticastSender(),
                         serverContext.resendStrategy());

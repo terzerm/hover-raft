@@ -28,88 +28,83 @@ import org.tools4j.hoverraft.direct.DirectFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class InMemoryCommandLog implements CommandLog {
 
     private final DirectFactory directFactory = new AllocatingDirectFactory();
+
     private final List<LogEntry> entries = new ArrayList<>();
-    private final AtomicInteger readIndex = new AtomicInteger(0);
-    private final DirectLogEntry lastEntry = new DirectLogEntry();
+    private final CommandKeyLookup commandKeyLookup = new CommandKeyLookup(this);
 
     @Override
-    public long size() {
+    public synchronized long size() {
         return entries.size();
     }
 
     @Override
-    public long readIndex() {
-        return readIndex.get();
+    public synchronized int readTerm(final long index) {
+        return read(index).logKey().term();
     }
 
     @Override
-    public synchronized void readIndex(final long index) {
+    public synchronized void readTo(final long index, final LogKey logKey) {
+        final LogKey readKey = read(index).logKey();
+        logKey.term(readKey.term()).index(readKey.index());
+    }
+
+    @Override
+    public synchronized void readTo(final long index, final CommandKey commandKey) {
+        final CommandKey readKey = read(index).command().commandKey();
+        commandKey.sourceId(readKey.sourceId()).commandIndex(readKey.commandIndex());
+    }
+
+    @Override
+    public synchronized void readTo(final long index, final LogEntry target) {
+        final LogEntry source = read(index);
+        target.copyFrom(source);
+    }
+
+    private LogEntry read(final long index) {
         if (index < entries.size()) {
-            readIndex.set((int)index);
-        } else {
-            throw new IllegalArgumentException("Invalid read index " + index + " for log entry with size " + entries.size());
+            return entries.get((int)index);
+        }
+        throw new IllegalArgumentException("Index " + index + " is not in [0, " + (lastIndex()) + "]");
+    }
+
+    @Override
+    public void append(final int term, final Command command) {
+        final LogEntry logEntry = directFactory.logEntry();
+        logEntry.logKey().term(term);
+        logEntry.command().copyFrom(command);
+        synchronized (this) {
+            final long index = entries.size();
+            logEntry.logKey().index(index);//TODO this is redundant, do we need this?
+            entries.add(logEntry);
+            commandKeyLookup.append(command.commandKey());
+        }
+    }
+
+
+    @Override
+    public synchronized void truncateIncluding(final long index) {
+        for (int idx = entries.size() - 1; idx >= index; idx--) {
+            final LogEntry removed = entries.remove(idx);
+            commandKeyLookup.remove(removed.command().commandKey());
         }
     }
 
     @Override
-    public synchronized int readTerm() {
-        return read(null).logKey().term();
+    public synchronized int lastTerm() {
+        return readTerm(lastIndex());
     }
 
     @Override
-    public synchronized LogEntry read(final DirectFactory directFactory) {
-        return clone(read());
+    public synchronized void lastKeyTo(final LogKey target) {
+        readTo(lastIndex(), target);
     }
 
     @Override
-    public void readTo(final LogEntry logEntry) {
-        final LogEntry readLogEntry = read();
-        logEntry.writeBufferOrNull().putBytes(0, readLogEntry.readBufferOrNull(), readLogEntry.offset(), readLogEntry.byteLength());
-
+    public synchronized boolean contains(final CommandKey commandKey) {
+        return commandKeyLookup.contains(commandKey);
     }
-
-    private LogEntry read() {
-        if (readIndex.get() < entries.size()) {
-            return entries.get(readIndex.getAndIncrement());
-        }
-        throw new IllegalStateException("Read index " + readIndex + " has reached end of message log with size " + entries.size());
-    }
-
-    @Override
-    public synchronized void append(final LogEntry logEntry) {
-        entries.add(clone(logEntry));
-    }
-
-
-    @Override
-    public synchronized void truncateIncluding(long index) {
-        if (index >= entries.size()) {
-            throw new IllegalArgumentException("Truncate index " + index + " must be less than the size " + entries.size());
-        }
-        for (long idx = lastKey().index(); idx >= index; idx--) {
-            entries.remove((int)idx);
-        }
-        if (readIndex() >= index) {
-            readIndex(index - 1);
-        }
-    }
-
-    @Override
-    public LogKey lastKey() {
-        readIndex(entries.size() - 1);
-        readTo(lastEntry);
-        return lastEntry.logKey();
-    }
-
-    private LogEntry clone(final LogEntry e) {
-        final LogEntry clone = directFactory.logEntry();
-        clone.writeBufferOrNull().putBytes(0, e.readBufferOrNull(), e.offset(), e.byteLength());
-        return clone;
-    }
-
 }

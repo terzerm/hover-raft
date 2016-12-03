@@ -25,7 +25,7 @@ package org.tools4j.hoverraft.transport.chronicle;
 
 import net.openhft.chronicle.ExcerptTailer;
 import org.agrona.MutableDirectBuffer;
-import org.tools4j.hoverraft.direct.RecyclingDirectFactory;
+import org.tools4j.hoverraft.direct.DirectFactory;
 import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.message.MessageType;
 import org.tools4j.hoverraft.transport.Receiver;
@@ -38,11 +38,11 @@ import java.util.function.Consumer;
  */
 public class ChronicleReceiver implements Receiver<Message> {
 
-    private final RecyclingDirectFactory directFactory;
+    private final DirectFactory directFactory;
     private final MutableDirectBuffer mutableDirectBuffer;
     private final ExcerptTailer tailer;
 
-    public ChronicleReceiver(final RecyclingDirectFactory directFactory, final MutableDirectBuffer mutableDirectBuffer, final ExcerptTailer tailer) {
+    public ChronicleReceiver(final DirectFactory directFactory, final MutableDirectBuffer mutableDirectBuffer, final ExcerptTailer tailer) {
         this.directFactory = Objects.requireNonNull(directFactory);
         this.mutableDirectBuffer = Objects.requireNonNull(mutableDirectBuffer);
         this.tailer = Objects.requireNonNull(tailer);

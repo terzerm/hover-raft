@@ -21,28 +21,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.command.machine;
+package org.tools4j.hoverraft.command;
 
-import org.tools4j.hoverraft.message.CommandMessage;
-import org.tools4j.hoverraft.message.Message;
-import org.tools4j.hoverraft.transport.MessageLog;
+import org.agrona.DirectBuffer;
+import org.agrona.MutableDirectBuffer;
 
-import java.util.Objects;
+import java.nio.ByteBuffer;
 
-/**
- * A {@link StateMachine} which simply persists the messages passed to it into a {@link MessageLog}.
- */
-public final class LogMachine implements StateMachine {
-
-    private final MessageLog<Message> messageLog;
-
-    public LogMachine(final MessageLog<Message> messageLog) {
-        this.messageLog = Objects.requireNonNull(messageLog);
-    }
-
-    @Override
-    public void onMessage(final CommandMessage message) {
-        messageLog.append(message);
-    }
-
+public interface CommandPayload {
+    int commandByteLength();
+    void bytesFrom(byte[] bytes, int offset, int length);
+    void bytesFrom(ByteBuffer bytes, int offset, int length);
+    void bytesFrom(DirectBuffer bytes, int offset, int length);
+    void bytesTo(byte[] bytes, int offset);
+    void bytesTo(ByteBuffer bytes, int offset);
+    void bytesTo(MutableDirectBuffer bytes, int offset);
+    void copyFrom(CommandPayload commandPayload);
 }

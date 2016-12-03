@@ -23,9 +23,10 @@
  */
 package org.tools4j.hoverraft.server;
 
+import org.tools4j.hoverraft.command.Command;
 import org.tools4j.hoverraft.config.ConsensusConfig;
 import org.tools4j.hoverraft.direct.DirectPayload;
-import org.tools4j.hoverraft.message.CommandMessage;
+import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.transport.Receiver;
 import org.tools4j.hoverraft.transport.Receivers;
 
@@ -43,10 +44,10 @@ public class RoundRobinMessagePoller<M extends DirectPayload> {
         this.messageHandler = Objects.requireNonNull(messageHandler);
     }
 
-    public static RoundRobinMessagePoller<DirectPayload> forServerMessages(final ServerContext serverContext,
-                                                                           final Consumer<? super DirectPayload> messageHandler) {
+    public static RoundRobinMessagePoller<Message> forServerMessages(final ServerContext serverContext,
+                                                                     final Consumer<? super Message> messageHandler) {
         final ConsensusConfig config = serverContext.consensusConfig();
-        final Receiver<?>[] receivers = new Receiver<?>[config.serverCount() - 1];
+        final Receiver<Message>[] receivers = (Receiver<Message>[])new Receiver<?>[config.serverCount() - 1];
         int index = 0;
         for (int i = 0; i < config.serverCount(); i++) {
             final int id = config.serverConfig(i).id();
@@ -65,10 +66,10 @@ public class RoundRobinMessagePoller<M extends DirectPayload> {
         return new RoundRobinMessagePoller<>(Receivers.roundRobinReceiver(receivers), messageHandler);
     }
 
-    public static RoundRobinMessagePoller<CommandMessage> forSourceMessages(final ServerContext serverContext,
-                                                                            final Consumer<? super CommandMessage> messageHandler) {
+    public static RoundRobinMessagePoller<Command> forSourceMessages(final ServerContext serverContext,
+                                                                     final Consumer<? super Command> messageHandler) {
         final ConsensusConfig config = serverContext.consensusConfig();
-        final Receiver<CommandMessage>[] receivers = (Receiver<CommandMessage>[])new Receiver<?>[config.sourceCount()];
+        final Receiver<Command>[] receivers = (Receiver<Command>[])new Receiver<?>[config.sourceCount()];
         for (int i = 0; i < config.sourceCount(); i++) {
             final int id = config.sourceConfig(i).id();
             receivers[i] = serverContext.connections().sourceReceiver(id);

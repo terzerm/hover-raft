@@ -23,9 +23,9 @@
  */
 package org.tools4j.hoverraft.transport;
 
-import org.tools4j.hoverraft.message.Message;
+import org.tools4j.hoverraft.direct.DirectPayload;
 
-public interface Sender<M extends Message> {
+public interface Sender<M extends DirectPayload> {
     /**
      * Terminates composing and offsers the message to the transport in
      * non-blocking mode. Can be called multiple times for same message if sending

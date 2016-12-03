@@ -23,9 +23,8 @@
  */
 package org.tools4j.hoverraft.command.machine;
 
-import org.tools4j.hoverraft.message.CommandMessage;
+import org.tools4j.hoverraft.command.Command;
 
 public interface StateMachine {
-    //Should it be bare Command or CommandMessage
-    void onMessage(CommandMessage message);
+    void onMessage(Command message);
 }

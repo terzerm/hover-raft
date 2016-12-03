@@ -21,29 +21,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.message;
+package org.tools4j.hoverraft.message.direct;
 
-import org.tools4j.hoverraft.command.Command;
-import org.tools4j.hoverraft.event.EventHandler;
-import org.tools4j.hoverraft.server.ServerContext;
-import org.tools4j.hoverraft.state.Transition;
+import org.tools4j.hoverraft.command.CommandKey;
+import org.tools4j.hoverraft.direct.AbstractDirectPayload;
 
-public interface CommandMessage extends Message {
+public class DirectCommandKey extends AbstractDirectPayload implements CommandKey {
+    private static final int SOURCE_ID_OFF = 0;
+    private static final int SOURCE_ID_LEN = 4;
 
-    int commandSourceId();
+    private static final int COMMAND_INDEX_OFF = SOURCE_ID_OFF + SOURCE_ID_LEN;
+    private static final int COMMAND_INDEX_LEN = 8;
 
-    CommandMessage commandSourceId(int sourceId);
-
-    long commandIndex();
-
-    CommandMessage commandIndex(long commandIndex);
-
-    Command command();
-
-    void copyFrom(CommandMessage commandMessage);
+    public static final int BYTE_LENGTH = COMMAND_INDEX_OFF + COMMAND_INDEX_LEN;
 
     @Override
-    default Transition accept(final ServerContext serverContext, final EventHandler eventHandler) {
-        return eventHandler.onCommandMessage(serverContext, this);
+    public int byteLength() {
+        return BYTE_LENGTH;
+    }
+
+    @Override
+    public int sourceId() {
+        return readBuffer.getInt(offset + SOURCE_ID_OFF);
+    }
+
+    @Override
+    public long commandIndex() {
+        return readBuffer.getLong(offset + COMMAND_INDEX_OFF);
+    }
+
+    @Override
+    public DirectCommandKey sourceId(final int sourceId) {
+        writeBuffer.putInt(offset + SOURCE_ID_OFF, sourceId);
+        return this;
+    }
+
+    @Override
+    public DirectCommandKey commandIndex(final long commandIndex) {
+        writeBuffer.putLong(offset + COMMAND_INDEX_OFF, commandIndex);
+        return this;
     }
 }

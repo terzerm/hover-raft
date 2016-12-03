@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.tools4j.hoverraft.command.Command;
 import org.tools4j.hoverraft.event.EventHandler;
 import org.tools4j.hoverraft.event.HigherTermHandler;
 import org.tools4j.hoverraft.message.*;
@@ -56,7 +57,7 @@ public class HigherTermHandlerTest {
     @Mock
     private TimeoutNow timeoutNow;
     @Mock
-    private CommandMessage commandMessage;
+    private Command command;
 
     @Before
     public void init() {

@@ -56,12 +56,6 @@ public enum MessageType {
         public Message create(final DirectFactory factory) {
             return factory.timeoutNow();
         }
-    },
-    COMMAND_MESSAGE {
-        @Override
-        public Message create(final DirectFactory factory) {
-            return factory.commandMessage();
-        }
     };
 
     private static final MessageType[] VALUES = values();

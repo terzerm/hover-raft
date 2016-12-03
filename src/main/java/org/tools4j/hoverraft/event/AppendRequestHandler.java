@@ -24,8 +24,8 @@
 package org.tools4j.hoverraft.event;
 
 import org.tools4j.hoverraft.command.CommandLog;
-import org.tools4j.hoverraft.command.LogEntry;
 import org.tools4j.hoverraft.command.LogContainment;
+import org.tools4j.hoverraft.command.LogEntry;
 import org.tools4j.hoverraft.command.LogKey;
 import org.tools4j.hoverraft.message.AppendRequest;
 import org.tools4j.hoverraft.server.ServerContext;
@@ -94,7 +94,8 @@ public class AppendRequestHandler {
             case IN:
                 //Append any new entries not already in the log
                 //FIXme need to enable null appendRequest.logEntry()
-                commandLog.append(newLogEntry);
+                final LogEntry logEntry = appendRequest.logEntry();
+                commandLog.append(logEntry.logKey().term(), logEntry.command());
 
                 if (appendRequest.leaderCommit() > volatileState.commitIndex()) {
                     volatileState.commitIndex(Long.min(appendRequest.leaderCommit(), newLogEntry.logKey().index()));

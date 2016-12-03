@@ -23,20 +23,23 @@
  */
 package org.tools4j.hoverraft.command;
 
-import org.tools4j.hoverraft.direct.DirectPayload;
+import java.util.Comparator;
 
-public interface LogKey extends DirectPayload, Comparable<LogKey> {
+public interface LogKey extends Comparable<LogKey> {
+    Comparator<LogKey> COMPARATOR = (k1, k2) -> {
+        final int termCompare = Integer.compare(k1.term(), k2.term());
+        return termCompare == 0 ? Long.compare(k1.index(), k2.index()) : termCompare;
+    };
+
     int term();
     LogKey term(int term);
 
     long index();
     LogKey index(long index);
 
-    void copyFrom(LogKey logKey);
-
     @Override
     default int compareTo(final LogKey other) {
-        return LogKeyComparator.INSTANCE.compare(this, other);
+        return COMPARATOR.compare(this, other);
     }
 
     default LogContainment containedIn(final CommandLog commandLog) {

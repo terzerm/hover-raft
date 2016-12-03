@@ -23,11 +23,11 @@
  */
 package org.tools4j.hoverraft.transport;
 
-import org.tools4j.hoverraft.message.CommandMessage;
+import org.tools4j.hoverraft.command.Command;
 import org.tools4j.hoverraft.message.Message;
 
 public interface Connections<M extends Message> {
-    Receiver<CommandMessage> sourceReceiver(int sourceId);
+    Receiver<Command> sourceReceiver(int sourceId);
     Receiver<M> serverReceiver(int serverId);
     Sender<M> serverSender(int serverId);
     Sender<M> serverMulticastSender();

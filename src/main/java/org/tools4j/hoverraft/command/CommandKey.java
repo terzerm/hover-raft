@@ -21,15 +21,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.transport;
+package org.tools4j.hoverraft.command;
 
-import org.tools4j.hoverraft.message.Message;
+import java.util.Comparator;
 
-public interface MessageLog<M extends Message> {
-    long size();
-    void size(long size);
-    long readIndex();
-    void readIndex(long index);
-    M read();
-    void append(M message);
+public interface CommandKey extends Comparable<CommandKey> {
+    Comparator<CommandKey> COMPARATOR = (k1, k2) -> {
+        final int sourceCompare = Integer.compare(k1.sourceId(), k2.sourceId());
+        return sourceCompare == 0 ? Long.compare(k1.commandIndex(), k2.commandIndex()) : sourceCompare;
+    };
+
+    int sourceId();
+    CommandKey sourceId(int sourceId);
+
+    long commandIndex();
+    CommandKey commandIndex(long commandIndex);
+
+    @Override
+    default int compareTo(final CommandKey other) {
+        return COMPARATOR.compare(this, other);
+    }
+
+    default boolean containedIn(final CommandLog commandLog) {
+        return commandLog.contains(this);
+    }
 }

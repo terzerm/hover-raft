@@ -91,9 +91,10 @@ abstract public class AbstractState implements State {
         long lastApplied = volatileState.lastApplied();
         while (volatileState.commitIndex() > lastApplied) {
             lastApplied++;
-            commandLog.readIndex(lastApplied);
-            final LogEntry logEntry = commandLog.read(serverContext.directFactory());
-            stateMachine.onMessage(logEntry.commandMessage());
+            final LogEntry logEntry = serverContext.directFactory().logEntry();
+            //FIXME logEntry.wrap(buffer)
+            commandLog.readTo(lastApplied, logEntry);
+            stateMachine.onMessage(logEntry.command());
             volatileState.lastApplied(lastApplied);
         }
     }

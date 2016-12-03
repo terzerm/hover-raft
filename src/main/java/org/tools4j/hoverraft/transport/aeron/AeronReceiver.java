@@ -27,7 +27,9 @@ import io.aeron.Subscription;
 import io.aeron.logbuffer.FragmentHandler;
 import io.aeron.logbuffer.Header;
 import org.agrona.DirectBuffer;
-import org.tools4j.hoverraft.direct.RecyclingDirectFactory;
+import org.tools4j.hoverraft.command.Command;
+import org.tools4j.hoverraft.direct.DirectFactory;
+import org.tools4j.hoverraft.direct.DirectPayload;
 import org.tools4j.hoverraft.message.Message;
 import org.tools4j.hoverraft.message.MessageType;
 import org.tools4j.hoverraft.transport.Receiver;
@@ -35,19 +37,40 @@ import org.tools4j.hoverraft.transport.Receiver;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-public class AeronReceiver implements Receiver<Message> {
+public class AeronReceiver<M extends DirectPayload> implements Receiver<M> {
 
-    private final RecyclingDirectFactory directFactory;
     private final Subscription subscription;
-    private final AeronHandler aeronHandler = new AeronHandler();
+    private final AeronHandler<M> aeronHandler;
 
-    public AeronReceiver(final RecyclingDirectFactory directFactory, final Subscription subscription) {
-        this.directFactory = Objects.requireNonNull(directFactory);
+    private AeronReceiver(final Subscription subscription,
+                          final AeronHandler<M> aeronHandler) {
         this.subscription = Objects.requireNonNull(subscription);
+        this.aeronHandler= Objects.requireNonNull(aeronHandler);
+    }
+
+    public static AeronReceiver<Command> commandReceiver(final DirectFactory directFactory,
+                                                         final Subscription subscription) {
+        return new AeronReceiver<>(subscription, new AeronHandler<Command>() {
+            @Override
+            protected Command message(DirectBuffer buffer, int offset, int length) {
+                return directFactory.command();
+            }
+        });
+    }
+
+    public static AeronReceiver<Message> messageReceiver(final DirectFactory directFactory,
+                                                         final Subscription subscription) {
+        return new AeronReceiver<>(subscription, new AeronHandler<Message>() {
+            @Override
+            protected Message message(DirectBuffer buffer, int offset, int length) {
+                final MessageType messageType = MessageType.readFrom(buffer, offset);
+                return messageType.create(directFactory);
+            }
+        });
     }
 
     @Override
-    public int poll(final Consumer<? super Message> messageMandler, final int limit) {
+    public int poll(final Consumer<? super M> messageMandler, final int limit) {
         for (int i = 0; i < limit; i++) {
             if (0 < subscription.poll(aeronHandler, 1)) {
                 messageMandler.accept(aeronHandler.message);
@@ -59,13 +82,13 @@ public class AeronReceiver implements Receiver<Message> {
         return limit;
     }
 
-    private class AeronHandler implements FragmentHandler {
-        private Message message = null;
+    private static abstract class AeronHandler<M extends DirectPayload> implements FragmentHandler {
+        private M message = null;
 
         @Override
         public void onFragment(final DirectBuffer buffer, final int offset, final int length, final Header header) {
             final MessageType messageType = MessageType.readFrom(buffer, offset);
-            message = messageType.create(directFactory);
+            message = message(buffer, offset, length);
             message.wrap(buffer, offset);
         }
 
@@ -75,5 +98,8 @@ public class AeronReceiver implements Receiver<Message> {
                 message = null;
             }
         }
+
+        abstract protected M message(final DirectBuffer buffer, final int offset, final int length);
     }
+
 }

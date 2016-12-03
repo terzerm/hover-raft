@@ -27,11 +27,11 @@ import org.tools4j.hoverraft.command.LogKey;
 import org.tools4j.hoverraft.direct.AbstractDirectPayload;
 
 public class DirectLogKey extends AbstractDirectPayload implements LogKey {
-    protected static final int TERM_OFF = 0;
-    protected static final int TERM_LEN = 4;
+    private static final int TERM_OFF = 0;
+    private static final int TERM_LEN = 4;
 
-    protected static final int INDEX_OFF = TERM_OFF + TERM_LEN;
-    protected static final int INDEX_LEN = 8;
+    private static final int INDEX_OFF = TERM_OFF + TERM_LEN;
+    private static final int INDEX_LEN = 8;
 
     public static final int BYTE_LENGTH = INDEX_OFF + INDEX_LEN;
 
@@ -60,10 +60,5 @@ public class DirectLogKey extends AbstractDirectPayload implements LogKey {
     public LogKey index(long index) {
         writeBuffer.putLong(offset + INDEX_OFF, index);
         return this;
-    }
-
-    @Override
-    public void copyFrom(final LogKey logKey) {
-        super.copyFrom(logKey);
     }
 }
