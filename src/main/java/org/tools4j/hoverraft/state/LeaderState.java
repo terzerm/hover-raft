@@ -145,7 +145,7 @@ public class LeaderState extends AbstractState {
         final TrackedFollowerState trackedFollowerState =  volatileState().followerStateById(serverId);
         final CommandLog commandLog = persistentState().commandLog();
         final long nextLogIndex = trackedFollowerState.nextIndex();
-        final long prevLogIndex = trackedFollowerState.nextIndex() - 1;
+        final long prevLogIndex = nextLogIndex - 1;
 
         final AppendRequest appendRequest = serverContext.directFactory().appendRequest()
                 .term(currentTerm())

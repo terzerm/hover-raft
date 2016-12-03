@@ -37,7 +37,7 @@ import java.lang.reflect.Method;
 import java.util.Objects;
 
 /**
- * AbstractDirectMessage log based on a chronicle queue.
+ * Command log based on a chronicle queue.
  */
 public final class ChronicleCommandLog implements CommandLog {
 
@@ -128,17 +128,9 @@ public final class ChronicleCommandLog implements CommandLog {
         final int term = excerpt.readInt();
         final int sourceId = excerpt.readInt();
         final long commandIndex = excerpt.readLong();
-        final int len = excerpt.readInt();
         final int offset = target.command().offset();
-        for (int i = SOURCE_ID_LEN + COMMAND_INDEX_LEN; i < len; ) {
-            if (i + 8 <= len) {
-                mutableDirectBuffer.putLong(offset + i, excerpt.readLong());
-                i += 8;
-            } else {
-                mutableDirectBuffer.putByte(offset + i, excerpt.readByte());
-                i += 1;
-            }
-        }
+        final int len = excerpt.readInt();
+        readBytes(mutableDirectBuffer, offset, len);
         target.logKey()
                 .term(term)
                 .index(index);
@@ -157,17 +149,33 @@ public final class ChronicleCommandLog implements CommandLog {
         appender.writeLong(command.commandKey().commandIndex());
         appender.writeInt(len);
         final int offset = command.offset();
+        writeBytes(buffer, offset, len);
+        appender.finish();
+        commandKeyLookup.append(command.commandKey());
+    }
+
+    private void readBytes(final MutableDirectBuffer target, final int offset, final int len) {
         for (int i = SOURCE_ID_LEN + COMMAND_INDEX_LEN; i < len; ) {
             if (i + 8 <= len) {
-                appender.writeLong(buffer.getLong(offset + i));
+                target.putLong(offset + i, excerpt.readLong());
                 i += 8;
             } else {
-                appender.writeByte(buffer.getByte(offset + i));
+                target.putByte(offset + i, excerpt.readByte());
                 i += 1;
             }
         }
-        appender.finish();
-        commandKeyLookup.append(command.commandKey());
+    }
+
+    private void writeBytes(final DirectBuffer source, final int offset, final int len) {
+        for (int i = SOURCE_ID_LEN + COMMAND_INDEX_LEN; i < len; ) {
+            if (i + 8 <= len) {
+                appender.writeLong(source.getLong(offset + i));
+                i += 8;
+            } else {
+                appender.writeByte(source.getByte(offset + i));
+                i += 1;
+            }
+        }
     }
 
     @Override
