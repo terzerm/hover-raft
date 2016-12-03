@@ -36,14 +36,14 @@ public final class DirectCommand extends AbstractDirectPayload implements Comman
     private static final int COMMAND_KEY_LEN = DirectCommandKey.BYTE_LENGTH;
     private static final int COMMAND_PAYLOAD_OFF = COMMAND_KEY_OFF + COMMAND_KEY_LEN;
 
-    public static final int EMPTY_COMMAND_BYTE_LENGTH = COMMAND_PAYLOAD_OFF;
+    public static final int EMPTY_COMMAND_BYTE_LENGTH = COMMAND_KEY_LEN + DirectCommandPayload.EMPTY_PAYLOAD_BYTE_LENGTH;
 
     private final DirectCommandKey commandKey = new DirectCommandKey();
     private final DirectCommandPayload commandPayload = new DirectCommandPayload();
 
     @Override
     public int byteLength() {
-        return EMPTY_COMMAND_BYTE_LENGTH + commandPayload.commandByteLength();
+        return COMMAND_KEY_LEN + commandPayload.byteLength();
     }
 
     @Override

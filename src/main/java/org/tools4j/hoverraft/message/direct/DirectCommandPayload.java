@@ -36,6 +36,8 @@ public class DirectCommandPayload extends AbstractDirectPayload implements Comma
     private static final int BYTE_LENGTH_LEN  = 4;
     private static final int BYTES_OFF = BYTE_LENGTH_OFF + BYTE_LENGTH_LEN;
 
+    public static final int EMPTY_PAYLOAD_BYTE_LENGTH = BYTE_LENGTH_LEN;
+
     @Override
     public int byteLength() {
         return BYTES_OFF + commandByteLength();
