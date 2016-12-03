@@ -25,6 +25,9 @@ package org.tools4j.hoverraft.command;
 
 public interface CommandLog {
     long size();
+    default long lastIndex() {
+        return size() - 1;
+    }
     int readTerm(long index);
     void readTo(long index, LogKey target);
     void readTo(long index, CommandKey target);
@@ -34,16 +37,16 @@ public interface CommandLog {
     void truncateIncluding(long index);
 
     default int lastTerm() {
-        return readTerm(size() - 1);
+        return readTerm(lastIndex());
     }
 
-    default void lastKeyTo(LogKey target) {
-        readTo(size() - 1, target);
+    default void lastKeyTo(final LogKey target) {
+        readTo(lastIndex(), target);
     }
 
     default int lastKeyCompareTo(final LogKey logKey) {
         final int termCompare = Integer.compare(lastTerm(), logKey.term());
-        return termCompare == 0 ? Long.compare(size() - 1, logKey.index()) : termCompare;
+        return termCompare == 0 ? Long.compare(lastIndex(), logKey.index()) : termCompare;
     }
 
     boolean contains(CommandKey commandKey);

@@ -38,4 +38,8 @@ public interface LogEntry extends DirectPayload {
     }
 
     Command command();
+
+    default void copyFrom(final LogEntry logEntry) {
+        writeBufferOrNull().putBytes(offset(), logEntry.readBufferOrNull(), logEntry.offset(), logEntry.byteLength());
+    }
 }

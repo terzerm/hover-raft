@@ -36,7 +36,7 @@ import java.util.Objects;
 public final class CommandKeyLookup {
 
     private final Long2LongHashMap maxCommandIndexBySourceId = new Long2LongHashMap(-1);
-    private final CommandKey commandKey = new AllocatingDirectFactory().commandKey();
+    private final CommandKey tempKey = new AllocatingDirectFactory().commandKey();
     private final CommandLog commandLog;
 
     public CommandKeyLookup(final CommandLog commandLog) {
@@ -55,8 +55,8 @@ public final class CommandKeyLookup {
         final int sourceId = commandKey.sourceId();
         long maxCommandIndex = maxCommandIndexBySourceId.get(sourceId);
         if (maxCommandIndex < 0) {
-            final CommandKey tempKey = this.commandKey;
-            for (long idx = commandLog.size() - 1; idx >= 0; idx--) {
+            final CommandKey tempKey = this.tempKey;
+            for (long idx = commandLog.lastIndex(); idx >= 0; idx--) {
                 commandLog.readTo(idx, tempKey);
                 if (tempKey.sourceId() == sourceId) {
                     maxCommandIndex = tempKey.commandIndex();

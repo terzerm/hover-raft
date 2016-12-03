@@ -40,7 +40,7 @@ public interface Command extends DirectPayload, Event {
         return this;
     }
 
-    default Command commandIndex(long commandIndex) {
+    default Command commandIndex(final long commandIndex) {
         commandKey().commandIndex(commandIndex);
         return this;
     }

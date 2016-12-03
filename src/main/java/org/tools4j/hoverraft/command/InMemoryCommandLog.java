@@ -61,15 +61,14 @@ public class InMemoryCommandLog implements CommandLog {
     @Override
     public synchronized void readTo(final long index, final LogEntry target) {
         final LogEntry source = read(index);
-        target.writeBufferOrNull()
-                .putBytes(0, source.readBufferOrNull(), source.offset(), source.byteLength());
+        target.copyFrom(source);
     }
 
     private LogEntry read(final long index) {
         if (index < entries.size()) {
             return entries.get((int)index);
         }
-        throw new IllegalArgumentException("Index " + index + " is not in [0, " + (entries.size() - 1) + "]");
+        throw new IllegalArgumentException("Index " + index + " is not in [0, " + (lastIndex()) + "]");
     }
 
     @Override
@@ -96,12 +95,12 @@ public class InMemoryCommandLog implements CommandLog {
 
     @Override
     public synchronized int lastTerm() {
-        return readTerm(entries.size() - 1);
+        return readTerm(lastIndex());
     }
 
     @Override
     public synchronized void lastKeyTo(final LogKey target) {
-        readTo(entries.size() - 1, target);
+        readTo(lastIndex(), target);
     }
 
     @Override
