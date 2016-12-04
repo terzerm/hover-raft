@@ -50,7 +50,6 @@ public class AppendRequestHandler {
         final int currentTerm = persistentState.currentTerm();
         final Transition transition;
         final boolean successful;
-        final long matchLogIndex;
 
         if (appendRequestTerm < currentTerm) {
             transition = Transition.STEADY;
@@ -61,7 +60,7 @@ public class AppendRequestHandler {
             successful = appendToLog(serverContext, appendRequest);
         }
         //assume that NULL command log entry will have 0 command log entry index
-        matchLogIndex = successful ? Long.max(appendRequest.logEntry().logKey().index(),
+        final long matchLogIndex = successful ? Long.max(appendRequest.logEntry().logKey().index(),
                 appendRequest.prevLogKey().index()) : 0;
 
         serverContext.directFactory().appendResponse()
