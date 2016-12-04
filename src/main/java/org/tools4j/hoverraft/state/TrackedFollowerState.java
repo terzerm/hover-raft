@@ -46,20 +46,23 @@ public final class TrackedFollowerState {
         return matchIndex;
     }
 
-    void nextIndex(final long index) {
+    public TrackedFollowerState nextIndex(final long index) {
         this.nextIndex = index;
+        return this;
     }
 
-    void decrementNextIndex() {
+    public TrackedFollowerState decrementNextIndex() {
         this.nextIndex--;
+        return this;
     }
 
-    void resetMatchIndex() {
-        this.matchIndex = 0;
+    public TrackedFollowerState resetMatchIndex() {
+        this.matchIndex = -1;
+        return this;
     }
-    void matchIndex(final long index) {
-        if (index > this.matchIndex) {
-            this.matchIndex = index;
-        }
+
+    public TrackedFollowerState updateMatchIndex(final long index) {
+        this.matchIndex = Long.max(index, this.matchIndex);
+        return this;
     }
 }

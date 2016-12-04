@@ -55,16 +55,14 @@ public class AppendRequestHandler {
         if (appendRequestTerm < currentTerm) {
             transition = Transition.STEADY;
             successful = false;
-            matchLogIndex = 0;
         } else {
             //appendRequestTerm == currentTerm, as HigherTermHandler would
             transition = Transition.STEADY;
             successful = appendToLog(serverContext, appendRequest);
-
-            //assume that NULL command log entry will have 0 command log entry index
-            matchLogIndex = successful ? Long.max(appendRequest.logEntry().logKey().index(),
-                    appendRequest.prevLogKey().index()) : 0;
         }
+        //assume that NULL command log entry will have 0 command log entry index
+        matchLogIndex = successful ? Long.max(appendRequest.logEntry().logKey().index(),
+                appendRequest.prevLogKey().index()) : 0;
 
         serverContext.directFactory().appendResponse()
                 .term(currentTerm)
