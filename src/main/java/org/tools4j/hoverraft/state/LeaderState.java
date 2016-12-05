@@ -88,9 +88,10 @@ public class LeaderState extends AbstractState {
             followerState.decrementNextIndex();
             sendAppendRequest(serverContext, appendResponse.serverId());
         } else {
+            final long matchLogIndex = appendResponse.matchLogIndex();
             followerState
-                    .updateMatchIndex(appendResponse.matchLogIndex())
-                    .nextIndex(appendResponse.matchLogIndex() + 1);
+                    .updateMatchIndex(matchLogIndex)
+                    .nextIndex(matchLogIndex + 1);
         }
         updateCommitIndex();
         invokeStateMachineWithCommittedLogEntries(serverContext);

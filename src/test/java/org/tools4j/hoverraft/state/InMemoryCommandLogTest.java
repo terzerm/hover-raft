@@ -36,7 +36,7 @@ public class InMemoryCommandLogTest {
     @Test
     public void append_should_add_new_logEntry() throws Exception {
         final AllocatingDirectFactory factory = new AllocatingDirectFactory();
-        LogEntry logEntry = factory.logEntry();
+        final LogEntry logEntry = factory.logEntry();
 
         logEntry.logKey().term(1);
         logEntry.logKey().index(1L);
