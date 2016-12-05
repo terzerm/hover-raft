@@ -29,6 +29,8 @@ import org.tools4j.hoverraft.event.EventHandler;
 import org.tools4j.hoverraft.server.ServerContext;
 import org.tools4j.hoverraft.state.Transition;
 
+import java.util.Iterator;
+
 public interface AppendRequest extends Message {
 
     int term();
@@ -45,7 +47,9 @@ public interface AppendRequest extends Message {
 
     AppendRequest leaderCommit(long leaderCommit);
 
-    LogEntry logEntry();
+    Iterator<LogEntry> logEntryIterator();
+
+    AppendRequest appendLogEntry(LogEntry logEntry);
 
     @Override
     default Transition accept(final ServerContext serverContext, final EventHandler eventHandler) {

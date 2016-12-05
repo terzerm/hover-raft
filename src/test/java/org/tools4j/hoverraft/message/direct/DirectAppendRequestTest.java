@@ -26,13 +26,24 @@ package org.tools4j.hoverraft.message.direct;
 import org.agrona.ExpandableArrayBuffer;
 import org.junit.Before;
 import org.junit.Test;
+import org.tools4j.hoverraft.command.DirectLogEntry;
+import org.tools4j.hoverraft.command.LogEntry;
+import org.tools4j.hoverraft.direct.AllocatingDirectFactory;
+import org.tools4j.hoverraft.direct.DirectFactory;
 import org.tools4j.hoverraft.message.MessageType;
+
+import java.util.Iterator;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class DirectAppendRequestTest {
     private final ExpandableArrayBuffer buffer = new ExpandableArrayBuffer(DirectAppendRequest.BYTE_LENGTH);
     private final DirectAppendRequest directAppendRequest = new DirectAppendRequest();
+    private final DirectFactory directFactory = new AllocatingDirectFactory();
+
+    private final LogEntry logEntry1 = directFactory.logEntry();
+    private final LogEntry logEntry2 = directFactory.logEntry();
+
 
     @Before
     public void init() {
@@ -49,13 +60,22 @@ public class DirectAppendRequestTest {
         final long leaderCommit = 34564;
         final int prevLogEntryTerm = 8;
         final long prevLogEntryIndex = 34765;
-        final int newEntryTerm = 9;
-        final long newEntryIndex = 34766;
-        final long newEntryCommandIndex = 45674;
-        final int newEntryCommandSourceId = 34;
 
-        final String myCommand = "Command: XXXXXX";
-        final byte[] commandBytes = myCommand.getBytes();
+        final int newEntryTerm1 = 9;
+        final long newEntryIndex1 = 34766;
+        final long newEntryCommandIndex1 = 45674;
+        final int newEntryCommandSourceId1 = 34;
+
+        final String myCommand1 = "Command: XXXXXX";
+        final byte[] commandBytes1 = myCommand1.getBytes();
+
+        final int newEntryTerm2 = 10;
+        final long newEntryIndex2 = 34767;
+        final long newEntryCommandIndex2 = 45675;
+        final int newEntryCommandSourceId2 = 34;
+
+        final String myCommand2 = "Command: YYYYYYYYYYY";
+        final byte[] commandBytes2 = myCommand2.getBytes();
 
         //when
         directAppendRequest
@@ -64,13 +84,33 @@ public class DirectAppendRequestTest {
                 .leaderCommit(leaderCommit)
                 .prevLogKey().term(prevLogEntryTerm)
                                 .index(prevLogEntryIndex);
-        directAppendRequest.logEntry()
-                .term(newEntryTerm)
-                .index(newEntryIndex)
+
+
+        final Iterator<LogEntry> logEntryIterator = directAppendRequest.logEntryIterator();
+        assertThat(logEntryIterator.hasNext()).isEqualTo(false);
+
+        logEntry1
+                .term(newEntryTerm1)
+                .index(newEntryIndex1)
                 .command()
-                    .commandIndex(newEntryCommandIndex)
-                    .sourceId(newEntryCommandSourceId)
-                    .commandPayload().bytesFrom(commandBytes, 0, commandBytes.length);
+                    .sourceId(newEntryCommandSourceId1)
+                    .commandIndex(newEntryCommandIndex1)
+                    .commandPayload().bytesFrom(commandBytes1, 0, commandBytes1.length);
+
+        logEntry2
+                .term(newEntryTerm2)
+                .index(newEntryIndex2)
+                .command()
+                .sourceId(newEntryCommandSourceId2)
+                .commandIndex(newEntryCommandIndex2)
+                .commandPayload().bytesFrom(commandBytes2, 0, commandBytes2.length);
+
+
+        directAppendRequest.appendLogEntry(logEntry1);
+        directAppendRequest.appendLogEntry(logEntry2);
+
+        assertThat(logEntryIterator.hasNext()).isEqualTo(true);
+
 
         // then
         assertThat(directAppendRequest.type()).isEqualTo(MessageType.APPEND_REQUEST);
@@ -86,28 +126,105 @@ public class DirectAppendRequestTest {
         assertThat(retrievedPrevLogEntryIndex).isEqualTo(prevLogEntryIndex);
 
 
-        final int retrievedCommandLogEntryTerm = directAppendRequest.logEntry().logKey().term();
-        final long retrievedCommandLogEntryIndex = directAppendRequest.logEntry().logKey().index();
+        ///// LogEntry 1 ////////
+        final LogEntry retrievedLogEntry1 = logEntryIterator.next();
 
-        assertThat(retrievedCommandLogEntryTerm).isEqualTo(newEntryTerm);
-        assertThat(retrievedCommandLogEntryIndex).isEqualTo(newEntryIndex);
+        final int retrievedCommandLogEntryTerm1 = retrievedLogEntry1.logKey().term();
+        final long retrievedCommandLogEntryIndex1 = retrievedLogEntry1.logKey().index();
 
-        final int retrievedCommandSourceId = directAppendRequest.logEntry().command().commandKey().sourceId();
-        final long retrieveCommandIndex = directAppendRequest.logEntry().command().commandKey().commandIndex();
-        final int retrievedCommandByteLength = directAppendRequest.logEntry().command().commandPayload().commandByteLength();
+        assertThat(retrievedCommandLogEntryTerm1).isEqualTo(newEntryTerm1);
+        assertThat(retrievedCommandLogEntryIndex1).isEqualTo(newEntryIndex1);
 
-        assertThat(retrievedCommandSourceId).isEqualTo(newEntryCommandSourceId);
-        assertThat(retrieveCommandIndex).isEqualTo(newEntryCommandIndex);
-        assertThat(retrievedCommandByteLength).isEqualTo(commandBytes.length);
+        final int retrievedCommandSourceId1 = retrievedLogEntry1.command().commandKey().sourceId();
+        final long retrieveCommandIndex1 = retrievedLogEntry1.command().commandKey().commandIndex();
+        final int retrievedCommandByteLength1 = retrievedLogEntry1.command().commandPayload().commandByteLength();
 
-        final byte[] retrievedCommandBytes = new byte[retrievedCommandByteLength];
-        directAppendRequest.logEntry().command().commandPayload().bytesTo(retrievedCommandBytes, 0);
+        assertThat(retrievedCommandSourceId1).isEqualTo(newEntryCommandSourceId1);
+        assertThat(retrieveCommandIndex1).isEqualTo(newEntryCommandIndex1);
+        assertThat(retrievedCommandByteLength1).isEqualTo(commandBytes1.length);
 
-        assertThat(new String(retrievedCommandBytes)).isEqualTo(myCommand);
+        final byte[] retrievedCommandBytes1 = new byte[retrievedCommandByteLength1];
+        retrievedLogEntry1.command().commandPayload().bytesTo(retrievedCommandBytes1, 0);
+
+        assertThat(new String(retrievedCommandBytes1)).isEqualTo(myCommand1);
+
+
+        ///// LogEntry 2 ////////
+
+        assertThat(logEntryIterator.hasNext()).isEqualTo(true);
+
+        final LogEntry retrievedLogEntry2 = logEntryIterator.next();
+
+        final int retrievedCommandLogEntryTerm2 = retrievedLogEntry2.logKey().term();
+        final long retrievedCommandLogEntryIndex2 = retrievedLogEntry2.logKey().index();
+
+        assertThat(retrievedCommandLogEntryTerm2).isEqualTo(newEntryTerm2);
+        assertThat(retrievedCommandLogEntryIndex2).isEqualTo(newEntryIndex2);
+
+        final int retrievedCommandSourceId2 = retrievedLogEntry2.command().commandKey().sourceId();
+        final long retrieveCommandIndex2 = retrievedLogEntry2.command().commandKey().commandIndex();
+        final int retrievedCommandByteLength2 = retrievedLogEntry2.command().commandPayload().commandByteLength();
+
+        assertThat(retrievedCommandSourceId2).isEqualTo(newEntryCommandSourceId2);
+        assertThat(retrieveCommandIndex2).isEqualTo(newEntryCommandIndex2);
+        assertThat(retrievedCommandByteLength2).isEqualTo(commandBytes2.length);
+
+        final byte[] retrievedCommandBytes2 = new byte[retrievedCommandByteLength2];
+        retrievedLogEntry2.command().commandPayload().bytesTo(retrievedCommandBytes2, 0);
+
+        assertThat(new String(retrievedCommandBytes2)).isEqualTo(myCommand2);
+
+        ///// LogEntry 3 - does not exist ////////
+        assertThat(logEntryIterator.hasNext()).isEqualTo(false);
 
         final int extectedAppendRequestBytes = DirectAppendRequest.BYTE_LENGTH +
-                DirectLogKey.BYTE_LENGTH + DirectCommand.EMPTY_COMMAND_BYTE_LENGTH +
-                commandBytes.length;
+                (DirectLogKey.BYTE_LENGTH + DirectCommand.EMPTY_COMMAND_BYTE_LENGTH) * 2 +
+                commandBytes1.length + commandBytes2.length;
+
+        assertThat(directAppendRequest.byteLength()).isEqualTo(extectedAppendRequestBytes);
+
+
+    }
+
+
+    @Test
+    public void should_get_the_data_that_has_been_set_when_no_log_entries() throws Exception {
+
+        //given
+        final int term = 10;
+        final int leaderId = 2;
+        final long leaderCommit = 34564;
+        final int prevLogEntryTerm = 8;
+        final long prevLogEntryIndex = 34765;
+
+        //when
+        directAppendRequest
+                .term(term)
+                .leaderId(leaderId)
+                .leaderCommit(leaderCommit)
+                .prevLogKey().term(prevLogEntryTerm)
+                .index(prevLogEntryIndex);
+
+
+        final Iterator<LogEntry> logEntryIterator = directAppendRequest.logEntryIterator();
+        assertThat(logEntryIterator.hasNext()).isEqualTo(false);
+
+
+        // then
+        assertThat(directAppendRequest.type()).isEqualTo(MessageType.APPEND_REQUEST);
+        assertThat(directAppendRequest.term()).isEqualTo(term);
+        assertThat(directAppendRequest.leaderId()).isEqualTo(leaderId);
+        assertThat(directAppendRequest.leaderCommit()).isEqualTo(leaderCommit);
+
+
+        final int retrievedPrevLogEntryTerm = directAppendRequest.prevLogKey().term();
+        final long retrievedPrevLogEntryIndex = directAppendRequest.prevLogKey().index();
+
+        assertThat(retrievedPrevLogEntryTerm).isEqualTo(prevLogEntryTerm);
+        assertThat(retrievedPrevLogEntryIndex).isEqualTo(prevLogEntryIndex);
+
+
+        final int extectedAppendRequestBytes = DirectAppendRequest.BYTE_LENGTH;
 
         assertThat(directAppendRequest.byteLength()).isEqualTo(extectedAppendRequestBytes);
 

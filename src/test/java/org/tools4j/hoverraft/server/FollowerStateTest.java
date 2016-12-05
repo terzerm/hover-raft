@@ -34,6 +34,7 @@ import org.tools4j.hoverraft.command.LogContainment;
 import org.tools4j.hoverraft.command.LogEntry;
 import org.tools4j.hoverraft.command.LogKey;
 import org.tools4j.hoverraft.direct.AllocatingDirectFactory;
+import org.tools4j.hoverraft.direct.DirectFactory;
 import org.tools4j.hoverraft.message.AppendRequest;
 import org.tools4j.hoverraft.message.AppendResponse;
 import org.tools4j.hoverraft.message.Message;
@@ -42,6 +43,8 @@ import org.tools4j.hoverraft.state.PersistentState;
 import org.tools4j.hoverraft.state.Transition;
 import org.tools4j.hoverraft.state.VolatileState;
 import org.tools4j.hoverraft.transport.Sender;
+
+import java.util.Iterator;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
@@ -78,16 +81,20 @@ public class FollowerStateTest {
 
         volatileState.commitIndex(50);
 
-        final AppendRequest appendRequest = new AllocatingDirectFactory()
+        final DirectFactory directFactory = new AllocatingDirectFactory();
+
+
+        final LogEntry newlogEntry = directFactory.logEntry();
+        newlogEntry.logKey()
+                .index(101L)
+                .term(term);
+
+        final AppendRequest appendRequest = directFactory
                 .appendRequest()
                 .term(term)
                 .leaderId(leaderId)
-                .leaderCommit(50);
-
-
-        appendRequest.logEntry().logKey()
-                .index(101L)
-                .term(term);
+                .leaderCommit(50)
+                .appendLogEntry(newlogEntry);
 
         //make appendRequest prevLogKey to match the end of commandLog
         appendRequest.prevLogKey().term(term)
@@ -95,7 +102,9 @@ public class FollowerStateTest {
 
         final CommandLog commandLog = persistentState.commandLog();
         final LogKey prevLogEntry = appendRequest.prevLogKey();
-        final LogEntry logEntry = appendRequest.logEntry();
+        Iterator<LogEntry> logEntryIterator = appendRequest.logEntryIterator();
+
+        final LogEntry logEntry = logEntryIterator.next();
 
         when(commandLog.contains(prevLogEntry)).thenReturn(LogContainment.IN);
 

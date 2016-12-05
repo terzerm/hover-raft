@@ -25,6 +25,7 @@ package org.tools4j.hoverraft.state;
 
 import org.tools4j.hoverraft.command.Command;
 import org.tools4j.hoverraft.command.CommandLog;
+import org.tools4j.hoverraft.command.LogEntry;
 import org.tools4j.hoverraft.event.EventHandler;
 import org.tools4j.hoverraft.message.AppendRequest;
 import org.tools4j.hoverraft.message.AppendResponse;
@@ -157,7 +158,10 @@ public class LeaderState extends AbstractState {
                 .leaderId(serverContext.id());
 
         commandLog.readTo(prevLogIndex, appendRequest.prevLogKey());
-        commandLog.readTo(nextLogIndex, appendRequest.logEntry());
+        final LogEntry newLogEntry = serverContext.directFactory().logEntry();
+        commandLog.readTo(nextLogIndex, newLogEntry);
+
+        appendRequest.appendLogEntry(newLogEntry);
 
         appendRequest.sendTo(serverContext.connections().serverMulticastSender(),
                         serverContext.resendStrategy());

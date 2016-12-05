@@ -90,7 +90,7 @@ public class AllocatingDirectFactory implements DirectFactory {
     @Override
     public LogEntry logEntry() {
         final DirectLogEntry directCommandLogEntry = new DirectLogEntry();
-        directCommandLogEntry.wrap(newBuffer(DirectLogKey.BYTE_LENGTH), 0);
+        directCommandLogEntry.wrap(newBuffer(DirectLogKey.BYTE_LENGTH + DirectCommand.EMPTY_COMMAND_BYTE_LENGTH), 0);
         return directCommandLogEntry;
     }
 }
