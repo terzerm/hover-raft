@@ -72,8 +72,6 @@ public class AppendRequestHandler {
             if (lastLogEntry != null) {
                 matchLogIndex = lastLogEntry.logKey().index();
             }
-        } else {
-            matchLogIndex = -1;
         }
 
         serverContext.directFactory().appendResponse()
