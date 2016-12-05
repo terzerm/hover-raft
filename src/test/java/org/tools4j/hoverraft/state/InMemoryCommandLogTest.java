@@ -42,7 +42,7 @@ public class InMemoryCommandLogTest {
         logEntry.logKey().index(1L);
         logEntry.command().commandPayload().bytesFrom(new byte[] {}, 0, 0);
 
-        InMemoryCommandLog commandLog = new InMemoryCommandLog();
+        final InMemoryCommandLog commandLog = new InMemoryCommandLog();
         commandLog.append(1, logEntry.command());
 
         assertThat(commandLog.size()).isEqualTo(1);
