@@ -36,14 +36,14 @@ public class InMemoryCommandLogTest {
     @Test
     public void append_should_add_new_logEntry() throws Exception {
         final AllocatingDirectFactory factory = new AllocatingDirectFactory();
-        LogEntry logEntry1 = factory.logEntry();
+        final LogEntry logEntry = factory.logEntry();
 
-        logEntry1.logKey().term(1);
-        logEntry1.logKey().index(1L);
-        logEntry1.command().commandPayload().bytesFrom(new byte[] {}, 0, 0);
+        logEntry.logKey().term(1);
+        logEntry.logKey().index(1L);
+        logEntry.command().commandPayload().bytesFrom(new byte[] {}, 0, 0);
 
-        InMemoryCommandLog commandLog = new InMemoryCommandLog();
-        commandLog.append(1, logEntry1.command());
+        final InMemoryCommandLog commandLog = new InMemoryCommandLog();
+        commandLog.append(1, logEntry.command());
 
         assertThat(commandLog.size()).isEqualTo(1);
     }

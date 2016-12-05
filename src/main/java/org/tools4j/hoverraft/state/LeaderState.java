@@ -82,12 +82,16 @@ public class LeaderState extends AbstractState {
     }
 
     private Transition onAppendResponse(final ServerContext serverContext, final AppendResponse appendResponse) {
+        final TrackedFollowerState followerState = volatileState().followerState(appendResponse.serverId());
+
         if (!appendResponse.successful()) {
-            volatileState().followerState(appendResponse.serverId()).decrementNextIndex();
+            followerState.decrementNextIndex();
             sendAppendRequest(serverContext, appendResponse.serverId());
         } else {
-            volatileState().followerState(appendResponse.serverId()).matchIndex(appendResponse.matchLogIndex());
-            volatileState().followerState(appendResponse.serverId()).nextIndex(appendResponse.matchLogIndex() + 1);
+            final long matchLogIndex = appendResponse.matchLogIndex();
+            followerState
+                    .updateMatchIndex(matchLogIndex)
+                    .nextIndex(matchLogIndex + 1);
         }
         updateCommitIndex();
         invokeStateMachineWithCommittedLogEntries(serverContext);

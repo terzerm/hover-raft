@@ -31,8 +31,8 @@ public final class VolatileState {
 
     @Deprecated //REMOVE this is now storted as State in HoverRaftMachine
     private Role role = Role.FOLLOWER;
-    private long commitIndex;
-    private long lastApplied;
+    private long commitIndex = -1;
+    private long lastApplied = -1;
 
     public VolatileState(final int serverId, final ConsensusConfig consensusConfig) {
         this.trackedFollowerStates = initFollowerStates(serverId, consensusConfig);
@@ -66,8 +66,8 @@ public final class VolatileState {
 
     public void resetFollowersState(final long nextIndex) {
         for (final TrackedFollowerState fs : trackedFollowerStates) {
-            fs.nextIndex(nextIndex);
-            fs.resetMatchIndex();
+            fs.nextIndex(nextIndex)
+                    .resetMatchIndex();
         }
     }
 
