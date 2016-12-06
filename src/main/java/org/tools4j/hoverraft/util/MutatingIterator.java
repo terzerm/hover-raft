@@ -21,31 +21,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.direct;
+package org.tools4j.hoverraft.util;
 
-import org.agrona.DirectBuffer;
-import org.agrona.MutableDirectBuffer;
-
-/**
- * Direct Payload
- */
-public interface DirectPayload {
-
-    int byteLength();
-
-    int offset();
-
-    DirectBuffer readBufferOrNull();
-
-    MutableDirectBuffer writeBufferOrNull();
-
-    void wrap(DirectBuffer buffer, int offset);
-
-    void wrap(MutableDirectBuffer buffer, int offset);
-
-    void unwrap();
-
-    default boolean isWrapped() {
-        return readBufferOrNull() != null && writeBufferOrNull() != null;
-    }
+public interface MutatingIterator<T> {
+    boolean hasNext();
+    void next(T mutable);
 }

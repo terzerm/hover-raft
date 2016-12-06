@@ -26,12 +26,11 @@ package org.tools4j.hoverraft.message.direct;
 import org.agrona.DirectBuffer;
 import org.agrona.MutableDirectBuffer;
 import org.tools4j.hoverraft.command.LogEntry;
-import org.tools4j.hoverraft.command.DirectLogEntry;
 import org.tools4j.hoverraft.command.LogKey;
 import org.tools4j.hoverraft.message.AppendRequest;
 import org.tools4j.hoverraft.message.MessageType;
+import org.tools4j.hoverraft.util.MutatingIterator;
 
-import java.util.Iterator;
 
 public final class DirectAppendRequest extends AbstractDirectMessage implements AppendRequest {
 
@@ -112,7 +111,7 @@ public final class DirectAppendRequest extends AbstractDirectMessage implements 
     }
 
     @Override
-    public Iterator<LogEntry> logEntryIterator() {
+    public MutatingIterator<LogEntry> logEntryIterator() {
         return logEntryIterator.reset();
     }
 
@@ -141,8 +140,7 @@ public final class DirectAppendRequest extends AbstractDirectMessage implements 
         super.unwrap();
     }
 
-    private class LogEntryIterator implements Iterator<LogEntry> {
-        final DirectLogEntry directLogEntry = new DirectLogEntry();
+    private class LogEntryIterator implements MutatingIterator<LogEntry> {
         private int currentOffset;
 
         @Override
@@ -151,15 +149,13 @@ public final class DirectAppendRequest extends AbstractDirectMessage implements 
         }
 
         @Override
-        public DirectLogEntry next() {
-            directLogEntry.wrap(readBuffer, currentOffset);
-            currentOffset = currentOffset + directLogEntry.byteLength();
-            return directLogEntry;
+        public void next(final LogEntry logEntry) {
+            logEntry.wrap(readBuffer, currentOffset);
+            currentOffset = currentOffset + logEntry.byteLength();
         }
 
         private LogEntryIterator reset() {
             currentOffset = offset + BYTE_LENGTH;
-            directLogEntry.unwrap();
             return this;
         }
     }

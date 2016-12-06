@@ -28,8 +28,8 @@ import org.tools4j.hoverraft.command.LogKey;
 import org.tools4j.hoverraft.event.EventHandler;
 import org.tools4j.hoverraft.server.ServerContext;
 import org.tools4j.hoverraft.state.Transition;
+import org.tools4j.hoverraft.util.MutatingIterator;
 
-import java.util.Iterator;
 
 public interface AppendRequest extends Message {
 
@@ -47,7 +47,7 @@ public interface AppendRequest extends Message {
 
     AppendRequest leaderCommit(long leaderCommit);
 
-    Iterator<LogEntry> logEntryIterator();
+    MutatingIterator<LogEntry> logEntryIterator();
 
     AppendRequest appendLogEntry(LogEntry logEntry);
 

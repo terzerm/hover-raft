@@ -29,10 +29,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.tools4j.hoverraft.command.CommandLog;
-import org.tools4j.hoverraft.command.LogContainment;
-import org.tools4j.hoverraft.command.LogEntry;
-import org.tools4j.hoverraft.command.LogKey;
+import org.tools4j.hoverraft.command.*;
 import org.tools4j.hoverraft.direct.AllocatingDirectFactory;
 import org.tools4j.hoverraft.direct.DirectFactory;
 import org.tools4j.hoverraft.message.AppendRequest;
@@ -43,8 +40,6 @@ import org.tools4j.hoverraft.state.PersistentState;
 import org.tools4j.hoverraft.state.Transition;
 import org.tools4j.hoverraft.state.VolatileState;
 import org.tools4j.hoverraft.transport.Sender;
-
-import java.util.Iterator;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
@@ -83,11 +78,21 @@ public class FollowerStateTest {
 
         final DirectFactory directFactory = new AllocatingDirectFactory();
 
+        final String commandString = "My command";
+        final byte[] commandBytes = commandString.getBytes();
 
+        final long commandIndex = 324234;
+        final int commandSourceId = 56;
         final LogEntry newlogEntry = directFactory.logEntry();
         newlogEntry.logKey()
                 .index(101L)
                 .term(term);
+        newlogEntry.command()
+                .commandIndex(commandIndex)
+                .sourceId(commandSourceId)
+                .commandPayload()
+                .bytesFrom(commandBytes, 0, commandBytes.length);
+
 
         final AppendRequest appendRequest = directFactory
                 .appendRequest()
@@ -102,9 +107,6 @@ public class FollowerStateTest {
 
         final CommandLog commandLog = persistentState.commandLog();
         final LogKey prevLogEntry = appendRequest.prevLogKey();
-        Iterator<LogEntry> logEntryIterator = appendRequest.logEntryIterator();
-
-        final LogEntry logEntry = logEntryIterator.next();
 
         when(commandLog.contains(prevLogEntry)).thenReturn(LogContainment.IN);
 
@@ -114,7 +116,19 @@ public class FollowerStateTest {
         final Transition transition = followerState.onEvent(serverContext, appendRequest);
 
         //then
-        verify(commandLog).append(logEntry.logKey().term(), logEntry.command());
+        final ArgumentCaptor<Command> commandCaptor = ArgumentCaptor.forClass(Command.class);
+        final ArgumentCaptor<Integer> termCaptor = ArgumentCaptor.forClass(Integer.class);
+
+        verify(commandLog).append(termCaptor.capture(), commandCaptor.capture());
+
+        final long capturedCommandIndex = commandCaptor.getValue().commandKey().commandIndex();
+        final int capturedCommandSourceId = commandCaptor.getValue().commandKey().sourceId();
+        final int capturedTerm = termCaptor.getValue();
+
+        assertThat(capturedCommandIndex).isEqualTo(commandIndex);
+        assertThat(capturedCommandSourceId).isEqualTo(commandSourceId);
+        assertThat(capturedTerm).isEqualTo(term);
+
 
         final ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
         verify(sender).offer(captor.capture());
