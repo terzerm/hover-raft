@@ -46,6 +46,6 @@ public interface DirectPayload {
     void unwrap();
 
     default boolean isWrapped() {
-        return readBufferOrNull() != null && writeBufferOrNull() != null;
+        return readBufferOrNull() != null || writeBufferOrNull() != null;
     }
 }
