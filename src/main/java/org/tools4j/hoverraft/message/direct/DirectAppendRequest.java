@@ -142,21 +142,21 @@ public final class DirectAppendRequest extends AbstractDirectMessage implements 
     }
 
     private class LogEntryIterator implements MutatingIterator<LogEntry> {
-        private int currentOffset = 0;
+        private int nextOffset = 0;
 
         @Override
         public boolean hasNext() {
-            return currentOffset < logByteLength();
+            return nextOffset < logByteLength();
         }
 
         @Override
         public void next(final LogEntry logEntry) {
-            logEntry.wrap(readBuffer, LOG_OFF + currentOffset);
-            currentOffset += logEntry.byteLength();
+            logEntry.wrap(readBuffer, LOG_OFF + nextOffset);
+            nextOffset += logEntry.byteLength();
         }
 
         private LogEntryIterator reset() {
-            currentOffset = 0;
+            nextOffset = 0;
             return this;
         }
     }
