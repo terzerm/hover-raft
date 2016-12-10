@@ -26,6 +26,7 @@ package org.tools4j.hoverraft.message.direct;
 import org.agrona.ExpandableArrayBuffer;
 import org.junit.Before;
 import org.junit.Test;
+import org.tools4j.hoverraft.command.DirectLogEntry;
 import org.tools4j.hoverraft.command.LogEntry;
 import org.tools4j.hoverraft.direct.AllocatingDirectFactory;
 import org.tools4j.hoverraft.direct.DirectFactory;
@@ -179,7 +180,7 @@ public class DirectAppendRequestTest {
         assertThat(logEntryIterator.hasNext()).isEqualTo(false);
 
         final int extectedAppendRequestBytes = DirectAppendRequest.EMPTY_LOG_BYTE_LENGTH +
-                (DirectLogKey.BYTE_LENGTH + DirectCommand.EMPTY_COMMAND_BYTE_LENGTH) * 2 +
+                DirectLogEntry.EMPTY_COMMAND_BYTE_LENGTH * 2 +
                 commandBytes1.length + commandBytes2.length;
 
         assertThat(directAppendRequest.byteLength()).isEqualTo(extectedAppendRequestBytes);
