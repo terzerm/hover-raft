@@ -44,4 +44,8 @@ public interface DirectPayload {
     void wrap(MutableDirectBuffer buffer, int offset);
 
     void unwrap();
+
+    default boolean isWrapped() {
+        return readBufferOrNull() != null || writeBufferOrNull() != null;
+    }
 }

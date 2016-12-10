@@ -32,6 +32,7 @@ import org.tools4j.hoverraft.server.ServerContext;
 import org.tools4j.hoverraft.state.PersistentState;
 import org.tools4j.hoverraft.state.Transition;
 import org.tools4j.hoverraft.state.VolatileState;
+import org.tools4j.hoverraft.util.MutatingIterator;
 
 import java.util.Objects;
 
@@ -59,9 +60,19 @@ public class AppendRequestHandler {
             transition = Transition.STEADY;
             successful = appendToLog(serverContext, appendRequest);
         }
-        //assume that NULL command log entry will have 0 command log entry index
-        final long matchLogIndex = successful ? Long.max(appendRequest.logEntry().logKey().index(),
-                appendRequest.prevLogKey().index()) : 0;
+
+        long matchLogIndex = -1;
+
+        if (successful) {
+            final MutatingIterator<LogEntry> logEntryIterator = appendRequest.logEntryIterator();
+            final LogEntry lastLogEntry = serverContext.directFactory().logEntry();
+            while(logEntryIterator.hasNext()) {
+                logEntryIterator.next(lastLogEntry);
+            }
+            if (lastLogEntry.isWrapped()) {
+                matchLogIndex = lastLogEntry.logKey().index();
+            }
+        }
 
         serverContext.directFactory().appendResponse()
                 .term(currentTerm)
@@ -77,7 +88,6 @@ public class AppendRequestHandler {
     private boolean appendToLog(final ServerContext serverContext, final AppendRequest appendRequest) {
 
         final LogKey prevLogKey = appendRequest.prevLogKey();
-        final LogEntry newLogEntry = appendRequest.logEntry();
 
         final CommandLog commandLog = persistentState.commandLog();
 
@@ -90,12 +100,18 @@ public class AppendRequestHandler {
                 return false;
             case IN:
                 //Append any new entries not already in the log
-                //FIXme need to enable null appendRequest.logEntry()
-                final LogEntry logEntry = appendRequest.logEntry();
-                commandLog.append(logEntry.logKey().term(), logEntry.command());
+                final MutatingIterator<LogEntry> logEntryIterator = appendRequest.logEntryIterator();
+                final LogEntry logEntry = serverContext.directFactory().logEntry();
+                while (logEntryIterator.hasNext()) {
+                    logEntryIterator.next(logEntry);
+                    commandLog.append(logEntry.logKey().term(), logEntry.command());
+                }
 
-                if (appendRequest.leaderCommit() > volatileState.commitIndex()) {
-                    volatileState.commitIndex(Long.min(appendRequest.leaderCommit(), newLogEntry.logKey().index()));
+                //From paper:  If leaderCommit > commitIndex, set commitIndex =
+                // min(leaderCommit, index of last new entry).
+                // I think, "index of last new entry" implies not empty log entries.
+                if (logEntry.isWrapped() && appendRequest.leaderCommit() > volatileState.commitIndex()) {
+                    volatileState.commitIndex(Long.min(appendRequest.leaderCommit(), logEntry.logKey().index()));
                 }
                 return true;
             default:

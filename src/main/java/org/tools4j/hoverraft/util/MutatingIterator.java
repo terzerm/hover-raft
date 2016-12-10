@@ -21,38 +21,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.message;
+package org.tools4j.hoverraft.util;
 
-import org.tools4j.hoverraft.command.LogEntry;
-import org.tools4j.hoverraft.command.LogKey;
-import org.tools4j.hoverraft.event.EventHandler;
-import org.tools4j.hoverraft.server.ServerContext;
-import org.tools4j.hoverraft.state.Transition;
-import org.tools4j.hoverraft.util.MutatingIterator;
-
-
-public interface AppendRequest extends Message {
-
-    int term();
-
-    AppendRequest term(int term);
-
-    int leaderId();
-
-    AppendRequest leaderId(int leaderId);
-
-    LogKey prevLogKey();
-
-    long leaderCommit();
-
-    AppendRequest leaderCommit(long leaderCommit);
-
-    MutatingIterator<LogEntry> logEntryIterator();
-
-    AppendRequest appendLogEntry(LogEntry logEntry);
-
-    @Override
-    default Transition accept(final ServerContext serverContext, final EventHandler eventHandler) {
-        return eventHandler.onAppendRequest(serverContext, this);
-    }
+public interface MutatingIterator<T> {
+    boolean hasNext();
+    void next(T mutable);
 }

@@ -30,6 +30,7 @@ import org.tools4j.hoverraft.message.direct.DirectCommand;
 import org.tools4j.hoverraft.message.direct.DirectLogKey;
 
 public class DirectLogEntry extends AbstractDirectPayload implements LogEntry {
+    public static final int EMPTY_COMMAND_BYTE_LENGTH = DirectLogKey.BYTE_LENGTH + DirectCommand.EMPTY_COMMAND_BYTE_LENGTH;
     private static final int LOG_KEY_OFF = 0;
     private static final int LOG_KEY_LEN = DirectLogKey.BYTE_LENGTH;
 

@@ -26,10 +26,11 @@ package org.tools4j.hoverraft.message.direct;
 import org.agrona.DirectBuffer;
 import org.agrona.MutableDirectBuffer;
 import org.tools4j.hoverraft.command.LogEntry;
-import org.tools4j.hoverraft.command.DirectLogEntry;
 import org.tools4j.hoverraft.command.LogKey;
 import org.tools4j.hoverraft.message.AppendRequest;
 import org.tools4j.hoverraft.message.MessageType;
+import org.tools4j.hoverraft.util.MutatingIterator;
+
 
 public final class DirectAppendRequest extends AbstractDirectMessage implements AppendRequest {
 
@@ -44,13 +45,17 @@ public final class DirectAppendRequest extends AbstractDirectMessage implements 
 
     private static final int LEADER_COMMIT_OFF = PREV_LOG_KEY_OFF + PREV_LOG_KEY_LEN;
     private static final int LEADER_COMMIT_LEN = 8;
-    private static final int LOG_ENTRY_OFF = LEADER_COMMIT_OFF + LEADER_COMMIT_LEN;
 
-    public static final int BYTE_LENGTH = LOG_ENTRY_OFF;
+    private static final int LOG_BYTE_LENGTH_OFF  = LEADER_COMMIT_OFF + LEADER_COMMIT_LEN;
+    private static final int LOG_BYTE_LENGTH_LEN  = 4;
+
+    private static final int LOG_OFF = LOG_BYTE_LENGTH_OFF + LOG_BYTE_LENGTH_LEN;
+
+    public static final int EMPTY_LOG_BYTE_LENGTH = LOG_OFF;
 
     private final DirectLogKey prevLogKey = new DirectLogKey() ;
 
-    private final DirectLogEntry directLogEntry = new DirectLogEntry();
+    private final LogEntryIterator logEntryIterator = new LogEntryIterator();
 
     @Override
     public MessageType type() {
@@ -59,7 +64,7 @@ public final class DirectAppendRequest extends AbstractDirectMessage implements 
 
     @Override
     public int byteLength() {
-        return BYTE_LENGTH + directLogEntry.byteLength();
+        return EMPTY_LOG_BYTE_LENGTH + logByteLength();
     }
 
     public int term() {
@@ -97,29 +102,62 @@ public final class DirectAppendRequest extends AbstractDirectMessage implements 
         return this;
     }
 
+    private int logByteLength() {
+        return readBuffer.getInt(offset + LOG_BYTE_LENGTH_OFF);
+    }
+
+    private void logByteLength(final int logByteLength) {
+        writeBuffer.putInt(offset + LOG_BYTE_LENGTH_OFF, logByteLength);
+    }
+
     @Override
-    public LogEntry logEntry() {
-        return directLogEntry;
+    public MutatingIterator<LogEntry> logEntryIterator() {
+        return logEntryIterator.reset();
+    }
+
+    @Override
+    public AppendRequest appendLogEntry(final LogEntry logEntry) {
+        final int logLen = logByteLength();
+        writeBuffer.putBytes(offset + LOG_OFF + logLen, logEntry.readBufferOrNull(), logEntry.offset(), logEntry.byteLength());
+        logByteLength(logLen + logEntry.byteLength());
+        return this;
     }
 
     @Override
     public void wrap(DirectBuffer buffer, int offset) {
         super.wrap(buffer, offset);
         prevLogKey.wrap(buffer, offset + PREV_LOG_KEY_OFF);
-        directLogEntry.wrap(buffer, offset + LOG_ENTRY_OFF);
     }
 
     @Override
     public void wrap(MutableDirectBuffer buffer, int offset) {
         super.wrap(buffer, offset);
         prevLogKey.wrap(buffer, offset + PREV_LOG_KEY_OFF);
-        directLogEntry.wrap(buffer, offset + LOG_ENTRY_OFF);
     }
 
     @Override
     public void unwrap() {
-        directLogEntry.unwrap();
         prevLogKey.unwrap();
         super.unwrap();
+    }
+
+    private class LogEntryIterator implements MutatingIterator<LogEntry> {
+        private int currentOffset = 0;
+
+        @Override
+        public boolean hasNext() {
+            return currentOffset < logByteLength();
+        }
+
+        @Override
+        public void next(final LogEntry logEntry) {
+            logEntry.wrap(readBuffer, LOG_OFF + currentOffset);
+            currentOffset += logEntry.byteLength();
+        }
+
+        private LogEntryIterator reset() {
+            currentOffset = 0;
+            return this;
+        }
     }
 }
