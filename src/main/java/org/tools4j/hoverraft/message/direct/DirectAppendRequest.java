@@ -51,7 +51,7 @@ public final class DirectAppendRequest extends AbstractDirectMessage implements 
 
     private static final int LOG_OFF = LOG_BYTE_LENGTH_OFF + LOG_BYTE_LENGTH_LEN;
 
-    public static final int BYTE_LENGTH = LOG_OFF;
+    public static final int EMPTY_LOG_BYTE_LENGTH = LOG_OFF;
 
     private final DirectLogKey prevLogKey = new DirectLogKey() ;
 
@@ -64,7 +64,7 @@ public final class DirectAppendRequest extends AbstractDirectMessage implements 
 
     @Override
     public int byteLength() {
-        return BYTE_LENGTH + logByteLength();
+        return EMPTY_LOG_BYTE_LENGTH + logByteLength();
     }
 
     public int term() {
@@ -117,8 +117,9 @@ public final class DirectAppendRequest extends AbstractDirectMessage implements 
 
     @Override
     public AppendRequest appendLogEntry(final LogEntry logEntry) {
-        writeBuffer.putBytes(offset + byteLength(), logEntry.readBufferOrNull(), logEntry.offset(), logEntry.byteLength());
-        logByteLength( logByteLength() + logEntry.byteLength());
+        final int logLen = logByteLength();
+        writeBuffer.putBytes(offset + LOG_OFF + logLen, logEntry.readBufferOrNull(), logEntry.offset(), logEntry.byteLength());
+        logByteLength(logLen + logEntry.byteLength());
         return this;
     }
 
@@ -141,21 +142,21 @@ public final class DirectAppendRequest extends AbstractDirectMessage implements 
     }
 
     private class LogEntryIterator implements MutatingIterator<LogEntry> {
-        private int currentOffset;
+        private int currentOffset = 0;
 
         @Override
         public boolean hasNext() {
-            return currentOffset < offset + byteLength();
+            return currentOffset < logByteLength();
         }
 
         @Override
         public void next(final LogEntry logEntry) {
-            logEntry.wrap(readBuffer, currentOffset);
-            currentOffset = currentOffset + logEntry.byteLength();
+            logEntry.wrap(readBuffer, LOG_OFF + currentOffset);
+            currentOffset += logEntry.byteLength();
         }
 
         private LogEntryIterator reset() {
-            currentOffset = offset + BYTE_LENGTH;
+            currentOffset = 0;
             return this;
         }
     }

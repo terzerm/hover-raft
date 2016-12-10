@@ -26,7 +26,6 @@ package org.tools4j.hoverraft.message.direct;
 import org.agrona.ExpandableArrayBuffer;
 import org.junit.Before;
 import org.junit.Test;
-import org.tools4j.hoverraft.command.DirectLogEntry;
 import org.tools4j.hoverraft.command.LogEntry;
 import org.tools4j.hoverraft.direct.AllocatingDirectFactory;
 import org.tools4j.hoverraft.direct.DirectFactory;
@@ -37,7 +36,7 @@ import org.tools4j.hoverraft.util.MutatingIterator;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class DirectAppendRequestTest {
-    private final ExpandableArrayBuffer buffer = new ExpandableArrayBuffer(DirectAppendRequest.BYTE_LENGTH);
+    private final ExpandableArrayBuffer buffer = new ExpandableArrayBuffer(DirectAppendRequest.EMPTY_LOG_BYTE_LENGTH);
     private final DirectAppendRequest directAppendRequest = new DirectAppendRequest();
     private final DirectFactory directFactory = new AllocatingDirectFactory();
 
@@ -179,7 +178,7 @@ public class DirectAppendRequestTest {
         ///// LogEntry 3 - does not exist ////////
         assertThat(logEntryIterator.hasNext()).isEqualTo(false);
 
-        final int extectedAppendRequestBytes = DirectAppendRequest.BYTE_LENGTH +
+        final int extectedAppendRequestBytes = DirectAppendRequest.EMPTY_LOG_BYTE_LENGTH +
                 (DirectLogKey.BYTE_LENGTH + DirectCommand.EMPTY_COMMAND_BYTE_LENGTH) * 2 +
                 commandBytes1.length + commandBytes2.length;
 
@@ -226,7 +225,7 @@ public class DirectAppendRequestTest {
         assertThat(retrievedPrevLogEntryIndex).isEqualTo(prevLogEntryIndex);
 
 
-        final int extectedAppendRequestBytes = DirectAppendRequest.BYTE_LENGTH;
+        final int extectedAppendRequestBytes = DirectAppendRequest.EMPTY_LOG_BYTE_LENGTH;
 
         assertThat(directAppendRequest.byteLength()).isEqualTo(extectedAppendRequestBytes);
 

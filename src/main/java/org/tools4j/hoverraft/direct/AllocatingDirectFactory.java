@@ -41,7 +41,7 @@ public class AllocatingDirectFactory implements DirectFactory {
     @Override
     public AppendRequest appendRequest() {
         final DirectAppendRequest directAppendRequest = new DirectAppendRequest();
-        directAppendRequest.wrap(newBuffer(DirectAppendRequest.BYTE_LENGTH), 0);
+        directAppendRequest.wrap(newBuffer(DirectAppendRequest.EMPTY_LOG_BYTE_LENGTH), 0);
         return directAppendRequest;
     }
 
@@ -90,7 +90,7 @@ public class AllocatingDirectFactory implements DirectFactory {
     @Override
     public LogEntry logEntry() {
         final DirectLogEntry directCommandLogEntry = new DirectLogEntry();
-        directCommandLogEntry.wrap(newBuffer(DirectLogKey.BYTE_LENGTH + DirectCommand.EMPTY_COMMAND_BYTE_LENGTH), 0);
+        directCommandLogEntry.wrap(newBuffer(DirectLogEntry.EMPTY_COMMAND_BYTE_LENGTH), 0);
         return directCommandLogEntry;
     }
 }
