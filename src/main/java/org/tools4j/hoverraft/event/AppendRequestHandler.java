@@ -28,11 +28,11 @@ import org.tools4j.hoverraft.command.LogContainment;
 import org.tools4j.hoverraft.command.LogEntry;
 import org.tools4j.hoverraft.command.LogKey;
 import org.tools4j.hoverraft.message.AppendRequest;
+import org.tools4j.hoverraft.message.Sequence;
 import org.tools4j.hoverraft.server.ServerContext;
 import org.tools4j.hoverraft.state.PersistentState;
 import org.tools4j.hoverraft.state.Transition;
 import org.tools4j.hoverraft.state.VolatileState;
-import org.tools4j.hoverraft.util.MutatingIterator;
 
 import java.util.Objects;
 
@@ -64,10 +64,10 @@ public class AppendRequestHandler {
         long matchLogIndex = -1;
 
         if (successful) {
-            final MutatingIterator<LogEntry> logEntryIterator = appendRequest.logEntryIterator();
             final LogEntry lastLogEntry = serverContext.directFactory().logEntry();
-            while(logEntryIterator.hasNext()) {
-                logEntryIterator.next(lastLogEntry);
+            final Sequence.SequenceIterator<LogEntry> logIt = appendRequest.logEntries().iterator();
+            while (logIt.hasNext()) {
+                logIt.readNextTo(lastLogEntry);
             }
             if (lastLogEntry.isWrapped()) {
                 matchLogIndex = lastLogEntry.logKey().index();
@@ -100,10 +100,10 @@ public class AppendRequestHandler {
                 return false;
             case IN:
                 //Append any new entries not already in the log
-                final MutatingIterator<LogEntry> logEntryIterator = appendRequest.logEntryIterator();
                 final LogEntry logEntry = serverContext.directFactory().logEntry();
-                while (logEntryIterator.hasNext()) {
-                    logEntryIterator.next(logEntry);
+                final Sequence.SequenceIterator<LogEntry> logIt = appendRequest.logEntries().iterator();
+                while (logIt.hasNext()) {
+                    logIt.readNextTo(logEntry);
                     commandLog.append(logEntry.logKey().term(), logEntry.command());
                 }
 

@@ -21,9 +21,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.tools4j.hoverraft.util;
+package org.tools4j.hoverraft.message;
 
-public interface MutatingIterator<T> {
-    boolean hasNext();
-    void next(T mutable);
+public interface Sequence<T> {
+    SequenceIterator<T> iterator();
+    Sequence<T> append(T source);
+
+    interface SequenceIterator<T> {
+        boolean hasNext();
+        SequenceIterator<T> readNextTo(T target);
+    }
 }

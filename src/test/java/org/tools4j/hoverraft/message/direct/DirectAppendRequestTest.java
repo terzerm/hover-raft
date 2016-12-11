@@ -31,8 +31,7 @@ import org.tools4j.hoverraft.command.LogEntry;
 import org.tools4j.hoverraft.direct.AllocatingDirectFactory;
 import org.tools4j.hoverraft.direct.DirectFactory;
 import org.tools4j.hoverraft.message.MessageType;
-import org.tools4j.hoverraft.util.MutatingIterator;
-
+import org.tools4j.hoverraft.message.Sequence;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -87,7 +86,7 @@ public class DirectAppendRequestTest {
                                 .index(prevLogEntryIndex);
 
 
-        final MutatingIterator<LogEntry> logEntryIterator = directAppendRequest.logEntryIterator();
+        final Sequence.SequenceIterator<LogEntry> logEntryIterator = directAppendRequest.logEntries().iterator();
         assertThat(logEntryIterator.hasNext()).isEqualTo(false);
 
         logEntry1
@@ -129,7 +128,7 @@ public class DirectAppendRequestTest {
 
         ///// LogEntry 1 ////////
 
-        logEntryIterator.next(iteratingLogEntry);
+        logEntryIterator.readNextTo(iteratingLogEntry);
 
         final int retrievedCommandLogEntryTerm1 = iteratingLogEntry.logKey().term();
         final long retrievedCommandLogEntryIndex1 = iteratingLogEntry.logKey().index();
@@ -155,7 +154,7 @@ public class DirectAppendRequestTest {
 
         assertThat(logEntryIterator.hasNext()).isEqualTo(true);
 
-        logEntryIterator.next(iteratingLogEntry);
+        logEntryIterator.readNextTo(iteratingLogEntry);
 
         final int retrievedCommandLogEntryTerm2 = iteratingLogEntry.logKey().term();
         final long retrievedCommandLogEntryIndex2 = iteratingLogEntry.logKey().index();
@@ -208,7 +207,7 @@ public class DirectAppendRequestTest {
                 .index(prevLogEntryIndex);
 
 
-        final MutatingIterator<LogEntry> logEntryIterator = directAppendRequest.logEntryIterator();
+        final Sequence.SequenceIterator<LogEntry> logEntryIterator = directAppendRequest.logEntries().iterator();
         assertThat(logEntryIterator.hasNext()).isEqualTo(false);
 
 
