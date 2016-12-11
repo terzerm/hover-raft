@@ -30,5 +30,6 @@ public interface Sequence<T> {
     interface SequenceIterator<T> {
         boolean hasNext();
         SequenceIterator<T> readNextTo(T target);
+        SequenceIterator<T> reset();
     }
 }

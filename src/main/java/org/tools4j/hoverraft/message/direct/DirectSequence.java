@@ -86,7 +86,7 @@ public class DirectSequence<T extends DirectPayload> extends AbstractDirectPaylo
             return this;
         }
 
-        private SequenceIterator<T> reset() {
+        public SequenceIterator<T> reset() {
             nextOffset = 0;
             return this;
         }
