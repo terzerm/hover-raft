@@ -14,8 +14,8 @@ idea {
     module {
         downloadJavadoc = true
         downloadSources = true
-//        excludeDirs -= file(buildDir)
-//        buildDir.listFiles({d,f->f != generatedSrcName} as FilenameFilter).each {excludeDirs += it}
+        excludeDirs -= file(buildDir)
+        buildDir.listFiles({d,f->f != generatedSrcName} as FilenameFilter).each {excludeDirs += it}
     }
 }
 
@@ -46,7 +46,8 @@ buildscript {
 }
 
 dependencies {
-    compile 'io.aeron:aeron-all:1.0'
+    compile 'org.agrona:Agrona:0.9.1'
+    compile 'io.aeron:aeron-all:1.0.5'
 //    compile 'net.openhft:chronicle-queue:4.4.2'
     compile 'net.openhft:chronicle:3.6.2'
     compile 'org.hdrhistogram:HdrHistogram:2.1.9'
