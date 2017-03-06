@@ -32,6 +32,7 @@ import java.util.function.Consumer;
 
 public class EmbeddedAsyncTransport implements Transport {
 
+    private final OutputConsumer outputConsumer;
     private final ExecutorService executorService;
     private final AtomicInteger messageCount = new AtomicInteger();
     private final CountDownLatch shutdownLatch = new CountDownLatch(1);
@@ -39,6 +40,10 @@ public class EmbeddedAsyncTransport implements Transport {
     private final Map<Consumer<? super Message>, ConcurrentMap<Integer, Queue<Message>>> messageConsumersWithQueuePerSourceId = new ConcurrentHashMap<>();
 
     public EmbeddedAsyncTransport(final ExecutorService executorService) {
+        this(OutputConsumer.SYSTEM_OUT, executorService);
+    }
+    public EmbeddedAsyncTransport(final OutputConsumer outputConsumer, final ExecutorService executorService) {
+        this.outputConsumer = Objects.requireNonNull(outputConsumer);
         this.executorService = Objects.requireNonNull(executorService);
     }
 
@@ -94,6 +99,6 @@ public class EmbeddedAsyncTransport implements Transport {
 
     @Override
     public void sendOutput(final int serverId, final long sequenceNo, final Message message) {
-        System.out.println("[" + serverId + "] " + sequenceNo + ":\t" + message);
+        outputConsumer.onOutput(serverId, sequenceNo, message);
     }
 }

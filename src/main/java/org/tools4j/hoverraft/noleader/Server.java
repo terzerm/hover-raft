@@ -25,9 +25,11 @@ package org.tools4j.hoverraft.noleader;
 
 import org.agrona.collections.Int2ObjectHashMap;
 
+import java.util.Deque;
 import java.util.Objects;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -38,7 +40,7 @@ public class Server {
     private final Transport transport;
     private final AtomicReference<Envelope> currentEnvelope = new AtomicReference<>();
     private final Int2ObjectHashMap<AtomicLong> lastSentMessageIdPerSourceId = new Int2ObjectHashMap<>();
-    private final Queue<Message> messagesToProcess = new ConcurrentLinkedQueue<>();
+    private final Deque<Message> messagesToProcess = new ConcurrentLinkedDeque<>();
     private final AtomicLong sequenceNo = new AtomicLong();
 
     public Server(final int serverId, final int serverCount, final Transport transport) {
@@ -47,6 +49,16 @@ public class Server {
         this.transport = Objects.requireNonNull(transport);
         this.transport.addSourceListener(this::onNewSourceMessage);
         this.transport.addServerListener(this::onEnvelope);
+    }
+
+    public void awaitTermination(final long timeout, final TimeUnit unit) throws TimeoutException, InterruptedException {
+        final long timeoutMillis = System.currentTimeMillis() + unit.toMillis(timeout);
+        while (!messagesToProcess.isEmpty() || currentEnvelope.get() != null) {
+            Thread.sleep(100);
+            if (System.currentTimeMillis() > timeoutMillis) {
+                throw new TimeoutException("not terminated after " + timeout + " " + unit);
+            }
+        }
     }
 
     private synchronized void onNewSourceMessage(final Message message) {
@@ -78,7 +90,7 @@ public class Server {
                 transport.sendOutput(serverId, toSend.sequenceNo(), toSend.message());
                 updateLastSentMessage(toSend.message());
             }
-            seq++;
+            seq = sequenceNo.incrementAndGet();
         }
         if (seq < envelope.sequenceNo()) {
             handleMissingMessage();
@@ -89,7 +101,6 @@ public class Server {
     private void onEnvelopeWithSameSequence(final Envelope envelope) {
         if (isMajority(envelope)) {
             handleMajorityEnvelope(envelope);
-            return;
         } else {
             handleMinorityEnvelope(envelope);
         }
@@ -106,11 +117,14 @@ public class Server {
                 return;
                 //throw new IllegalArgumentException(serverId + " / " + envelope);
             }
-            if (isMajority(myEnvelope) || myEnvelope.message().sourceId() <= envelope.message().sourceId()) {
+            if (isMajority(myEnvelope) || myEnvelope.message().sourceId() < envelope.message().sourceId()) {
                 //we win, don't confirm
                 transport.notifyServers(myEnvelope);
             } else {
                 //envelope wins, confirm
+                if (!myEnvelope.message().equals(envelope.message())) {
+                    messagesToProcess.addFirst(myEnvelope.message());
+                }
                 final Envelope confirmation = envelope.confirm(serverId);
                 currentEnvelope.set(confirmation);
                 transport.notifyServers(confirmation);
@@ -122,9 +136,13 @@ public class Server {
         //majority, send envelope now
         transport.sendOutput(serverId, envelope.sequenceNo(), envelope.message());
         updateLastSentMessage(envelope.message());
-        currentEnvelope.set(null);
+        final Envelope old = currentEnvelope.getAndSet(null);
         sequenceNo.incrementAndGet();
-        scheduleNext();
+        if (old == null || old.message().equals(envelope.message())) {
+            scheduleNext();
+        } else {
+            newEnvelopeForMessage(old.message());
+        }
     }
 
     private void updateLastSentMessage(final Message message) {

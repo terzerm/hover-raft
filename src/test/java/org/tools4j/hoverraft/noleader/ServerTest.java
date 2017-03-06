@@ -25,8 +25,10 @@ package org.tools4j.hoverraft.noleader;
 
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.util.Random;
 import java.util.concurrent.Callable;
@@ -40,11 +42,21 @@ import static org.mockito.Mockito.*;
 
 public class ServerTest {
 
+    private static final int SECONS_TO_WAIT = 10;
     private static final Random RND = new Random();
+
+    private OutputConsumer outputConsumer;
+    private OutputConsumer sysOutConsumer;
+
+    @Before
+    public void beforeEach() {
+        outputConsumer = Mockito.mock(OutputConsumer.class);
+        sysOutConsumer = OutputConsumer.SYSTEM_OUT.andThen(outputConsumer);
+    }
 
     @Test
     public void syncServers3() throws Exception {
-        testServers3(new EmbeddedSyncTransport(), () -> null);
+        testServers3(new EmbeddedSyncTransport(sysOutConsumer), () -> null);
     }
 
     @Ignore //FIXME fails currently
@@ -52,9 +64,9 @@ public class ServerTest {
     public void asyncServers3() throws Exception {
         final int nThreads = 5;
         final ExecutorService executorService = Executors.newFixedThreadPool(nThreads);
-        final EmbeddedAsyncTransport transport = new EmbeddedAsyncTransport(executorService);
+        final EmbeddedAsyncTransport transport = new EmbeddedAsyncTransport(sysOutConsumer, executorService);
         final Callable<Void> terminator = () -> {
-            transport.shutdownAndWait(5, TimeUnit.SECONDS);
+            transport.shutdownAndWait(SECONS_TO_WAIT, TimeUnit.SECONDS);
             return null;
         };
         testServers3(transport, terminator);
@@ -63,21 +75,24 @@ public class ServerTest {
     private void testServers3(final Transport transport, final Callable<Void> terminationWaiter) throws Exception {
         //given
         final int nServers = 3;
-        final int nMessages = 100;
+        final int nMessages = 20;
         final int nSources = 3;
         final int[] messageCounts = new int[nSources];
+        final Server[] servers = new Server[nServers];
 
-        final Transport spiedTransport = spy(transport);
         for (int serverId = 0; serverId < nServers; serverId++) {
-            final Server server = new Server(serverId, nServers, spiedTransport);
+            servers[serverId] =  new Server(serverId, nServers, transport);
         }
 
         //when
         for (int i = 0; i < nMessages; i++) {
             final int sourceId = RND.nextInt(nSources);
             final int messageId = i;
-            spiedTransport.receiveInput(Message.create(sourceId, messageId));
+            transport.receiveInput(Message.create(sourceId, messageId));
             messageCounts[sourceId]++;
+        }
+        for (int serverId = 0; serverId < nServers; serverId++) {
+            servers[serverId].awaitTermination(SECONS_TO_WAIT, TimeUnit.SECONDS);
         }
         terminationWaiter.call();
 
@@ -85,7 +100,7 @@ public class ServerTest {
         for (int sourceId = 0; sourceId < nSources; sourceId++) {
             final int srcId = sourceId;
             for (int serverId = 0; serverId < nServers; serverId++) {
-                verify(spiedTransport, times(messageCounts[sourceId])).sendOutput(eq(serverId), anyLong(),
+                verify(outputConsumer, times(messageCounts[sourceId])).onOutput(eq(serverId), anyLong(),
                         argThat(new BaseMatcher<Message>() {
                             @Override
                             public boolean matches(final Object item) {

@@ -24,14 +24,23 @@
 package org.tools4j.hoverraft.noleader;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 
 public class EmbeddedSyncTransport implements Transport {
 
+    private final OutputConsumer outputConsumer;
     private final Collection<Consumer<? super Message>> messageConsumers = new ConcurrentLinkedQueue<>();
     private final Collection<Consumer<? super Envelope>> envelopeConsumers = new ConcurrentLinkedQueue<>();
 
+
+    public EmbeddedSyncTransport() {
+        this(OutputConsumer.SYSTEM_OUT);
+    }
+    public EmbeddedSyncTransport(final OutputConsumer outputConsumer) {
+        this.outputConsumer = Objects.requireNonNull(outputConsumer);
+    }
     @Override
     public void addSourceListener(final Consumer<? super Message> messageConsumer) {
         messageConsumers.add(messageConsumer);
@@ -58,6 +67,6 @@ public class EmbeddedSyncTransport implements Transport {
 
     @Override
     public void sendOutput(final int serverId, final long sequenceNo, final Message message) {
-        System.out.println("[" + serverId + "] " + sequenceNo + ":\t" + message);
+        outputConsumer.onOutput(serverId, sequenceNo, message);
     }
 }
